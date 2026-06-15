@@ -1,0 +1,31 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_ALLOW_CLEARTEXT": "true"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://baby-patterns-server.onrender.com",
+        "EXPO_PUBLIC_MEDIA_URL": "https://baby-patterns-server.onrender.com"
+      }
+    },
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://baby-patterns-server.onrender.com",
+        "EXPO_PUBLIC_MEDIA_URL": "https://baby-patterns-server.onrender.com"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
