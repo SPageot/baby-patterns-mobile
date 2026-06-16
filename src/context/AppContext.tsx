@@ -9,6 +9,7 @@ import {
 } from 'react'
 import { logoutUser } from '@/api/authApi'
 import { fetchAccessibleBabies } from '@/api/babyApi'
+import { setSessionExpiredHandler } from '@/api/client'
 import { isApiConfigured } from '@/api/config'
 import { fetchCurrentUser } from '@/api/userApi'
 import { syncAppStore } from '@/lib/appStore'
@@ -37,6 +38,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [babies, setBabiesState] = useState<Baby[]>([])
   const [selectedBabyId, setSelectedBabyId] = useState('')
   const [authReady, setAuthReady] = useState(false)
+
+  useEffect(() => {
+    setSessionExpiredHandler(() => {
+      void clearAuthSession().then(() => {
+        setUserState(null)
+        setBabiesState([])
+        setSelectedBabyId('')
+      })
+    })
+    return () => setSessionExpiredHandler(null)
+  }, [])
 
   useEffect(() => {
     syncAppStore({ user, babies, selectedBabyId })

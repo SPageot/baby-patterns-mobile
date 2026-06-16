@@ -22,7 +22,6 @@ import {
 
 export function useProfile() {
   const { user, babies, setUser, authReady } = useApp()
-  const ownBabies = useMemo(() => babies.filter((b) => !b.isShared), [babies])
 
   const userId = user?.id ?? ''
   const [locationDraft, setLocationDraft] = useState(user?.location ?? '')
@@ -61,14 +60,14 @@ export function useProfile() {
   }, [authReady, user?.id, setUser])
 
   const loadStats = useCallback(async () => {
-    if (!isApiConfigured() || ownBabies.length === 0) {
+    if (!isApiConfigured() || babies.length === 0) {
       setAllLogs([])
       return
     }
 
     setStatsLoading(true)
     try {
-      const babyRefs = ownBabies.map((b) => ({ id: b.id, fullName: b.fullName }))
+      const babyRefs = babies.map((b) => ({ id: b.id, fullName: b.fullName }))
       const [diapers, sleep, feeding] = await Promise.all([
         loadDiaperLogsForBabies(babyRefs),
         loadSleepLogsForBabies(babyRefs),
@@ -80,7 +79,7 @@ export function useProfile() {
     } finally {
       setStatsLoading(false)
     }
-  }, [ownBabies])
+  }, [babies])
 
   useDeferredEffect(() => {
     void loadStats()
@@ -200,7 +199,7 @@ export function useProfile() {
     deletingAvatar,
     profileError,
     statsLoading,
-    babies: ownBabies,
+    babies,
     monthStats,
     monthAverages,
     monthSleepStats,

@@ -1,5 +1,6 @@
 import { Pressable, ScrollView, Text, View } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useFocusEffect, useRouter } from 'expo-router'
+import { useCallback } from 'react'
 
 import { FamilyMembersSection } from '@/components/profile/FamilyMembersSection'
 import { HomeButton } from '@/components/home/HomeButton'
@@ -106,6 +107,12 @@ const createStyles = (t: AppPalette) => ({
     fontWeight: '600' as const,
     color: t.text,
   },
+  babyShared: {
+    fontSize: 12,
+    color: t.accentDeep,
+    fontWeight: '600' as const,
+    marginTop: 2,
+  },
   babyMeta: {
     fontSize: 12,
     color: t.textMuted,
@@ -142,10 +149,16 @@ const createStyles = (t: AppPalette) => ({
 
 export function ProfileScreen() {
   const router = useRouter()
-  const { user, authReady } = useApp()
+  const { user, authReady, loadBabiesForCurrentUser } = useApp()
   const profile = useProfile()
   const colors = useHomeTheme()
   const styles = useThemedStyles(createStyles)
+
+  useFocusEffect(
+    useCallback(() => {
+      if (user?.id) void loadBabiesForCurrentUser()
+    }, [loadBabiesForCurrentUser, user?.id]),
+  )
 
   if (!authReady) {
     return (
@@ -277,6 +290,9 @@ export function ProfileScreen() {
               <View key={baby.id} style={styles.babyRow}>
                 <View>
                   <Text style={styles.babyName}>{baby.fullName}</Text>
+                  {baby.isShared && baby.sharedFromUsername ? (
+                    <Text style={styles.babyShared}>From @{baby.sharedFromUsername}</Text>
+                  ) : null}
                   {baby.birthdate ? <Text style={styles.babyMeta}>Born {baby.birthdate}</Text> : null}
                 </View>
               </View>

@@ -26,6 +26,18 @@ type InternalFetchOptions = ApiFetchOptions & {
   retryOnUnauthorized?: boolean
 }
 
+type SessionExpiredHandler = () => void
+
+let onSessionExpired: SessionExpiredHandler | null = null
+
+export function setSessionExpiredHandler(handler: SessionExpiredHandler | null): void {
+  onSessionExpired = handler
+}
+
+function notifySessionExpired(): void {
+  onSessionExpired?.()
+}
+
 async function readResponseBody<T>(res: Response): Promise<T> {
   if (res.status === 204) return undefined as T
   const text = await res.text()
@@ -74,6 +86,7 @@ async function executeFetch<T>(
       if (refreshed) {
         return executeFetch(path, init, { ...options, retryOnUnauthorized: false })
       }
+      notifySessionExpired()
       throw new UnauthorizedError()
     }
 

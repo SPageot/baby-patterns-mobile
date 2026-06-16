@@ -3,7 +3,7 @@ import { SymbolView } from 'expo-symbols'
 
 import type { NavIconName } from '@/lib/navLinks'
 
-type MenuIconName = NavIconName | 'menu' | 'close' | 'sun'
+type MenuIconName = NavIconName | 'menu' | 'close' | 'sun' | 'bell'
 
 const SF_SYMBOLS: Record<MenuIconName, string> = {
   heart: 'heart.fill',
@@ -15,6 +15,7 @@ const SF_SYMBOLS: Record<MenuIconName, string> = {
   sun: 'sun.max.fill',
   menu: 'line.3.horizontal',
   close: 'xmark',
+  bell: 'bell.fill',
 }
 
 const EMOJI: Record<MenuIconName, string> = {
@@ -27,6 +28,7 @@ const EMOJI: Record<MenuIconName, string> = {
   sun: '☀️',
   menu: '☰',
   close: '✕',
+  bell: '🔔',
 }
 
 type Props = {

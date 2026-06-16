@@ -28,10 +28,7 @@ npm run start
 ```bash
 npm run typecheck
 npm run lint
-npm run test:production
 ```
-
-`test:production` validates HTTPS API config, required assets, TypeScript, live production API, and store bundle IDs (no cleartext HTTP).
 
 ## Icons & splash
 

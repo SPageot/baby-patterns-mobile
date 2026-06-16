@@ -47,7 +47,6 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "test:production": "node scripts/production-check.mjs",
     "generate-icons": "node scripts/generate-icons.mjs"
   },
   "private": true

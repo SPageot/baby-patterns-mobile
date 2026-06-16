@@ -1,42 +1,59 @@
 import { useCallback, useState } from 'react'
 
 import {
-  addFamilyMember,
+  acceptFamilyShareRequest,
+  cancelFamilyShareRequest,
+  declineFamilyShareRequest,
   fetchFamilyMembers,
+  fetchIncomingFamilyRequests,
+  fetchOutgoingFamilyRequests,
   removeFamilyMember,
+  sendFamilyShareRequest,
 } from '@/api/familyMembersApi'
 import { isApiConfigured } from '@/api/config'
-import type { FamilyMember } from '@/schemas/familyMember'
+import type { FamilyMember, FamilyShareRequest } from '@/schemas/familyMember'
 import type { UserSearchResult } from '@/api/userApi'
 import { searchUsers } from '@/api/userApi'
 import { useDeferredEffect } from '@/lib/scheduleEffect'
+import { useApp } from '@/context/AppContext'
 
 export function useFamilyMembers(enabled: boolean) {
+  const { loadBabiesForCurrentUser } = useApp()
   const [members, setMembers] = useState<FamilyMember[]>([])
+  const [incomingRequests, setIncomingRequests] = useState<FamilyShareRequest[]>([])
+  const [outgoingRequests, setOutgoingRequests] = useState<FamilyShareRequest[]>([])
   const [loading, setLoading] = useState(false)
   const [adding, setAdding] = useState(false)
+  const [respondingRequestId, setRespondingRequestId] = useState<string | null>(null)
   const [removingMemberUserId, setRemovingMemberUserId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [suggestions, setSuggestions] = useState<UserSearchResult[]>([])
   const [searching, setSearching] = useState(false)
 
-  const loadMembers = useCallback(async () => {
+  const loadAll = useCallback(async () => {
     if (!enabled || !isApiConfigured()) return
     setLoading(true)
     setError(null)
     try {
-      setMembers(await fetchFamilyMembers())
+      const [memberList, incoming, outgoing] = await Promise.all([
+        fetchFamilyMembers(),
+        fetchIncomingFamilyRequests(),
+        fetchOutgoingFamilyRequests(),
+      ])
+      setMembers(memberList)
+      setIncomingRequests(incoming)
+      setOutgoingRequests(outgoing)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not load family members')
+      setError(e instanceof Error ? e.message : 'Could not load family sharing')
     } finally {
       setLoading(false)
     }
   }, [enabled])
 
   useDeferredEffect(() => {
-    void loadMembers()
-  }, [loadMembers])
+    void loadAll()
+  }, [loadAll])
 
   useDeferredEffect(() => {
     const query = searchQuery.trim()
@@ -66,54 +83,138 @@ export function useFamilyMembers(enabled: boolean) {
     }
   }, [searchQuery])
 
-  const addMember = useCallback(async (username: string) => {
+  const isConnectedOrPending = useCallback(
+    (userId: string, username: string) => {
+      const normalized = username.trim().toLowerCase()
+      if (members.some((m) => m.memberUserId === userId)) return true
+      if (
+        incomingRequests.some(
+          (r) => r.requesterUserId === userId || r.requesterUsername.toLowerCase() === normalized,
+        )
+      ) {
+        return true
+      }
+      if (
+        outgoingRequests.some(
+          (r) => r.recipientUserId === userId || r.recipientUsername.toLowerCase() === normalized,
+        )
+      ) {
+        return true
+      }
+      return false
+    },
+    [members, incomingRequests, outgoingRequests],
+  )
+
+  const sendRequest = useCallback(async (username: string) => {
     setAdding(true)
     setError(null)
     try {
-      const member = await addFamilyMember(username)
-      setMembers((prev) => {
-        if (prev.some((m) => m.memberUserId === member.memberUserId)) return prev
-        return [member, ...prev]
+      const request = await sendFamilyShareRequest(username)
+      setOutgoingRequests((prev) => {
+        if (prev.some((r) => r.id === request.id)) return prev
+        return [request, ...prev]
       })
       setSearchQuery('')
       setSuggestions([])
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not add family member')
+      setError(e instanceof Error ? e.message : 'Could not send invite')
       throw e
     } finally {
       setAdding(false)
     }
   }, [])
 
-  const removeMember = useCallback(async (memberUserId: string) => {
-    const id = memberUserId.trim()
-    if (!id) return
+  const acceptRequest = useCallback(
+    async (requestId: string) => {
+      setRespondingRequestId(requestId)
+      setError(null)
+      try {
+        const member = await acceptFamilyShareRequest(requestId)
+        setIncomingRequests((prev) => prev.filter((r) => r.id !== requestId))
+        setMembers((prev) => {
+          if (prev.some((m) => m.memberUserId === member.memberUserId)) return prev
+          return [member, ...prev]
+        })
+        await loadBabiesForCurrentUser()
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Could not accept invite')
+        throw e
+      } finally {
+        setRespondingRequestId(null)
+      }
+    },
+    [loadBabiesForCurrentUser],
+  )
 
-    setRemovingMemberUserId(id)
+  const declineRequest = useCallback(async (requestId: string) => {
+    setRespondingRequestId(requestId)
     setError(null)
     try {
-      await removeFamilyMember(id)
-      setMembers((prev) => prev.filter((m) => m.memberUserId !== id))
+      await declineFamilyShareRequest(requestId)
+      setIncomingRequests((prev) => prev.filter((r) => r.id !== requestId))
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not remove family member')
+      setError(e instanceof Error ? e.message : 'Could not decline invite')
       throw e
     } finally {
-      setRemovingMemberUserId(null)
+      setRespondingRequestId(null)
     }
   }, [])
 
+  const cancelOutgoingRequest = useCallback(async (requestId: string) => {
+    setRespondingRequestId(requestId)
+    setError(null)
+    try {
+      await cancelFamilyShareRequest(requestId)
+      setOutgoingRequests((prev) => prev.filter((r) => r.id !== requestId))
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not cancel invite')
+      throw e
+    } finally {
+      setRespondingRequestId(null)
+    }
+  }, [])
+
+  const removeMember = useCallback(
+    async (memberUserId: string) => {
+      const id = memberUserId.trim()
+      if (!id) return
+
+      setRemovingMemberUserId(id)
+      setError(null)
+      try {
+        await removeFamilyMember(id)
+        setMembers((prev) => prev.filter((m) => m.memberUserId !== id))
+        await loadBabiesForCurrentUser()
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Could not remove family member')
+        throw e
+      } finally {
+        setRemovingMemberUserId(null)
+      }
+    },
+    [loadBabiesForCurrentUser],
+  )
+
   return {
     members,
+    incomingRequests,
+    outgoingRequests,
     loading,
     adding,
+    respondingRequestId,
     removingMemberUserId,
     error,
     searchQuery,
     setSearchQuery,
     suggestions,
     searching,
-    loadMembers,
-    addMember,
+    loadAll,
+    isConnectedOrPending,
+    sendRequest,
+    acceptRequest,
+    declineRequest,
+    cancelOutgoingRequest,
     removeMember,
   }
 }

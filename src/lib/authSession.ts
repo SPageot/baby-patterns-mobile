@@ -15,14 +15,13 @@ let hydrated = false
 
 async function readStoredSession(): Promise<string | null> {
   if (Platform.OS === 'web') {
-    return AsyncStorage.getItem(STORAGE_KEY)
+    return null
   }
   return SecureStore.getItemAsync(STORAGE_KEY)
 }
 
 async function writeStoredSession(value: string): Promise<void> {
   if (Platform.OS === 'web') {
-    await AsyncStorage.setItem(STORAGE_KEY, value)
     return
   }
   await SecureStore.setItemAsync(STORAGE_KEY, value)
@@ -39,6 +38,10 @@ async function removeStoredSession(): Promise<void> {
 export async function hydrateAuthSession(): Promise<AuthSession | null> {
   if (hydrated) return memorySession
   hydrated = true
+  if (Platform.OS === 'web') {
+    return null
+  }
+
   try {
     const raw = await readStoredSession()
     if (!raw) return null

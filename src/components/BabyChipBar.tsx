@@ -32,6 +32,9 @@ const createStyles = (t: AppPalette) => ({
     borderColor: t.accentLavender,
     backgroundColor: t.accentSoft,
   },
+  chipShared: {
+    borderStyle: 'dashed' as const,
+  },
   chipText: {
     fontSize: 14,
     fontWeight: '600' as const,
@@ -39,6 +42,12 @@ const createStyles = (t: AppPalette) => ({
   },
   chipTextActive: {
     color: t.accentDeep,
+  },
+  chipSharedLabel: {
+    fontSize: 11,
+    color: t.textMuted,
+    marginTop: 2,
+    fontWeight: '500' as const,
   },
   empty: {
     color: t.textMuted,
@@ -65,15 +74,28 @@ export function BabyChipBar() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.row}>
         {babies.map((baby) => {
           const active = baby.id === selectedBabyId
+          const name = baby.fullName?.trim() || 'Baby'
+          const sharedLabel = baby.isShared
+            ? baby.sharedFromFullName?.trim() || baby.sharedFromUsername?.trim()
+            : ''
           return (
             <Pressable
               key={baby.id}
               onPress={() => selectBaby(baby)}
-              style={[styles.chip, active && styles.chipActive]}
+              accessibilityRole="button"
+              accessibilityLabel={
+                sharedLabel ? `${name}, shared by ${sharedLabel}` : `Select ${name}`
+              }
+              style={[
+                styles.chip,
+                active && styles.chipActive,
+                baby.isShared && styles.chipShared,
+              ]}
             >
-              <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                {baby.fullName?.trim() || 'Baby'}
-              </Text>
+              <Text style={[styles.chipText, active && styles.chipTextActive]}>{name}</Text>
+              {sharedLabel ? (
+                <Text style={styles.chipSharedLabel}>via {sharedLabel}</Text>
+              ) : null}
             </Pressable>
           )
         })}

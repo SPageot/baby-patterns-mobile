@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { NavIcon } from '@/components/icons/NavIcon'
 import { AccountMenu } from '@/components/nav/AccountMenu'
+import { NotificationsMenu } from '@/components/notifications/NotificationsMenu'
 import { HomeButton } from '@/components/home/HomeButton'
 import { UserAvatar } from '@/components/ui/UserAvatar'
 import { useApp } from '@/context/AppContext'
@@ -140,19 +141,22 @@ export function Navbar() {
 
         <View style={styles.actions}>
           {user ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={displayName ? `Account menu for ${displayName}` : 'Account menu'}
-              onPress={openAccountMenu}
-              style={({ pressed }) => [styles.userChip, pressed && styles.pressed]}
-            >
-              <UserAvatar user={user} size="sm" />
-              {displayName ? (
-                <Text style={styles.userName} numberOfLines={1}>
-                  {displayName}
-                </Text>
-              ) : null}
-            </Pressable>
+            <>
+              <NotificationsMenu enabled={Boolean(user.id)} />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={displayName ? `Account menu for ${displayName}` : 'Account menu'}
+                onPress={openAccountMenu}
+                style={({ pressed }) => [styles.userChip, pressed && styles.pressed]}
+              >
+                <UserAvatar user={user} size="sm" />
+                {displayName ? (
+                  <Text style={styles.userName} numberOfLines={1}>
+                    {displayName}
+                  </Text>
+                ) : null}
+              </Pressable>
+            </>
           ) : (
             <>
               <Pressable

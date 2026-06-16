@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { KeyboardAvoidingView, Platform, ScrollView, Text } from 'react-native'
 import { Link, router } from 'expo-router'
 
-import { UnauthorizedError } from '@/api/client'
+import { UnauthorizedError, RequestTimeoutError } from '@/api/client'
 import { isApiConfigured } from '@/api/config'
 import { loginUser } from '@/api/userApi'
 import {
@@ -21,7 +21,7 @@ import { useApp } from '@/context/AppContext'
 import { LegalFooterLinks } from '@/components/legal/LegalFooterLinks'
 import type { AppPalette } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
-import { normalizeLoginCredentials, validateLogin } from '@/schemas/user'
+import { normalizeLoginCredentials, validateLogin, INVALID_LOGIN_CREDENTIALS_MESSAGE } from '@/schemas/user'
 
 const createStyles = (t: AppPalette) => ({
   flex: {
@@ -65,10 +65,10 @@ export default function LoginScreen() {
       await loadBabiesForCurrentUser()
       router.replace('/')
     } catch (e) {
-      if (e instanceof UnauthorizedError) {
+      if (e instanceof RequestTimeoutError) {
         setError(e.message)
       } else {
-        setError(e instanceof Error ? e.message : 'Login failed')
+        setError(e instanceof UnauthorizedError ? e.message : INVALID_LOGIN_CREDENTIALS_MESSAGE)
       }
     } finally {
       setLoading(false)

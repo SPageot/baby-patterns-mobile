@@ -1,9 +1,10 @@
 import { persistAuthTokens, resolveAuthenticatedUserId } from '@/api/authApi'
-import { apiFetch } from '@/api/client'
+import { apiFetch, RequestTimeoutError, UnauthorizedError } from '@/api/client'
 import { getApiBaseUrl, getMediaBaseUrl } from '@/api/config'
 import { bumpAvatarCache, readAvatarCacheBust } from '@/lib/avatarCache'
 import type { AvatarUploadPayload } from '@/lib/avatarUpload'
 import type { LoginCredentials, User, UserSignup, UserUpdate } from '@/schemas/user'
+import { INVALID_LOGIN_CREDENTIALS_MESSAGE } from '@/schemas/user'
 
 function pickStr(obj: Record<string, unknown>, ...keys: string[]): string {
   for (const k of keys) {
@@ -347,25 +348,50 @@ export async function searchUsers(query: string, limit = 8): Promise<UserSearchR
 
 /** POST `api/auth/login` — stores tokens and loads the user profile. */
 export async function loginUser(credentials: LoginCredentials): Promise<User> {
-  const data = await apiFetch<unknown>(
-    'api/auth/login',
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        username: credentials.username.trim(),
-        password: credentials.password,
-      }),
-    },
-    { skipAuth: true, skipRefresh: true },
-  )
+  try {
+    const data = await apiFetch<unknown>(
+      'api/auth/login',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          username: credentials.username.trim(),
+          password: credentials.password,
+        }),
+      },
+      { skipAuth: true, skipRefresh: true },
+    )
 
-  const tokens = await persistAuthTokens(data)
-  if (!tokens) {
-    throw new Error('Login did not return access and refresh tokens')
+    const tokens = await persistAuthTokens(data)
+    if (!tokens) {
+      throw new UnauthorizedError(INVALID_LOGIN_CREDENTIALS_MESSAGE)
+    }
+
+    const embedded = normalizeUser(data, { fallbackUsername: credentials.username })
+    if (embedded?.id && embedded.username) return embedded
+
+    return fetchCurrentUser(credentials.username)
+  } catch (e) {
+    if (e instanceof RequestTimeoutError) throw e
+    throw new UnauthorizedError(resolveLoginErrorMessage(e))
+  }
+}
+
+function resolveLoginErrorMessage(error: unknown): string {
+  if (error instanceof UnauthorizedError && error.message.trim()) {
+    return error.message
   }
 
-  const embedded = normalizeUser(data, { fallbackUsername: credentials.username })
-  if (embedded?.id && embedded.username) return embedded
+  if (error instanceof Error) {
+    const raw = error.message.trim()
+    if (raw.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(raw) as { message?: string }
+        if (parsed.message?.trim()) return parsed.message.trim()
+      } catch {
+        /* ignore malformed JSON */
+      }
+    }
+  }
 
-  return fetchCurrentUser(credentials.username)
+  return INVALID_LOGIN_CREDENTIALS_MESSAGE
 }

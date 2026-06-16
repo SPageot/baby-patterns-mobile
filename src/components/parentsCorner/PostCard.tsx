@@ -9,6 +9,7 @@ import { HomeRadius } from '@/constants/homeTheme'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
+import { isSafeHttpUrl } from '@/lib/urlSafety'
 
 function formatWhen(iso: string): string {
   const d = new Date(iso)
@@ -361,10 +362,16 @@ export function PostCard({
 
       {post.linkPreviews.length > 0 ? (
         <View style={styles.previews}>
-          {post.linkPreviews.map((preview) => (
+          {post.linkPreviews
+            .filter((preview) => isSafeHttpUrl(preview.url))
+            .map((preview) => (
             <Pressable
               key={preview.id || preview.url}
-              onPress={() => void Linking.openURL(preview.url)}
+              onPress={() => {
+                if (isSafeHttpUrl(preview.url)) {
+                  void Linking.openURL(preview.url)
+                }
+              }}
               style={styles.previewCard}
             >
               <Text style={styles.previewTitle} numberOfLines={2}>

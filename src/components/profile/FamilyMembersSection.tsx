@@ -1,4 +1,6 @@
 import { Alert, Pressable, Text, View } from 'react-native'
+import { useFocusEffect } from 'expo-router'
+import { useCallback } from 'react'
 
 import { Button, ErrorText, Input, Label } from '@/components/ui/primitives'
 import { useFamilyMembers } from '@/hooks/useFamilyMembers'
@@ -28,6 +30,29 @@ const createStyles = (t: AppPalette) => ({
     fontSize: 14,
     lineHeight: 20,
     color: t.textMuted,
+  },
+  requestsTitle: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: t.text,
+    marginBottom: 8,
+  },
+  requestsBlock: {
+    marginBottom: Spacing.two,
+    gap: 8,
+  },
+  requestCard: {
+    padding: 14,
+    borderRadius: HomeRadius.md,
+    borderWidth: 1,
+    borderColor: t.strokeSubtle,
+    backgroundColor: t.card2,
+    gap: 10,
+  },
+  requestActions: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    gap: 8,
   },
   add: {
     marginBottom: Spacing.two,
@@ -89,9 +114,38 @@ const createStyles = (t: AppPalette) => ({
   list: {
     gap: 8,
   },
+  itemMain: {
+    flex: 1,
+    gap: 8,
+  },
+  itemBabies: {
+    gap: 6,
+  },
+  babyChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: HomeRadius.md,
+    borderWidth: 1,
+    borderColor: t.strokeSubtle,
+    backgroundColor: t.card2,
+  },
+  babyChipName: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: t.text,
+  },
+  babyChipMeta: {
+    fontSize: 12,
+    color: t.textMuted,
+    marginTop: 2,
+  },
+  noBabies: {
+    fontSize: 12,
+    color: t.textMuted,
+  },
   item: {
     flexDirection: 'row' as const,
-    alignItems: 'center' as const,
+    alignItems: 'flex-start' as const,
     justifyContent: 'space-between' as const,
     gap: 12,
     padding: 14,
@@ -113,6 +167,34 @@ const createStyles = (t: AppPalette) => ({
     color: t.textMuted,
     marginTop: 2,
   },
+  requestHint: {
+    fontSize: 12,
+    color: t.textMuted,
+    marginTop: 2,
+  },
+  pendingBadge: {
+    fontSize: 12,
+    color: t.accentDeep,
+    fontWeight: '600' as const,
+    marginTop: 4,
+  },
+  removeButton: {
+    flexShrink: 0,
+    minHeight: 36,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: HomeRadius.pill,
+    borderWidth: 1,
+    borderColor: 'rgba(220, 80, 80, 0.35)',
+    backgroundColor: 'transparent',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  removeButtonText: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: '#c53030',
+  },
   pressed: {
     opacity: 0.82,
   },
@@ -122,11 +204,17 @@ export function FamilyMembersSection({ enabled }: Props) {
   const family = useFamilyMembers(enabled)
   const styles = useThemedStyles(createStyles)
 
+  useFocusEffect(
+    useCallback(() => {
+      void family.loadAll()
+    }, [family.loadAll]),
+  )
+
   const onRemoveMember = (memberUserId: string, displayName: string) => {
     const name = displayName.trim() || 'this person'
     Alert.alert(
       'Remove family member',
-      `Remove ${name} from family & friends? They will lose access to your babies.`,
+      `Remove ${name} from family & friends? You will both lose access to each other's babies.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -138,19 +226,65 @@ export function FamilyMembersSection({ enabled }: Props) {
     )
   }
 
+  const onCancelInvite = (requestId: string, displayName: string) => {
+    const name = displayName.trim() || 'this person'
+    Alert.alert('Cancel invite', `Cancel your invite to ${name}?`, [
+      { text: 'Keep invite', style: 'cancel' },
+      {
+        text: 'Cancel invite',
+        style: 'destructive',
+        onPress: () => void family.cancelOutgoingRequest(requestId),
+      },
+    ])
+  }
+
   return (
     <View style={styles.section}>
       <View style={styles.head}>
         <Text style={styles.title}>Family & friends</Text>
         <Text style={styles.subtitle}>
-          People you add can view and log diapers, feeding, and sleep for your babies.
+          Send an invite by username. When they accept, you&apos;ll both appear on each other&apos;s
+          profile and can track each other&apos;s babies. You can remove anyone or cancel a pending
+          invite at any time.
         </Text>
       </View>
 
       {family.error ? <ErrorText>{family.error}</ErrorText> : null}
 
+      {family.incomingRequests.length > 0 ? (
+        <View style={styles.requestsBlock}>
+          <Text style={styles.requestsTitle}>Invites for you</Text>
+          {family.incomingRequests.map((request) => {
+            const label = request.requesterFullName?.trim() || request.requesterUsername
+            const busy = family.respondingRequestId === request.id
+            return (
+              <View key={request.id} style={styles.requestCard}>
+                <View>
+                  <Text style={styles.itemName}>{label}</Text>
+                  <Text style={styles.itemUser}>@{request.requesterUsername}</Text>
+                  <Text style={styles.requestHint}>wants to share family tracking</Text>
+                </View>
+                <View style={styles.requestActions}>
+                  <Button
+                    title={busy ? 'Accepting…' : 'Accept'}
+                    disabled={!enabled || busy || family.adding}
+                    onPress={() => void family.acceptRequest(request.id)}
+                  />
+                  <Button
+                    title="Decline"
+                    variant="ghost"
+                    disabled={!enabled || busy || family.adding}
+                    onPress={() => void family.declineRequest(request.id)}
+                  />
+                </View>
+              </View>
+            )
+          })}
+        </View>
+      ) : null}
+
       <View style={styles.add}>
-        <Label>Add by username</Label>
+        <Label>Invite by username</Label>
         <View style={styles.searchWrap}>
           <Input
             placeholder="Search usernames…"
@@ -166,19 +300,24 @@ export function FamilyMembersSection({ enabled }: Props) {
         {family.suggestions.length > 0 ? (
           <View style={styles.suggestions}>
             {family.suggestions.map((user) => {
-              const alreadyAdded = family.members.some((m) => m.memberUserId === user.id)
+              const pending = family.isConnectedOrPending(user.id, user.username)
               const label = user.fullName?.trim() || user.username
+              const outgoing = family.outgoingRequests.some((r) => r.recipientUserId === user.id)
               return (
                 <Pressable
                   key={user.id}
                   accessibilityRole="button"
-                  disabled={alreadyAdded || family.adding}
-                  onPress={() => void family.addMember(user.username)}
+                  disabled={pending || family.adding}
+                  onPress={() => void family.sendRequest(user.username)}
                   style={({ pressed }) => [styles.suggestion, pressed && styles.pressed]}
                 >
                   <Text style={styles.suggestionName}>{label}</Text>
                   <Text style={styles.suggestionUser}>@{user.username}</Text>
-                  {alreadyAdded ? <Text style={styles.suggestionAdded}>Added</Text> : null}
+                  {pending ? (
+                    <Text style={styles.suggestionAdded}>
+                      {outgoing ? 'Invite sent' : 'Connected or pending'}
+                    </Text>
+                  ) : null}
                 </Pressable>
               )
             })}
@@ -186,12 +325,44 @@ export function FamilyMembersSection({ enabled }: Props) {
         ) : null}
       </View>
 
+      {family.outgoingRequests.length > 0 ? (
+        <View style={styles.requestsBlock}>
+          <Text style={styles.requestsTitle}>Pending invites you sent</Text>
+          {family.outgoingRequests.map((request) => {
+            const label = request.recipientFullName?.trim() || request.recipientUsername
+            const busy = family.respondingRequestId === request.id
+            return (
+              <View key={request.id} style={styles.item}>
+                <View style={styles.itemMain}>
+                  <Text style={styles.itemName}>{label}</Text>
+                  <Text style={styles.itemUser}>@{request.recipientUsername}</Text>
+                  <Text style={styles.pendingBadge}>Awaiting acceptance</Text>
+                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={!enabled || busy || family.adding}
+                  onPress={() => onCancelInvite(request.id, label)}
+                  style={({ pressed }) => [
+                    styles.removeButton,
+                    (pressed || busy) && styles.pressed,
+                  ]}
+                >
+                  <Text style={styles.removeButtonText}>
+                    {busy ? 'Cancelling…' : 'Cancel invite'}
+                  </Text>
+                </Pressable>
+              </View>
+            )
+          })}
+        </View>
+      ) : null}
+
       {family.loading ? (
         <Text style={styles.status}>Loading family members…</Text>
       ) : family.members.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyText}>
-            No family members yet. Search for someone by username to share your tracking data.
+            No family connections yet. Send an invite and wait for them to accept.
           </Text>
         </View>
       ) : (
@@ -201,16 +372,39 @@ export function FamilyMembersSection({ enabled }: Props) {
             const removing = family.removingMemberUserId === member.memberUserId
             return (
               <View key={member.id} style={styles.item}>
-                <View style={styles.itemMeta}>
-                  <Text style={styles.itemName}>{label}</Text>
-                  <Text style={styles.itemUser}>@{member.username}</Text>
+                <View style={styles.itemMain}>
+                  <View style={styles.itemMeta}>
+                    <Text style={styles.itemName}>{label}</Text>
+                    <Text style={styles.itemUser}>@{member.username}</Text>
+                  </View>
+                  {member.babies.length > 0 ? (
+                    <View style={styles.itemBabies}>
+                      {member.babies.map((baby) => (
+                        <View key={baby.id} style={styles.babyChip}>
+                          <Text style={styles.babyChipName}>{baby.fullName}</Text>
+                          {baby.birthdate ? (
+                            <Text style={styles.babyChipMeta}>Born {baby.birthdate}</Text>
+                          ) : null}
+                        </View>
+                      ))}
+                    </View>
+                  ) : (
+                    <Text style={styles.noBabies}>No babies on their account yet.</Text>
+                  )}
                 </View>
-                <Button
-                  title={removing ? 'Removing…' : 'Remove'}
-                  variant="ghost"
+                <Pressable
+                  accessibilityRole="button"
                   disabled={!enabled || removing || family.adding}
                   onPress={() => onRemoveMember(member.memberUserId, label)}
-                />
+                  style={({ pressed }) => [
+                    styles.removeButton,
+                    (pressed || removing) && styles.pressed,
+                  ]}
+                >
+                  <Text style={styles.removeButtonText}>
+                    {removing ? 'Removing…' : 'Remove'}
+                  </Text>
+                </Pressable>
               </View>
             )
           })}

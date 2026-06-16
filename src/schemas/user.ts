@@ -50,6 +50,8 @@ export type LoginCredentials = {
   password: string
 }
 
+export const INVALID_LOGIN_CREDENTIALS_MESSAGE = 'Username/password is incorrect.'
+
 export type ValidationIssue = {
   path: string
   message: string
