@@ -1,4 +1,5 @@
 import { getApiBaseUrl, getMediaBaseUrl } from './config'
+import { isPostBadge } from '@/lib/postBadges'
 import { resolveAvatarUrl } from './userApi'
 import { apiFetch } from './client'
 import type { Post, PostComment, PostLinkPreview, PostSubmitInput } from '@/schemas/post'
@@ -41,6 +42,8 @@ function normalizeAuthor(raw: unknown): Post['author'] {
     username: pickStr(o, 'username', 'Username'),
     fullName: pickStr(o, 'fullName', 'FullName'),
     avatarUrl: avatarRaw ? resolveAvatarUrl(avatarRaw) : undefined,
+    isPro: pickBool(o, 'isPro', 'IsPro'),
+    isSiteDeveloper: pickBool(o, 'isSiteDeveloper', 'IsSiteDeveloper'),
   }
 }
 
@@ -55,8 +58,12 @@ function resolveMediaUrl(url: string): string {
 
 function normalizeBadge(raw: string): Post['badge'] {
   const value = raw.trim().toLowerCase()
-  if (value === 'advice' || value === 'recommendation') return value
-  return null
+  return isPostBadge(value) ? value : null
+}
+
+function normalizeCustomBadge(raw: string): string | null {
+  const value = raw.trim()
+  return value || null
 }
 
 function normalizeLinkPreview(raw: unknown): PostLinkPreview | null {
@@ -99,12 +106,14 @@ export function normalizePost(raw: unknown): Post | null {
   if (!id) return null
 
   const badgeRaw = pickStr(o, 'badge', 'Badge')
+  const customBadgeRaw = pickStr(o, 'customBadge', 'CustomBadge')
   const linkPreviewsRaw = o.linkPreviews ?? o.LinkPreviews
 
   return {
     id,
     content: pickStr(o, 'content', 'Content'),
     badge: badgeRaw ? normalizeBadge(badgeRaw) : null,
+    customBadge: customBadgeRaw ? normalizeCustomBadge(customBadgeRaw) : null,
     createdAt: pickStr(o, 'createdAt', 'CreatedAt'),
     updatedAt: pickStr(o, 'updatedAt', 'UpdatedAt') || null,
     author: normalizeAuthor(o.author ?? o.Author),
@@ -141,6 +150,7 @@ function normalizeComment(raw: unknown): PostComment | null {
 function appendPostFormFields(form: FormData, input: PostSubmitInput): void {
   form.append('content', input.content.trim())
   form.append('badge', input.badge ?? '')
+  form.append('customBadge', input.customBadge?.trim() ?? '')
   if (input.removeMediaIds.length > 0) {
     form.append('removeMediaIds', input.removeMediaIds.join(','))
   }

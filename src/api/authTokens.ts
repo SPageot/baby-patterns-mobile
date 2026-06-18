@@ -153,6 +153,12 @@ export async function refreshAccessToken(): Promise<boolean> {
   }
 }
 
+export async function bootstrapAuthSession(): Promise<boolean> {
+  if (getAccessToken()) return true
+  if (!getRefreshToken()) return false
+  return refreshAccessToken()
+}
+
 export function resolveAuthenticatedUserId(): string {
   return getSessionUserId()?.trim() || extractUserIdFromAccessToken(getAccessToken() ?? '')
 }

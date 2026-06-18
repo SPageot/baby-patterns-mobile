@@ -13,6 +13,13 @@ export type UserSignup = UserAccountFields
 export type User = UserAccountFields & {
   id: string
   avatarUrl?: string
+  weeklySummaryEmailEnabled?: boolean
+  isPro?: boolean
+  isSiteDeveloper?: boolean
+  hasProAccess?: boolean
+  subscriptionStatus?: string
+  proBillingInterval?: string | null
+  proCurrentPeriodEnd?: string | null
 }
 
 export type BabySignup = {
@@ -43,6 +50,7 @@ export type UserUpdate = {
   fullName?: string
   location?: string
   avatarUrl?: string
+  weeklySummaryEmailEnabled?: boolean
 }
 
 export type LoginCredentials = {

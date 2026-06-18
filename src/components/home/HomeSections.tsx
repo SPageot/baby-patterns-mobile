@@ -7,11 +7,13 @@ import { SymbolView } from 'expo-symbols'
 import { HomeButton } from '@/components/home/HomeButton'
 import { homeFeatures, homeStats, homeTestimonial } from '@/content/home'
 import { useApp } from '@/context/AppContext'
+import { isProUser } from '@/lib/subscription'
 import { HomeRadius } from '@/constants/homeTheme'
 import type { AppPalette } from '@/constants/homeTheme'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
-import { Fonts, Spacing } from '@/constants/theme'
+import { heading } from '@/constants/typography'
+import { Spacing } from '@/constants/theme'
 
 function FeatureIcon({
   name,
@@ -53,6 +55,7 @@ function HeroTitleLine({
 
 export function HomeSections() {
   const { user } = useApp()
+  const isPro = isProUser(user)
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
   const featuresOffset = useRef(0)
@@ -108,6 +111,11 @@ export function HomeSections() {
                   <HomeButton title="Log in" variant="secondary" tone="onDark" style={styles.heroBtn} />
                 </Link>
               </>
+            ) : null}
+            {!isPro ? (
+              <Link href="/pricing" asChild>
+                <HomeButton title="View pricing" variant="ghost" tone="onDark" style={styles.heroBtn} />
+              </Link>
             ) : null}
             <HomeButton title="Explore features" variant="ghost" tone="onDark" onPress={scrollToFeatures} style={styles.heroBtn} />
           </View>
@@ -187,8 +195,6 @@ export function HomeSections() {
   )
 }
 
-const serif = Fonts.serif ?? 'serif'
-
 const createStyles = (t: AppPalette) => ({
   scrollContent: {
     paddingBottom: Spacing.five,
@@ -245,12 +251,8 @@ const createStyles = (t: AppPalette) => ({
     textTransform: 'uppercase' as const,
   },
   heroTitleLine: {
-    fontFamily: serif,
-    fontSize: 40,
-    lineHeight: 42,
-    letterSpacing: -0.8,
+    ...heading(40, { lineHeight: 42 }),
     color: t.heroTitle,
-    fontWeight: '600' as const,
   },
   heroTitleAccent: {
     color: t.heroTitleAccent,
@@ -331,12 +333,8 @@ const createStyles = (t: AppPalette) => ({
     marginBottom: Spacing.three,
   },
   sectionTitle: {
-    fontFamily: serif,
-    fontSize: 28,
-    lineHeight: 34,
-    letterSpacing: -0.4,
+    ...heading(28, { lineHeight: 34 }),
     color: t.text,
-    fontWeight: '600' as const,
     marginBottom: 10,
   },
   valueBody: {
@@ -444,11 +442,8 @@ const createStyles = (t: AppPalette) => ({
     gap: 4,
   },
   footerTitle: {
-    fontFamily: serif,
-    fontSize: 22,
-    letterSpacing: -0.3,
+    ...heading(22),
     color: t.text,
-    fontWeight: '600' as const,
   },
   footerBody: {
     fontSize: 14,

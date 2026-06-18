@@ -3,13 +3,14 @@ import { Image } from 'expo-image'
 import { Linking, Pressable, Text, TextInput, View } from 'react-native'
 
 import { Button } from '@/components/ui/primitives'
+import { UserAvatar } from '@/components/ui/UserAvatar'
 import type { Post, PostComment, PostSubmitInput } from '@/schemas/post'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
-import { isSafeHttpUrl } from '@/lib/urlSafety'
+import { postBadgeLabel } from '@/lib/postBadges'
 
 function formatWhen(iso: string): string {
   const d = new Date(iso)
@@ -170,6 +171,12 @@ const createStyles = (t: AppPalette) => ({
     alignItems: 'center' as const,
     marginBottom: 4,
   },
+  commentAuthorRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 8,
+    flexShrink: 1,
+  },
   commentAuthor: {
     fontSize: 13,
     fontWeight: '800' as const,
@@ -221,22 +228,27 @@ const createStyles = (t: AppPalette) => ({
   },
 })
 
-function AuthorAvatar({ name, avatarUrl }: { name: string; avatarUrl?: string }) {
-  const styles = useThemedStyles(createStyles)
-  const initial = name.trim().charAt(0).toUpperCase() || '?'
-  if (avatarUrl) {
-    return <Image source={{ uri: avatarUrl }} style={styles.avatar} contentFit="cover" />
-  }
+function AuthorAvatar({ author }: { author: Post['author'] }) {
   return (
-    <View style={[styles.avatar, styles.avatarFallback]}>
-      <Text style={styles.avatarInitial}>{initial}</Text>
-    </View>
+    <UserAvatar
+      user={{
+        id: author.id,
+        username: author.username,
+        fullName: author.fullName,
+        avatarUrl: author.avatarUrl,
+        isPro: author.isPro,
+        isSiteDeveloper: author.isSiteDeveloper,
+      }}
+      size="sm"
+    />
   )
 }
 
-function BadgeChip({ badge }: { badge: NonNullable<Post['badge']> }) {
+function BadgeChip({ badge, customBadge }: { badge?: Post['badge']; customBadge?: string | null }) {
   const styles = useThemedStyles(createStyles)
-  const label = badge === 'advice' ? 'Advice' : 'Recommendation'
+  const custom = customBadge?.trim()
+  const label = custom || postBadgeLabel(badge)
+  if (!label) return null
   return (
     <View style={styles.badge}>
       <Text style={styles.badgeLabel}>{label}</Text>
@@ -320,6 +332,7 @@ export function PostCard({
               void onSaveEdit({
                 content: editContent.trim(),
                 badge: post.badge,
+                customBadge: post.customBadge,
                 removeMediaIds: [],
               })
             }
@@ -333,7 +346,7 @@ export function PostCard({
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <AuthorAvatar name={displayName} avatarUrl={post.author.avatarUrl} />
+        <AuthorAvatar author={post.author} />
         <View style={styles.meta}>
           <Text style={styles.name}>{displayName}</Text>
           <View style={styles.metaRow}>
@@ -341,7 +354,9 @@ export function PostCard({
               {formatWhen(post.createdAt)}
               {post.updatedAt ? ' · edited' : ''}
             </Text>
-            {post.badge ? <BadgeChip badge={post.badge} /> : null}
+            {post.badge || post.customBadge ? (
+              <BadgeChip badge={post.badge} customBadge={post.customBadge} />
+            ) : null}
           </View>
         </View>
         <View style={styles.headerActions}>
@@ -419,7 +434,10 @@ export function PostCard({
             return (
               <View key={comment.id} style={styles.comment}>
                 <View style={styles.commentTop}>
-                  <Text style={styles.commentAuthor}>{commentName}</Text>
+                  <View style={styles.commentAuthorRow}>
+                    <AuthorAvatar author={comment.author} />
+                    <Text style={styles.commentAuthor}>{commentName}</Text>
+                  </View>
                   <Pressable onPress={() => onLikeComment(comment.id)}>
                     <Text style={[styles.commentLike, comment.likedByMe && styles.actionTextActive]}>
                       ♥ {comment.likeCount}

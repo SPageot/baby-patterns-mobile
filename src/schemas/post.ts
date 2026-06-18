@@ -3,6 +3,8 @@ export type PostAuthor = {
   username: string
   fullName: string
   avatarUrl?: string
+  isPro?: boolean
+  isSiteDeveloper?: boolean
 }
 
 export type PostMedia = {
@@ -11,7 +13,14 @@ export type PostMedia = {
   mediaType: 'image' | 'video'
 }
 
-export type PostBadge = 'advice' | 'recommendation'
+export type PostBadge =
+  | 'advice'
+  | 'recommendation'
+  | 'question'
+  | 'milestone'
+  | 'celebration'
+  | 'tip'
+  | 'site-error'
 
 export type PostLinkPreview = {
   id: string
@@ -26,6 +35,7 @@ export type Post = {
   id: string
   content: string
   badge: PostBadge | null
+  customBadge: string | null
   createdAt: string
   updatedAt: string | null
   author: PostAuthor
@@ -48,5 +58,6 @@ export type PostComment = {
 export type PostSubmitInput = {
   content: string
   badge: PostBadge | null
+  customBadge: string | null
   removeMediaIds: string[]
 }

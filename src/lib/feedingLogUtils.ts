@@ -1,6 +1,7 @@
 import type { Baby } from '@/schemas/user'
 import type { LogRecord } from '@/types/babyLog'
 import { diaperLogMatchesBaby } from './diaperFeedUtils'
+import { formatWhen } from './trackUtils'
 
 const FEEDING_TYPE_LABELS: Record<string, string> = {
   breast: 'Breastfeed',
@@ -35,6 +36,10 @@ export function formatFeedingSummary(log: LogRecord): string {
   if (d.isTeething === 'true') parts.push('Teething')
   if (d.isSick === 'true') parts.push('Sick')
   return parts.filter(Boolean).join(' · ')
+}
+
+export function formatFeedingWhen(log: LogRecord): string {
+  return formatWhen(log.details.feedingAt || log.atIso)
 }
 
 export function filterFeedingLogs(

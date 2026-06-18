@@ -23,6 +23,8 @@ import {
 export function useProfile() {
   const { user, babies, setUser, authReady } = useApp()
 
+  const ownBabies = useMemo(() => babies.filter((b) => !b.isShared), [babies])
+
   const userId = user?.id ?? ''
   const [locationDraft, setLocationDraft] = useState(user?.location ?? '')
   const [locationUserId, setLocationUserId] = useState(userId)
@@ -36,6 +38,7 @@ export function useProfile() {
   const [deletingAvatar, setDeletingAvatar] = useState(false)
   const [profileError, setProfileError] = useState<string | null>(null)
   const [statsLoading, setStatsLoading] = useState(false)
+  const [exportingPdf, setExportingPdf] = useState(false)
   const [allLogs, setAllLogs] = useState<LogRecord[]>([])
 
   useDeferredEffect(() => {
@@ -60,14 +63,14 @@ export function useProfile() {
   }, [authReady, user?.id, setUser])
 
   const loadStats = useCallback(async () => {
-    if (!isApiConfigured() || babies.length === 0) {
+    if (!isApiConfigured() || ownBabies.length === 0) {
       setAllLogs([])
       return
     }
 
     setStatsLoading(true)
     try {
-      const babyRefs = babies.map((b) => ({ id: b.id, fullName: b.fullName }))
+      const babyRefs = ownBabies.map((b) => ({ id: b.id, fullName: b.fullName }))
       const [diapers, sleep, feeding] = await Promise.all([
         loadDiaperLogsForBabies(babyRefs),
         loadSleepLogsForBabies(babyRefs),
@@ -79,7 +82,7 @@ export function useProfile() {
     } finally {
       setStatsLoading(false)
     }
-  }, [babies])
+  }, [ownBabies])
 
   useDeferredEffect(() => {
     void loadStats()
@@ -191,6 +194,38 @@ export function useProfile() {
     }
   }, [setUser, user])
 
+  const downloadTrackingPdf = useCallback(async () => {
+    if (!isApiConfigured()) {
+      setProfileError('Set EXPO_PUBLIC_API_URL in .env to export tracking data.')
+      return
+    }
+    if (ownBabies.length === 0) {
+      setProfileError('Add a baby before downloading a report.')
+      return
+    }
+
+    setExportingPdf(true)
+    setProfileError(null)
+    try {
+      const babyRefs = ownBabies.map((b) => ({ id: b.id, fullName: b.fullName }))
+      const [diapers, sleep, feeding] = await Promise.all([
+        loadDiaperLogsForBabies(babyRefs),
+        loadSleepLogsForBabies(babyRefs),
+        loadFeedingLogsForBabies(babyRefs),
+      ])
+      const logs = [...diapers, ...sleep, ...feeding]
+      setAllLogs(logs)
+
+      const parentName = user?.fullName?.trim() || user?.username?.trim() || 'Parent'
+      const { downloadTrackingReportPdf } = await import('@/lib/trackingReportPdf')
+      await downloadTrackingReportPdf({ logs, babies: ownBabies, parentName })
+    } catch (e) {
+      setProfileError(e instanceof Error ? e.message : 'Could not create PDF report')
+    } finally {
+      setExportingPdf(false)
+    }
+  }, [ownBabies, user])
+
   return {
     locationDraft,
     setLocationDraft,
@@ -199,7 +234,9 @@ export function useProfile() {
     deletingAvatar,
     profileError,
     statsLoading,
+    exportingPdf,
     babies,
+    ownBabies,
     monthStats,
     monthAverages,
     monthSleepStats,
@@ -209,6 +246,8 @@ export function useProfile() {
     saveLocation,
     pickAvatar,
     removeAvatar,
+    downloadTrackingPdf,
     apiConfigured: isApiConfigured(),
+    allLogs,
   }
 }

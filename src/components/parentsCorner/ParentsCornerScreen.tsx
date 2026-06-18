@@ -7,9 +7,10 @@ import { Eyebrow, ErrorText } from '@/components/ui/primitives'
 import { NavIcon } from '@/components/icons/NavIcon'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
-import { useParentsCorner } from '@/hooks/useParentsCorner'
+import { isSiteDeveloper } from '@/lib/subscription'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
+import { heading } from '@/constants/typography'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
@@ -46,10 +47,8 @@ const createStyles = (t: AppPalette) => ({
     marginBottom: 10,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700' as const,
+    ...heading(28, { weight: '700' }),
     color: t.text,
-    letterSpacing: -0.4,
     marginBottom: 6,
   },
   subtitle: {
@@ -159,7 +158,11 @@ export function ParentsCornerScreen() {
         </Text>
       </View>
 
-      <PostComposer posting={corner.posting} onPublish={corner.publishPost} />
+      <PostComposer
+        posting={corner.posting}
+        isSiteDeveloper={isSiteDeveloper(user)}
+        onPublish={corner.publishPost}
+      />
 
       {corner.error ? <ErrorText>{corner.error}</ErrorText> : null}
       {corner.loading ? <Text style={styles.status}>Loading posts…</Text> : null}

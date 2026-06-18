@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
+import { heading } from '@/constants/typography'
 import { LEGAL_LAST_UPDATED, type LegalSection } from '@/lib/legalContent'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
@@ -50,10 +51,8 @@ const createStyles = (t: AppPalette) => ({
     paddingBottom: Spacing.five,
   },
   docTitle: {
-    fontSize: 28,
-    fontWeight: '800' as const,
+    ...heading(28, { weight: '800' }),
     color: t.text,
-    letterSpacing: -0.4,
     marginBottom: 8,
   },
   meta: {
@@ -76,8 +75,7 @@ const createStyles = (t: AppPalette) => ({
     backgroundColor: t.card,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: '800' as const,
+    ...heading(16, { weight: '800' }),
     color: t.text,
     marginBottom: 10,
   },

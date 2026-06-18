@@ -25,6 +25,7 @@ import {
   type ValidationIssue,
 } from '@/schemas/user'
 import type { AppPalette } from '@/constants/homeTheme'
+import { heading } from '@/constants/typography'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 
 const REQUEST_TIMEOUT_MS = 20_000
@@ -46,8 +47,7 @@ const createStyles = (t: AppPalette) => ({
     gap: 12,
   },
   gateTitle: {
-    fontSize: 24,
-    fontWeight: '700' as const,
+    ...heading(24, { weight: '700' }),
     color: t.text,
   },
   gateText: {
@@ -119,7 +119,7 @@ export function AddBabyScreen() {
           baby
         selectBaby(saved)
         resetForm()
-        router.replace('/')
+        router.replace('/profile')
       } catch (e) {
         setError(errorMessage(e))
       } finally {

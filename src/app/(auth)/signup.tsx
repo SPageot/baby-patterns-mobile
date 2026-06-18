@@ -98,7 +98,7 @@ export default function SignupScreen() {
         policyVersion: LEGAL_POLICY_VERSION,
       })
       setUser(user)
-      router.replace('/')
+      router.replace('/profile')
     } catch (e) {
       if (createdUserId) {
         try {

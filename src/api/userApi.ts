@@ -132,6 +132,25 @@ function normalizeUser(raw: unknown, options?: NormalizeUserOptions): User | nul
   if (!id || !username) return null
 
   const avatarRaw = pickUserField(payload, envelope, 'avatarUrl', 'AvatarUrl')
+  const weeklyEmailRaw =
+    payload.weeklySummaryEmailEnabled ??
+    payload.WeeklySummaryEmailEnabled ??
+    envelope?.weeklySummaryEmailEnabled ??
+    envelope?.WeeklySummaryEmailEnabled
+
+  const isProRaw = payload.isPro ?? payload.IsPro ?? envelope?.isPro ?? envelope?.IsPro
+  const isSiteDeveloperRaw =
+    payload.isSiteDeveloper ??
+    payload.IsSiteDeveloper ??
+    envelope?.isSiteDeveloper ??
+    envelope?.IsSiteDeveloper
+  const hasProAccessRaw =
+    payload.hasProAccess ?? payload.HasProAccess ?? envelope?.hasProAccess ?? envelope?.HasProAccess
+
+  const isSiteDeveloper = isSiteDeveloperRaw === true || isSiteDeveloperRaw === 'true'
+  const isPro = isProRaw === true || isProRaw === 'true'
+  const hasProAccess =
+    hasProAccessRaw === true || hasProAccessRaw === 'true' || isPro || isSiteDeveloper
 
   return {
     id,
@@ -143,6 +162,16 @@ function normalizeUser(raw: unknown, options?: NormalizeUserOptions): User | nul
     fullName: pickUserField(payload, envelope, 'fullName', 'FullName'),
     location: pickUserField(payload, envelope, 'location', 'Location'),
     avatarUrl: avatarRaw ? resolveAvatarUrl(avatarRaw) : undefined,
+    weeklySummaryEmailEnabled: weeklyEmailRaw === true || weeklyEmailRaw === 'true',
+    isPro,
+    isSiteDeveloper,
+    hasProAccess,
+    subscriptionStatus:
+      pickUserField(payload, envelope, 'subscriptionStatus', 'SubscriptionStatus') || undefined,
+    proBillingInterval:
+      pickUserField(payload, envelope, 'proBillingInterval', 'ProBillingInterval') || null,
+    proCurrentPeriodEnd:
+      pickUserField(payload, envelope, 'proCurrentPeriodEnd', 'ProCurrentPeriodEnd') || null,
   }
 }
 
@@ -199,6 +228,9 @@ function toUserUpdateBody(data: UserUpdate): Record<string, unknown> {
   if (data.fullName != null) body.fullName = data.fullName
   if (data.location != null) body.location = data.location
   if (data.avatarUrl != null) body.avatarUrl = data.avatarUrl
+  if (data.weeklySummaryEmailEnabled != null) {
+    body.weeklySummaryEmailEnabled = data.weeklySummaryEmailEnabled
+  }
   return body
 }
 

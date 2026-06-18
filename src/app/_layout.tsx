@@ -2,7 +2,11 @@ import { Stack, useSegments } from 'expo-router'
 import { View } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 
+import { installAppTypography } from '@/constants/typography'
 import { SplashController } from '@/components/SplashController'
+
+installAppTypography()
+import { BillingReturnHandler } from '@/components/billing/BillingReturnHandler'
 import { Navbar } from '@/components/nav/Navbar'
 import { SideNav } from '@/components/nav/SideNav'
 import { AppProvider } from '@/context/AppContext'
@@ -43,6 +47,7 @@ export default function RootLayout() {
       <ThemeProvider>
         <AppProvider>
           <SplashController />
+          <BillingReturnHandler />
           <NavMenuProvider>
             <AppShell />
           </NavMenuProvider>

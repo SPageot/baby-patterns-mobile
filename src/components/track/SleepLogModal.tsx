@@ -38,6 +38,8 @@ type Props = {
   setSleepTeething: (v: boolean) => void
   sleepSick: boolean
   setSleepSick: (v: boolean) => void
+  sleepNap: boolean
+  setSleepNap: (v: boolean) => void
   sleepDurationPreview: string
   editingLogId?: string
 }
@@ -121,6 +123,8 @@ export function SleepLogModal({
   setSleepTeething,
   sleepSick,
   setSleepSick,
+  sleepNap,
+  setSleepNap,
   sleepDurationPreview,
   editingLogId,
 }: Props) {
@@ -188,6 +192,7 @@ export function SleepLogModal({
               placeholder="e.g. crib, stroller, parents' room"
             />
 
+            <LogToggleRow label="This was a nap" value={sleepNap} onChange={setSleepNap} accent={theme.accent} stroke={palette.stroke} />
             <LogToggleRow label="Teething" value={sleepTeething} onChange={setSleepTeething} accent={theme.accent} stroke={palette.stroke} />
             <LogToggleRow label="Sick" value={sleepSick} onChange={setSleepSick} accent={theme.accent} stroke={palette.stroke} />
 

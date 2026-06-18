@@ -10,6 +10,7 @@ import { filterLogsForToday, logRecordKey } from '@/lib/trackUtils'
 import type { LogRecord } from '@/types/babyLog'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
+import { heading } from '@/constants/typography'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
@@ -29,8 +30,7 @@ const createStyles = (t: AppPalette) => ({
     marginBottom: Spacing.two,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '800' as const,
+    ...heading(18, { weight: '800' }),
     color: t.text,
   },
   count: {
@@ -44,7 +44,7 @@ const createStyles = (t: AppPalette) => ({
     paddingVertical: Spacing.two,
   },
   logCard: {
-    marginBottom: Spacing.two,
+    marginBottom: Spacing.three,
   },
   row: {
     flexDirection: 'row' as const,
@@ -155,8 +155,15 @@ export function SleepLogsList({ logs, onEditLog, onDeleteLog, busyLogId }: Props
             <Card key={logRecordKey(log, index)} style={styles.logCard}>
               <View style={styles.row}>
                 <View style={styles.main}>
-                  <View style={[styles.typeBadge, { backgroundColor: theme.accentSoft, borderColor: theme.accentBorder }]}>
-                    <Text style={[styles.typeText, { color: theme.accent }]}>Sleep</Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+                    <View style={[styles.typeBadge, { backgroundColor: theme.accentSoft, borderColor: theme.accentBorder }]}>
+                      <Text style={[styles.typeText, { color: theme.accent }]}>Sleep</Text>
+                    </View>
+                    {log.details.isNap === 'true' ? (
+                      <View style={[styles.typeBadge, { backgroundColor: theme.accentSoft, borderColor: theme.accentBorder }]}>
+                        <Text style={[styles.typeText, { color: theme.accent }]}>Nap</Text>
+                      </View>
+                    ) : null}
                   </View>
                   {babyName ? <Text style={[styles.baby, { color: theme.accent }]}>{babyName}</Text> : null}
                   <Text style={styles.detail}>

@@ -98,6 +98,7 @@ export type SleepLogCreate = {
   sleepEnvironment: string
   isTeething?: boolean
   isSick?: boolean
+  isNap?: boolean
 }
 
 /** Build a SleepLogCreate from stored `LogRecord` details + `atIso` (legacy `start` / `end` supported). */
@@ -130,6 +131,7 @@ export function sleepLogFromDetails(details: Record<string, string>, atIso: stri
     sleepEnvironment: details.sleepEnvironment?.trim() ?? '',
     isTeething: BOOL(details.isTeething),
     isSick: BOOL(details.isSick),
+    isNap: BOOL(details.isNap),
   }
 }
 

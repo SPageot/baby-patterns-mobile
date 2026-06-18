@@ -120,6 +120,8 @@ export function SleepTrackScreen() {
         setSleepTeething={sleep.setSleepTeething}
         sleepSick={sleep.sleepSick}
         setSleepSick={sleep.setSleepSick}
+        sleepNap={sleep.sleepNap}
+        setSleepNap={sleep.setSleepNap}
         sleepDurationPreview={sleep.sleepDurationPreview}
         editingLogId={sleep.editingLogId}
       />

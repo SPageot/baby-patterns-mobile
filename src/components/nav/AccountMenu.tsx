@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { useApp } from '@/context/AppContext'
 import { ACCOUNT_LINKS } from '@/lib/navLinks'
+import { userPlanLabel } from '@/lib/subscription'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
@@ -70,6 +71,8 @@ export function AccountMenu({ open, onClose }: Props) {
   if (!user) return null
 
   const displayName = user.fullName?.trim() || user.username?.trim() || ''
+  const planLabel = userPlanLabel(user)
+  const proSuffix = planLabel ? ` · ${planLabel}` : ''
 
   const navigate = (href: string) => {
     onClose()
@@ -85,7 +88,7 @@ export function AccountMenu({ open, onClose }: Props) {
     <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <View style={[styles.menu, { top: insets.top + 56 }]}>
-          {displayName ? <Text style={styles.name}>{displayName}</Text> : null}
+          {displayName ? <Text style={styles.name}>{displayName}{proSuffix}</Text> : null}
           {ACCOUNT_LINKS.map((link) => (
             <Pressable
               key={link.href}

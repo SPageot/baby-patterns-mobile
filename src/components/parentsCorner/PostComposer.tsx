@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Pressable, Text, TextInput, View } from 'react-native'
 
 import { Button } from '@/components/ui/primitives'
@@ -8,15 +8,16 @@ import { HomeRadius } from '@/constants/homeTheme'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
-
-const BADGES: { value: PostBadge | null; label: string }[] = [
-  { value: null, label: 'Post' },
-  { value: 'advice', label: 'Advice' },
-  { value: 'recommendation', label: 'Recommendation' },
-]
+import {
+  CUSTOM_BADGE_MAX_LENGTH,
+  getAvailablePostBadges,
+  isValidCustomBadge,
+  normalizeCustomBadgeInput,
+} from '@/lib/postBadges'
 
 type Props = {
   posting: boolean
+  isSiteDeveloper?: boolean
   onPublish: (input: PostSubmitInput) => Promise<void>
 }
 
@@ -73,20 +74,47 @@ const createStyles = (t: AppPalette) => ({
   badgeTextActive: {
     color: t.accentDeep,
   },
+  customInput: {
+    borderWidth: 1,
+    borderColor: t.strokeSubtle,
+    borderRadius: HomeRadius.md,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: t.text,
+    backgroundColor: t.card2,
+  },
 })
 
-export function PostComposer({ posting, onPublish }: Props) {
+export function PostComposer({ posting, isSiteDeveloper = false, onPublish }: Props) {
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
   const [content, setContent] = useState('')
   const [badge, setBadge] = useState<PostBadge | null>(null)
+  const [customBadge, setCustomBadge] = useState('')
+  const [useCustomBadge, setUseCustomBadge] = useState(false)
+
+  const badgeOptions = useMemo(
+    () => [{ value: null as PostBadge | null, label: 'Post' }, ...getAvailablePostBadges(isSiteDeveloper).map((item) => ({ value: item.value as PostBadge | null, label: item.label })), { value: null as PostBadge | null, label: 'Custom' }],
+    [isSiteDeveloper],
+  )
 
   const onSubmit = async () => {
     const text = content.trim()
     if (!text) return
-    await onPublish({ content: text, badge, removeMediaIds: [] })
+    const trimmedCustom = normalizeCustomBadgeInput(customBadge)
+    const nextCustomBadge = useCustomBadge && isValidCustomBadge(trimmedCustom) ? trimmedCustom : null
+
+    await onPublish({
+      content: text,
+      badge: useCustomBadge ? null : badge,
+      customBadge: nextCustomBadge,
+      removeMediaIds: [],
+    })
     setContent('')
     setBadge(null)
+    setCustomBadge('')
+    setUseCustomBadge(false)
   }
 
   return (
@@ -103,12 +131,22 @@ export function PostComposer({ posting, onPublish }: Props) {
       />
 
       <View style={styles.badgeRow}>
-        {BADGES.map((item) => {
-          const active = badge === item.value
+        {badgeOptions.map((item) => {
+          const isCustomOption = item.label === 'Custom'
+          const active = isCustomOption ? useCustomBadge : !useCustomBadge && badge === item.value
           return (
             <Pressable
               key={item.label}
-              onPress={() => setBadge(item.value)}
+              onPress={() => {
+                if (isCustomOption) {
+                  setUseCustomBadge(true)
+                  setBadge(null)
+                  return
+                }
+                setUseCustomBadge(false)
+                setCustomBadge('')
+                setBadge(item.value)
+              }}
               style={[styles.badgeChip, active && styles.badgeChipActive]}
             >
               <Text style={[styles.badgeText, active && styles.badgeTextActive]}>{item.label}</Text>
@@ -116,6 +154,17 @@ export function PostComposer({ posting, onPublish }: Props) {
           )
         })}
       </View>
+
+      {useCustomBadge ? (
+        <TextInput
+          value={customBadge}
+          onChangeText={(value) => setCustomBadge(normalizeCustomBadgeInput(value))}
+          placeholder="Custom badge (e.g. Sleep win)"
+          placeholderTextColor={palette.textMuted}
+          style={styles.customInput}
+          maxLength={CUSTOM_BADGE_MAX_LENGTH}
+        />
+      ) : null}
 
       <Button
         title={posting ? 'Posting…' : 'Post'}

@@ -6,6 +6,7 @@ import { getTrackThemeFromPalette } from '@/constants/trackTheme'
 import { LOG_SECTION } from '@/lib/logSectionConfig'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
+import { heading } from '@/constants/typography'
 import type { LogKind } from '@/types/babyLog'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
@@ -58,10 +59,8 @@ const createStyles = (t: AppPalette) => ({
     flex: 1,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700' as const,
+    ...heading(28, { weight: '700' }),
     color: t.text,
-    letterSpacing: -0.4,
     marginBottom: 4,
   },
   subtitle: {

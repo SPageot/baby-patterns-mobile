@@ -2,7 +2,10 @@ import { useState } from 'react'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 import { useRouter } from 'expo-router'
 
+import { BillingSettingsSection } from '@/components/settings/BillingSettingsSection'
 import { DeleteAccountModal } from '@/components/settings/DeleteAccountModal'
+import { SettingsTabs, type SettingsTabId } from '@/components/settings/SettingsTabs'
+import { WeeklySummarySettingsSection } from '@/components/settings/WeeklySummarySettingsSection'
 import { HomeButton } from '@/components/home/HomeButton'
 import {
   Button,
@@ -18,6 +21,7 @@ import { changePassword } from '@/api/settingsApi'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
 import type { AppPalette } from '@/constants/homeTheme'
+import { heading } from '@/constants/typography'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
 
@@ -48,8 +52,7 @@ const createStyles = (t: AppPalette) => ({
     gap: 12,
   },
   gateTitle: {
-    fontSize: 24,
-    fontWeight: '700' as const,
+    ...heading(24, { weight: '700' }),
     color: t.text,
   },
   gateText: {
@@ -67,9 +70,10 @@ const createStyles = (t: AppPalette) => ({
 
 export function SettingsScreen() {
   const router = useRouter()
-  const { user, authReady, logout } = useApp()
+  const { user, authReady, logout, setUser } = useApp()
   const styles = useThemedStyles(createStyles)
 
+  const [activeTab, setActiveTab] = useState<SettingsTabId>('password')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -155,31 +159,50 @@ export function SettingsScreen() {
   return (
     <Screen style={{ paddingTop: 0 }}>
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        <SectionTitle>Settings</SectionTitle>
-        <Subtitle>Manage your password and account.</Subtitle>
+        <SectionTitle>Account settings</SectionTitle>
+        <Subtitle>Manage your password, subscription, notifications, and account.</Subtitle>
 
-        <Card>
-          <SectionTitle>Change password</SectionTitle>
-          {error ? <ErrorText>{error}</ErrorText> : null}
-          {success ? <Text style={styles.success}>{success}</Text> : null}
+        <SettingsTabs active={activeTab} onChange={setActiveTab} />
 
-          <Label>Current password</Label>
-          <Input secureTextEntry value={currentPassword} onChangeText={setCurrentPassword} editable={!saving} />
+        {activeTab === 'password' ? (
+          <Card>
+            <SectionTitle>Change password</SectionTitle>
+            <Subtitle>Use a strong password you do not use on other sites.</Subtitle>
+            {error ? <ErrorText>{error}</ErrorText> : null}
+            {success ? <Text style={styles.success}>{success}</Text> : null}
 
-          <Label>New password</Label>
-          <Input secureTextEntry value={newPassword} onChangeText={setNewPassword} editable={!saving} />
+            <Label>Current password</Label>
+            <Input secureTextEntry value={currentPassword} onChangeText={setCurrentPassword} editable={!saving} />
 
-          <Label>Confirm new password</Label>
-          <Input secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword} editable={!saving} />
+            <Label>New password</Label>
+            <Input secureTextEntry value={newPassword} onChangeText={setNewPassword} editable={!saving} />
 
-          <Button title={saving ? 'Updating…' : 'Update password'} disabled={saving} onPress={() => void onSubmit()} />
-        </Card>
+            <Label>Confirm new password</Label>
+            <Input secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword} editable={!saving} />
 
-        <Card>
-          <SectionTitle>Delete account</SectionTitle>
-          <Subtitle>Permanently remove your account and associated data. This action cannot be undone.</Subtitle>
-          <Button title="Delete account" variant="ghost" onPress={() => setDeleteModalOpen(true)} />
-        </Card>
+            <Button title={saving ? 'Updating…' : 'Update password'} disabled={saving} onPress={() => void onSubmit()} />
+          </Card>
+        ) : null}
+
+        {activeTab === 'subscription' ? (
+          <Card>
+            <BillingSettingsSection user={user} onUserUpdated={setUser} />
+          </Card>
+        ) : null}
+
+        {activeTab === 'weekly-summary' ? (
+          <Card>
+            <WeeklySummarySettingsSection user={user} />
+          </Card>
+        ) : null}
+
+        {activeTab === 'account' ? (
+          <Card>
+            <SectionTitle>Delete account</SectionTitle>
+            <Subtitle>Permanently remove your account and associated data. This action cannot be undone.</Subtitle>
+            <Button title="Delete account" variant="ghost" onPress={() => setDeleteModalOpen(true)} />
+          </Card>
+        ) : null}
 
         <View style={styles.links}>
           <Pressable onPress={() => router.push('/profile')}>

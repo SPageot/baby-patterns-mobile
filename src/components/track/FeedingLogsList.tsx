@@ -11,6 +11,7 @@ import { filterLogsForToday, logRecordKey } from '@/lib/trackUtils'
 import type { LogRecord } from '@/types/babyLog'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
+import { heading } from '@/constants/typography'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
@@ -30,8 +31,7 @@ const createStyles = (t: AppPalette) => ({
     marginBottom: Spacing.two,
   },
   title: {
-    fontSize: 18,
-    fontWeight: '800' as const,
+    ...heading(18, { weight: '800' }),
     color: t.text,
   },
   count: {
@@ -45,7 +45,7 @@ const createStyles = (t: AppPalette) => ({
     paddingVertical: Spacing.two,
   },
   logCard: {
-    marginBottom: Spacing.two,
+    marginBottom: Spacing.three,
   },
   row: {
     flexDirection: 'row' as const,

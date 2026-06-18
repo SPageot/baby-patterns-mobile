@@ -1,8 +1,9 @@
 import { Pressable, ScrollView, Text, View } from 'react-native'
 import { useFocusEffect, useRouter } from 'expo-router'
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 
 import { FamilyMembersSection } from '@/components/profile/FamilyMembersSection'
+import { ProfileActivityCalendar } from '@/components/profile/ProfileActivityCalendar'
 import { HomeButton } from '@/components/home/HomeButton'
 import { NavIcon } from '@/components/icons/NavIcon'
 import { UserAvatar } from '@/components/ui/UserAvatar'
@@ -18,8 +19,11 @@ import {
 } from '@/components/ui/primitives'
 import { useApp } from '@/context/AppContext'
 import { useProfile } from '@/hooks/useProfile'
+import { consumeBillingWelcome, completeBillingReturn } from '@/lib/billingReturn'
+import { isPaidProUser, isProUser, isSiteDeveloper, userPlanLabel } from '@/lib/subscription'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
+import { heading } from '@/constants/typography'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
@@ -40,8 +44,7 @@ const createStyles = (t: AppPalette) => ({
     marginTop: 12,
   },
   name: {
-    fontSize: 26,
-    fontWeight: '700' as const,
+    ...heading(26, { weight: '700' }),
     color: t.text,
     marginTop: 16,
     textAlign: 'center' as const,
@@ -124,8 +127,7 @@ const createStyles = (t: AppPalette) => ({
     gap: 12,
   },
   gateTitle: {
-    fontSize: 24,
-    fontWeight: '700' as const,
+    ...heading(24, { weight: '700' }),
     color: t.text,
   },
   gateText: {
@@ -139,25 +141,83 @@ const createStyles = (t: AppPalette) => ({
     gap: 10,
     marginTop: 8,
   },
+  welcomePro: {
+    marginBottom: Spacing.two,
+    padding: 12,
+    borderRadius: HomeRadius.lg,
+    backgroundColor: t.accentSoft,
+    borderWidth: 1,
+    borderColor: t.strokeSubtle,
+  },
+  welcomeProText: {
+    color: t.accentDeep,
+    fontSize: 14,
+    fontWeight: '600' as const,
+    textAlign: 'center' as const,
+  },
+  proBadge: {
+    marginTop: 6,
+    fontSize: 13,
+    fontWeight: '700' as const,
+    color: t.accentDeep,
+    textAlign: 'center' as const,
+  },
+  siteDevBadge: {
+    marginTop: 6,
+    fontSize: 13,
+    fontWeight: '700' as const,
+    color: '#0f766e',
+    textAlign: 'center' as const,
+  },
   babiesHead: {
     flexDirection: 'row' as const,
     justifyContent: 'space-between' as const,
     alignItems: 'center' as const,
     marginBottom: 8,
   },
+  monthHead: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'flex-start' as const,
+    gap: 12,
+    marginBottom: 8,
+  },
+  monthHeadCopy: {
+    flex: 1,
+  },
 })
 
 export function ProfileScreen() {
   const router = useRouter()
-  const { user, authReady, loadBabiesForCurrentUser } = useApp()
+  const { user, authReady, loadBabiesForCurrentUser, setUser } = useApp()
   const profile = useProfile()
   const colors = useHomeTheme()
   const styles = useThemedStyles(createStyles)
+  const [proWelcome, setProWelcome] = useState(false)
+  const isPro = isProUser(user)
+  const isSiteDev = isSiteDeveloper(user)
+  const isPaidPro = isPaidProUser(user)
 
   useFocusEffect(
     useCallback(() => {
       if (user?.id) void loadBabiesForCurrentUser()
     }, [loadBabiesForCurrentUser, user?.id]),
+  )
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!authReady || !user) return
+
+      void (async () => {
+        const welcomed = await consumeBillingWelcome()
+        if (welcomed) {
+          setProWelcome(true)
+          return
+        }
+        const synced = await completeBillingReturn(setUser)
+        if (synced) setProWelcome(true)
+      })()
+    }, [authReady, setUser, user]),
   )
 
   if (!authReady) {
@@ -193,6 +253,12 @@ export function ProfileScreen() {
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         {profile.profileError ? <ErrorText>{profile.profileError}</ErrorText> : null}
 
+        {proWelcome && isPaidPro ? (
+          <View style={styles.welcomePro}>
+            <Text style={styles.welcomeProText}>Welcome to Baby Patterns Pro! Your account is upgraded.</Text>
+          </View>
+        ) : null}
+
         <View style={styles.hero}>
           <UserAvatar user={user} size="lg" />
           {profile.apiConfigured ? (
@@ -216,6 +282,11 @@ export function ProfileScreen() {
 
           <Text style={styles.name}>{displayName}</Text>
           {username ? <Text style={styles.username}>@{username}</Text> : null}
+          {isSiteDev ? (
+            <Text style={styles.siteDevBadge}>Site developer</Text>
+          ) : isPaidPro ? (
+            <Text style={styles.proBadge}>Pro member</Text>
+          ) : null}
 
           <Pressable accessibilityRole="link" onPress={() => router.push('/settings')} style={styles.settingsLink}>
             <Text style={styles.settingsLinkText}>Account settings</Text>
@@ -242,8 +313,20 @@ export function ProfileScreen() {
         </Card>
 
         <Card>
-          <SectionTitle>This month</SectionTitle>
-          <Subtitle>{profile.currentMonthLabel()} across all your babies</Subtitle>
+          <View style={styles.monthHead}>
+            <View style={styles.monthHeadCopy}>
+              <SectionTitle>This month</SectionTitle>
+              <Subtitle>{profile.currentMonthLabel()} across all your babies</Subtitle>
+            </View>
+            {profile.apiConfigured && profile.babies.length > 0 ? (
+              <Button
+                title={profile.exportingPdf ? 'Preparing…' : 'Download PDF'}
+                variant="secondary"
+                disabled={profile.exportingPdf}
+                onPress={() => void profile.downloadTrackingPdf()}
+              />
+            ) : null}
+          </View>
 
           {profile.statsLoading ? (
             <Subtitle>Loading activity…</Subtitle>
@@ -278,6 +361,12 @@ export function ProfileScreen() {
           )}
         </Card>
 
+        {profile.allLogs.length > 0 ? (
+          <Card>
+            <ProfileActivityCalendar logs={profile.allLogs} />
+          </Card>
+        ) : null}
+
         <Card>
           <View style={styles.babiesHead}>
             <SectionTitle>Your babies</SectionTitle>
@@ -301,7 +390,7 @@ export function ProfileScreen() {
         </Card>
 
         <Card>
-          <FamilyMembersSection enabled={profile.apiConfigured && Boolean(user.id)} />
+          <FamilyMembersSection enabled={profile.apiConfigured && Boolean(user.id)} user={user} />
         </Card>
       </ScrollView>
     </Screen>

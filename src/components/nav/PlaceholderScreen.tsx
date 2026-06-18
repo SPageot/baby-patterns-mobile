@@ -1,7 +1,8 @@
 import { ScrollView, Text } from 'react-native'
 
 import type { AppPalette } from '@/constants/homeTheme'
-import { Fonts, Spacing } from '@/constants/theme'
+import { heading } from '@/constants/typography'
+import { Spacing } from '@/constants/theme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 
 type Props = {
@@ -19,10 +20,8 @@ const createStyles = (t: AppPalette) => ({
     paddingBottom: Spacing.six,
   },
   title: {
-    fontSize: 32,
-    lineHeight: 38,
+    ...heading(32, { lineHeight: 38 }),
     color: t.text,
-    fontWeight: '600' as const,
     marginBottom: Spacing.two,
   },
   body: {
@@ -34,7 +33,6 @@ const createStyles = (t: AppPalette) => ({
 })
 
 export function PlaceholderScreen({ title, description }: Props) {
-  const serif = Fonts.serif ?? 'serif'
   const styles = useThemedStyles(createStyles)
 
   return (
@@ -43,7 +41,7 @@ export function PlaceholderScreen({ title, description }: Props) {
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      <Text style={[styles.title, { fontFamily: serif }]}>{title}</Text>
+      <Text style={styles.title}>{title}</Text>
       <Text style={styles.body}>
         {description ?? 'This section will match the Baby Patterns website soon.'}
       </Text>

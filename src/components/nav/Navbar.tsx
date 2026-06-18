@@ -12,6 +12,7 @@ import { useApp } from '@/context/AppContext'
 import { useNavMenu } from '@/context/NavMenuContext'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
+import { heading } from '@/constants/typography'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
@@ -54,10 +55,8 @@ const createStyles = (t: AppPalette) => ({
     flexShrink: 1,
   },
   brandName: {
+    ...heading(16, { lineHeight: 20, weight: '700' }),
     color: t.text,
-    fontSize: 16,
-    fontWeight: '700' as const,
-    letterSpacing: -0.1,
   },
   actions: {
     flexDirection: 'row' as const,
@@ -132,7 +131,7 @@ export function Navbar() {
           <Pressable
             accessibilityRole="link"
             accessibilityLabel="Baby Patterns home"
-            onPress={() => router.push('/')}
+            onPress={() => router.push(user ? '/profile' : '/')}
             style={({ pressed }) => [styles.brand, pressed && styles.pressed]}
           >
             <Text style={styles.brandName}>Baby Patterns</Text>

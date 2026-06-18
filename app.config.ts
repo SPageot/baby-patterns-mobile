@@ -69,6 +69,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         cameraPermission: 'Allow Baby Patterns to use your camera for profile pictures.',
       },
     ],
+    'expo-sharing',
   ],
   experiments: {
     typedRoutes: true,

@@ -24,14 +24,20 @@ type Props = {
   onChange: (v: boolean) => void
   accent: string
   stroke: string
+  disabled?: boolean
 }
 
-export function LogToggleRow({ label, value, onChange, accent, stroke }: Props) {
+export function LogToggleRow({ label, value, onChange, accent, stroke, disabled }: Props) {
   const styles = useThemedStyles(createStyles)
   return (
     <View style={styles.toggleRow}>
-      <Text style={styles.toggleLabel}>{label}</Text>
-      <Switch value={value} onValueChange={onChange} trackColor={{ false: stroke, true: accent }} />
+      <Text style={[styles.toggleLabel, disabled && { opacity: 0.5 }]}>{label}</Text>
+      <Switch
+        value={value}
+        onValueChange={onChange}
+        disabled={disabled}
+        trackColor={{ false: stroke, true: accent }}
+      />
     </View>
   )
 }

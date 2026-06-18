@@ -12,6 +12,7 @@ import { useReviews } from '@/hooks/useReviews'
 import { filterBrandsByQuery } from '@/lib/filterBrands'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
+import { heading } from '@/constants/typography'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
@@ -41,10 +42,8 @@ const createStyles = (t: AppPalette) => ({
     marginBottom: 10,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700' as const,
+    ...heading(28, { weight: '700' }),
     color: t.text,
-    letterSpacing: -0.4,
     marginBottom: 6,
   },
   subtitle: {

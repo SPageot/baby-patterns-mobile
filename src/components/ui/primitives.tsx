@@ -10,8 +10,9 @@ import {
 } from 'react-native'
 
 import { HomeRadius } from '@/constants/homeTheme'
+import { bodyText, heading } from '@/constants/typography'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
-import { Fonts, Spacing } from '@/constants/theme'
+import { Spacing } from '@/constants/theme'
 
 export function Screen({ children, style, ...props }: ViewProps) {
   const t = useHomeTheme()
@@ -39,6 +40,7 @@ export function Eyebrow({ children }: { children: string }) {
     >
       <Text
         style={{
+          ...bodyText,
           color: t.accentDeep,
           fontSize: 11,
           fontWeight: '800',
@@ -55,16 +57,7 @@ export function Eyebrow({ children }: { children: string }) {
 export function Title({ children }: { children: ReactNode }) {
   const t = useHomeTheme()
   return (
-    <Text
-      style={{
-        fontFamily: Fonts.serif,
-        fontSize: 36,
-        lineHeight: 40,
-        fontWeight: '600',
-        color: t.text,
-        letterSpacing: -0.6,
-      }}
-    >
+    <Text style={{ ...heading(36, { lineHeight: 40 }), color: t.text }}>
       {children}
     </Text>
   )
@@ -75,12 +68,8 @@ export function AccentTitle({ children }: { children: ReactNode }) {
   return (
     <Text
       style={{
-        fontFamily: Fonts.serif,
-        fontSize: 36,
-        lineHeight: 40,
-        fontWeight: '600',
+        ...heading(36, { lineHeight: 40 }),
         color: t.accentDeep,
-        letterSpacing: -0.6,
         marginBottom: Spacing.two,
       }}
     >
@@ -148,6 +137,7 @@ export function Button({ title, variant = 'primary', loading, disabled, style, .
       ) : (
         <Text
           style={{
+            ...bodyText,
             fontSize: 15,
             fontWeight: '600',
             color: isPrimary ? t.onPrimary : t.text,
@@ -167,6 +157,7 @@ export function Input(props: TextInputProps) {
       placeholderTextColor={t.textMuted}
       style={[
         {
+          ...bodyText,
           borderWidth: 1,
           borderColor: t.stroke,
           borderRadius: HomeRadius.md,
@@ -190,6 +181,7 @@ export function Label({ children }: { children: string }) {
   return (
     <Text
       style={{
+        ...bodyText,
         fontSize: 12,
         fontWeight: '600',
         color: t.textMuted,
@@ -206,14 +198,16 @@ export function Label({ children }: { children: string }) {
 export function SectionTitle({ children }: { children: string }) {
   const t = useHomeTheme()
   return (
-    <Text style={{ fontSize: 20, fontWeight: '700', color: t.text, marginBottom: 6 }}>{children}</Text>
+    <Text style={{ ...heading(20, { weight: '700' }), color: t.text, marginBottom: 6 }}>
+      {children}
+    </Text>
   )
 }
 
 export function Subtitle({ children, style }: { children: ReactNode; style?: object }) {
   const t = useHomeTheme()
   return (
-    <Text style={[{ fontSize: 15, lineHeight: 24, color: t.textMuted, marginBottom: Spacing.three }, style]}>
+    <Text style={[{ ...bodyText, fontSize: 15, lineHeight: 24, color: t.textMuted, marginBottom: Spacing.three }, style]}>
       {children}
     </Text>
   )
@@ -221,7 +215,7 @@ export function Subtitle({ children, style }: { children: ReactNode; style?: obj
 
 export function ErrorText({ children }: { children: ReactNode }) {
   const t = useHomeTheme()
-  return <Text style={{ color: t.error, fontSize: 14, marginBottom: Spacing.two }}>{children}</Text>
+  return <Text style={{ ...bodyText, color: t.error, fontSize: 14, marginBottom: Spacing.two }}>{children}</Text>
 }
 
 const styles = StyleSheet.create({

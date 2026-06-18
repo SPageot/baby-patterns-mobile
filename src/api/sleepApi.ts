@@ -45,6 +45,7 @@ export type SleepLogDto = {
   sleepEnvironment: string
   isTeething: boolean
   isSick: boolean
+  isNap: boolean
 }
 
 export type SleepLogWrite = SleepLogCreate & {
@@ -114,6 +115,7 @@ function normalizeSleep(raw: unknown): SleepLogDto | null {
     sleepEnvironment: pickStr(o, 'sleepEnvironment', 'SleepEnvironment'),
     isTeething: pickBool(o, 'isTeething', 'IsTeething'),
     isSick: pickBool(o, 'isSick', 'IsSick'),
+    isNap: pickBool(o, 'isNap', 'IsNap'),
   }
 }
 
@@ -182,6 +184,7 @@ function toApiBody(payload: SleepLogWrite): Record<string, unknown> {
     sleepEnvironment: utc.sleepEnvironment,
     isTeething: Boolean(payload.isTeething),
     isSick: Boolean(payload.isSick),
+    isNap: Boolean(payload.isNap),
   }
   const id = payload.id?.trim()
   if (id) body.id = id
@@ -232,6 +235,7 @@ function sleepFromCreateResponse(payload: SleepLogWrite, data: unknown): SleepLo
     sleepEnvironment: utc.sleepEnvironment,
     isTeething: Boolean(payload.isTeething),
     isSick: Boolean(payload.isSick),
+    isNap: Boolean(payload.isNap),
   }
 }
 
@@ -279,6 +283,7 @@ export function sleepDtoToLogRecord(dto: SleepLogDto): LogRecord {
       sleepEnvironment: dto.sleepEnvironment,
       isTeething: String(dto.isTeething),
       isSick: String(dto.isSick),
+      isNap: String(dto.isNap),
       ...(dto.babyId ? { babyId: dto.babyId } : {}),
     },
   }

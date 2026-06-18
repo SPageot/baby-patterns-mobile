@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { NavIcon } from '@/components/icons/NavIcon'
 import { ThemeToggle } from '@/components/nav/ThemeToggle'
 import { useNavMenu } from '@/context/NavMenuContext'
-import { ACCOUNT_LINKS, NAV_LINKS, type NavLink } from '@/lib/navLinks'
+import { ACCOUNT_LINKS, getVisibleNavLinks, type NavLink } from '@/lib/navLinks'
 import { useApp } from '@/context/AppContext'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
@@ -175,9 +175,10 @@ export function SideNav() {
   const router = useRouter()
   const pathname = normalizePath(usePathname())
   const { open, close } = useNavMenu()
-  const { user } = useApp()
+  const { user, hasBaby } = useApp()
   const colors = useHomeTheme()
   const styles = useThemedStyles(createStyles)
+  const visibleLinks = getVisibleNavLinks({ hasBaby, user })
 
   const onNavigate = (href: string) => {
     close()
@@ -215,7 +216,7 @@ export function SideNav() {
           </View>
 
           <ScrollView style={styles.nav} showsVerticalScrollIndicator={false}>
-            {NAV_LINKS.map((link) => (
+            {visibleLinks.map((link) => (
               <NavRow
                 key={link.href}
                 link={link}

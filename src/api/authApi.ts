@@ -6,6 +6,7 @@ export {
   extractUserIdFromAccessToken,
   persistAuthTokens,
   refreshAccessToken,
+  bootstrapAuthSession,
   resolveAuthenticatedUserId,
 } from '@/api/authTokens'
 

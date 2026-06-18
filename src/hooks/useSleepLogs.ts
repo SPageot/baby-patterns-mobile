@@ -45,6 +45,7 @@ export function useSleepLogs() {
   const [sleepEnvironment, setSleepEnvironment] = useState('')
   const [sleepTeething, setSleepTeething] = useState(false)
   const [sleepSick, setSleepSick] = useState(false)
+  const [sleepNap, setSleepNap] = useState(false)
 
   const todaySleep = useMemo(() => todayCount(sleepLogs, 'sleep'), [sleepLogs])
   const busyLogId = deletingLogId
@@ -120,6 +121,7 @@ export function useSleepLogs() {
     setSleepEnvironment('')
     setSleepTeething(false)
     setSleepSick(false)
+    setSleepNap(false)
     setSleepDate(nowUtcDateValue())
     setSleepStart(nowUtcInputValue())
     setSleepEnd(nowUtcInputValue())
@@ -155,6 +157,7 @@ export function useSleepLogs() {
     setSleepEnvironment(d.sleepEnvironment?.trim() ?? '')
     setSleepTeething(d.isTeething === 'true')
     setSleepSick(d.isSick === 'true')
+    setSleepNap(d.isNap === 'true')
     setFormOpen(true)
   }
 
@@ -230,6 +233,7 @@ export function useSleepLogs() {
       sleepEnvironment: sleepEnvironment.trim(),
       isTeething: sleepTeething,
       isSick: sleepSick,
+      isNap: sleepNap,
     })
 
     const editId = editingLogId.trim()
@@ -288,6 +292,8 @@ export function useSleepLogs() {
     setSleepTeething,
     sleepSick,
     setSleepSick,
+    sleepNap,
+    setSleepNap,
     sleepDurationPreview,
     editingLogId,
   }

@@ -1,16 +1,20 @@
 import { Alert, Pressable, Text, View } from 'react-native'
-import { useFocusEffect } from 'expo-router'
+import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback } from 'react'
 
 import { Button, ErrorText, Input, Label } from '@/components/ui/primitives'
 import { useFamilyMembers } from '@/hooks/useFamilyMembers'
+import { isProUser } from '@/lib/subscription'
+import type { User } from '@/schemas/user'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
+import { heading } from '@/constants/typography'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
 
 type Props = {
   enabled: boolean
+  user: User | null
 }
 
 const createStyles = (t: AppPalette) => ({
@@ -21,8 +25,7 @@ const createStyles = (t: AppPalette) => ({
     marginBottom: Spacing.two,
   },
   title: {
-    fontSize: 20,
-    fontWeight: '700' as const,
+    ...heading(20, { weight: '700' }),
     color: t.text,
     marginBottom: 4,
   },
@@ -30,6 +33,10 @@ const createStyles = (t: AppPalette) => ({
     fontSize: 14,
     lineHeight: 20,
     color: t.textMuted,
+  },
+  link: {
+    color: t.accentDeep,
+    fontWeight: '700' as const,
   },
   requestsTitle: {
     fontSize: 14,
@@ -200,8 +207,10 @@ const createStyles = (t: AppPalette) => ({
   },
 })
 
-export function FamilyMembersSection({ enabled }: Props) {
+export function FamilyMembersSection({ enabled, user }: Props) {
+  const router = useRouter()
   const family = useFamilyMembers(enabled)
+  const userIsPro = isProUser(user)
   const styles = useThemedStyles(createStyles)
 
   useFocusEffect(
@@ -251,6 +260,16 @@ export function FamilyMembersSection({ enabled }: Props) {
 
       {family.error ? <ErrorText>{family.error}</ErrorText> : null}
 
+      {!userIsPro ? (
+        <Text style={styles.subtitle}>
+          Family sharing is included with Baby Patterns Pro.{' '}
+          <Text style={styles.link} onPress={() => router.push('/pricing')}>
+            Upgrade to Pro
+          </Text>{' '}
+          to send invites. You can still accept invites and manage existing connections.
+        </Text>
+      ) : null}
+
       {family.incomingRequests.length > 0 ? (
         <View style={styles.requestsBlock}>
           <Text style={styles.requestsTitle}>Invites for you</Text>
@@ -290,7 +309,7 @@ export function FamilyMembersSection({ enabled }: Props) {
             placeholder="Search usernames…"
             value={family.searchQuery}
             onChangeText={family.setSearchQuery}
-            editable={enabled && !family.adding}
+            editable={enabled && !family.adding && userIsPro}
             autoCapitalize="none"
             autoCorrect={false}
           />
@@ -307,7 +326,7 @@ export function FamilyMembersSection({ enabled }: Props) {
                 <Pressable
                   key={user.id}
                   accessibilityRole="button"
-                  disabled={pending || family.adding}
+                  disabled={pending || family.adding || !userIsPro}
                   onPress={() => void family.sendRequest(user.username)}
                   style={({ pressed }) => [styles.suggestion, pressed && styles.pressed]}
                 >

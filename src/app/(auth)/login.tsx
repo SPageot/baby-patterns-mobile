@@ -63,7 +63,7 @@ export default function LoginScreen() {
       const user = await loginUser(credentials)
       setUser(user)
       await loadBabiesForCurrentUser()
-      router.replace('/')
+      router.replace('/profile')
     } catch (e) {
       if (e instanceof RequestTimeoutError) {
         setError(e.message)
