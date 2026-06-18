@@ -55,9 +55,16 @@ export type PostComment = {
   likedByMe: boolean
 }
 
+export type PostMediaUpload = {
+  uri: string
+  name: string
+  type: string
+}
+
 export type PostSubmitInput = {
   content: string
   badge: PostBadge | null
   customBadge: string | null
+  files: PostMediaUpload[]
   removeMediaIds: string[]
 }

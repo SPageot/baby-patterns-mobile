@@ -102,27 +102,19 @@ export function SleepTrackScreen() {
         open={sleep.formOpen}
         onClose={sleep.closeForm}
         onSave={() => void sleep.onSaveSleep()}
+        onBackToEntry={sleep.backToEntry}
         saving={sleep.saving}
         babies={sleep.babies}
         formBabyId={sleep.formBabyId}
         setFormBabyId={sleep.setFormBabyId}
-        sleepDate={sleep.sleepDate}
-        setSleepDate={sleep.setSleepDate}
-        sleepStart={sleep.sleepStart}
-        setSleepStart={sleep.setSleepStart}
-        sleepEnd={sleep.sleepEnd}
-        setSleepEnd={sleep.setSleepEnd}
-        sleepMood={sleep.sleepMood}
-        setSleepMood={sleep.setSleepMood}
-        sleepEnvironment={sleep.sleepEnvironment}
-        setSleepEnvironment={sleep.setSleepEnvironment}
-        sleepTeething={sleep.sleepTeething}
-        setSleepTeething={sleep.setSleepTeething}
-        sleepSick={sleep.sleepSick}
-        setSleepSick={sleep.setSleepSick}
-        sleepNap={sleep.sleepNap}
-        setSleepNap={sleep.setSleepNap}
-        sleepDurationPreview={sleep.sleepDurationPreview}
+        formBabyIds={sleep.formBabyIds}
+        onToggleFormBabyId={sleep.toggleFormBabyId}
+        showReviewStep={sleep.showReviewStep}
+        isMultiCreate={sleep.isMultiCreate}
+        reviewDrafts={sleep.reviewDrafts}
+        onUpdateReviewDraft={sleep.updateReviewDraft}
+        formState={sleep.formState}
+        setFormState={sleep.setFormState}
         editingLogId={sleep.editingLogId}
       />
     </TrackLogSection>

@@ -1,9 +1,11 @@
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { Pressable, ScrollView, Text, View, Alert } from 'react-native'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useState } from 'react'
 
+import { BabyDetailsModal } from '@/components/baby/BabyDetailsModal'
 import { FamilyMembersSection } from '@/components/profile/FamilyMembersSection'
 import { ProfileActivityCalendar } from '@/components/profile/ProfileActivityCalendar'
+import { PostCard } from '@/components/parentsCorner/PostCard'
 import { HomeButton } from '@/components/home/HomeButton'
 import { NavIcon } from '@/components/icons/NavIcon'
 import { UserAvatar } from '@/components/ui/UserAvatar'
@@ -20,7 +22,9 @@ import {
 import { useApp } from '@/context/AppContext'
 import { useProfile } from '@/hooks/useProfile'
 import { consumeBillingWelcome, completeBillingReturn } from '@/lib/billingReturn'
-import { isPaidProUser, isProUser, isSiteDeveloper, userPlanLabel } from '@/lib/subscription'
+import { isOwnPost } from '@/lib/postUtils'
+import { isPaidProUser, isProUser, isSiteDeveloper } from '@/lib/subscription'
+import type { Baby } from '@/schemas/user'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { heading } from '@/constants/typography'
@@ -185,15 +189,27 @@ const createStyles = (t: AppPalette) => ({
   monthHeadCopy: {
     flex: 1,
   },
+  babyEdit: {
+    fontSize: 13,
+    fontWeight: '700' as const,
+    color: t.accentDeep,
+  },
+  postsHead: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+    marginBottom: 8,
+  },
 })
 
 export function ProfileScreen() {
   const router = useRouter()
-  const { user, authReady, loadBabiesForCurrentUser, setUser } = useApp()
+  const { user, authReady, loadBabiesForCurrentUser, setUser, addBaby } = useApp()
   const profile = useProfile()
   const colors = useHomeTheme()
   const styles = useThemedStyles(createStyles)
   const [proWelcome, setProWelcome] = useState(false)
+  const [editBaby, setEditBaby] = useState<Baby | null>(null)
   const isPro = isProUser(user)
   const isSiteDev = isSiteDeveloper(user)
   const isPaidPro = isPaidProUser(user)
@@ -332,7 +348,7 @@ export function ProfileScreen() {
             <Subtitle>Loading activity…</Subtitle>
           ) : profile.babies.length === 0 ? (
             <>
-              <Subtitle>Add a baby to start tracking diapers, sleep, and feeding.</Subtitle>
+              <Subtitle>Add a baby to start tracking diapers, sleep, feeding, growth, milestones, and health.</Subtitle>
               <Button title="Add a baby" onPress={() => router.push('/add-baby')} />
             </>
           ) : (
@@ -345,8 +361,10 @@ export function ProfileScreen() {
               </View>
               <View style={styles.stat}>
                 <NavIcon name="moon" size={18} color={colors.text} />
-                <Text style={styles.statValue}>{profile.monthStats.sleep}</Text>
-                <Text style={styles.statLabel}>Sleep logs</Text>
+                <Text style={styles.statValue}>
+                  {profile.formatSleepDurationShort(profile.monthSleepStats.totalMinutes)}
+                </Text>
+                <Text style={styles.statLabel}>Total sleep</Text>
                 <Text style={styles.statAvg}>
                   {profile.formatSleepDurationShort(profile.monthSleepStats.avgMinutesPerDay)} avg / day
                 </Text>
@@ -357,15 +375,31 @@ export function ProfileScreen() {
                 <Text style={styles.statLabel}>Feeds</Text>
                 <Text style={styles.statAvg}>{profile.formatAvgPerDay(profile.monthAverages.feeding)} avg / day</Text>
               </View>
+              <View style={styles.stat}>
+                <NavIcon name="growth" size={18} color={colors.text} />
+                <Text style={styles.statValue}>{profile.monthExtendedStats.growth}</Text>
+                <Text style={styles.statLabel}>Growth logs</Text>
+                <Text style={styles.statAvg}>{profile.monthExtendedStats.growthDetail}</Text>
+              </View>
+              <View style={styles.stat}>
+                <NavIcon name="star" size={18} color={colors.text} />
+                <Text style={styles.statValue}>{profile.monthExtendedStats.milestones}</Text>
+                <Text style={styles.statLabel}>Milestones</Text>
+                <Text style={styles.statAvg}>{profile.monthExtendedStats.milestoneDetail}</Text>
+              </View>
+              <View style={styles.stat}>
+                <NavIcon name="health" size={18} color={colors.text} />
+                <Text style={styles.statValue}>{profile.monthExtendedStats.health}</Text>
+                <Text style={styles.statLabel}>Health events</Text>
+                <Text style={styles.statAvg}>{profile.monthExtendedStats.healthDetail}</Text>
+              </View>
             </View>
           )}
-        </Card>
 
-        {profile.allLogs.length > 0 ? (
-          <Card>
+          {profile.babies.length > 0 && !profile.statsLoading ? (
             <ProfileActivityCalendar logs={profile.allLogs} />
-          </Card>
-        ) : null}
+          ) : null}
+        </Card>
 
         <Card>
           <View style={styles.babiesHead}>
@@ -377,14 +411,71 @@ export function ProfileScreen() {
           ) : (
             profile.babies.map((baby) => (
               <View key={baby.id} style={styles.babyRow}>
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.babyName}>{baby.fullName}</Text>
                   {baby.isShared && baby.sharedFromUsername ? (
                     <Text style={styles.babyShared}>From @{baby.sharedFromUsername}</Text>
                   ) : null}
                   {baby.birthdate ? <Text style={styles.babyMeta}>Born {baby.birthdate}</Text> : null}
+                  {baby.currentLocation?.trim() ? (
+                    <Text style={styles.babyMeta}>{baby.currentLocation.trim()}</Text>
+                  ) : null}
                 </View>
+                {profile.apiConfigured && !baby.isShared ? (
+                  <Pressable onPress={() => setEditBaby(baby)}>
+                    <Text style={styles.babyEdit}>Edit profile</Text>
+                  </Pressable>
+                ) : null}
               </View>
+            ))
+          )}
+        </Card>
+
+        <Card>
+          <View style={styles.postsHead}>
+            <SectionTitle>Parents Corner posts</SectionTitle>
+            <Button title="Go to feed" variant="ghost" onPress={() => router.push('/parents-corner')} />
+          </View>
+          {!profile.apiConfigured ? (
+            <Subtitle>Connect the API to view your posts.</Subtitle>
+          ) : profile.postsLoading ? (
+            <Subtitle>Loading posts…</Subtitle>
+          ) : profile.posts.length === 0 ? (
+            <>
+              <Subtitle>You haven&apos;t shared anything in Parents Corner yet.</Subtitle>
+              <Button title="Write a post" onPress={() => router.push('/parents-corner')} />
+            </>
+          ) : (
+            profile.posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                comments={profile.commentsByPost[post.id] ?? []}
+                commentsOpen={Boolean(profile.commentsOpen[post.id])}
+                commentsLoading={Boolean(profile.commentsLoading[post.id])}
+                canEdit={isOwnPost(post, user.id)}
+                canDelete={isOwnPost(post, user.id)}
+                editing={profile.editingPostId === post.id}
+                saving={profile.savingPostId === post.id}
+                onLike={() => void profile.likePost(post.id)}
+                onToggleComments={() => void profile.toggleComments(post.id)}
+                onComment={(content) => profile.submitComment(post.id, content)}
+                onLikeComment={(commentId) => void profile.likeComment(post.id, commentId)}
+                onEdit={() => profile.setEditingPostId(post.id)}
+                onCancelEdit={() => profile.setEditingPostId(null)}
+                onSaveEdit={(input) => profile.savePostEdit(post.id, input)}
+                onDelete={() => {
+                  Alert.alert('Delete post?', 'This cannot be undone.', [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Delete',
+                      style: 'destructive',
+                      onPress: () => void profile.removePost(post.id),
+                    },
+                  ])
+                }}
+                isSiteDeveloper={isSiteDev}
+              />
             ))
           )}
         </Card>
@@ -393,6 +484,18 @@ export function ProfileScreen() {
           <FamilyMembersSection enabled={profile.apiConfigured && Boolean(user.id)} user={user} />
         </Card>
       </ScrollView>
+
+      <BabyDetailsModal
+        baby={editBaby}
+        open={editBaby != null}
+        canEdit
+        startInEditMode
+        onBabyUpdated={(updated) => {
+          addBaby(updated)
+          setEditBaby(updated)
+        }}
+        onClose={() => setEditBaby(null)}
+      />
     </Screen>
   )
 }

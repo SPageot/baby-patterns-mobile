@@ -1,10 +1,13 @@
+import { useCallback, useMemo, useState } from 'react'
 import { ScrollView, Pressable, Text } from 'react-native'
 
+import { BabyDetailsModal } from '@/components/baby/BabyDetailsModal'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
 import { useApp } from '@/context/AppContext'
+import type { Baby } from '@/schemas/user'
 
 const createStyles = (t: AppPalette) => ({
   label: {
@@ -57,8 +60,17 @@ const createStyles = (t: AppPalette) => ({
 })
 
 export function BabyChipBar() {
-  const { babies, selectedBabyId, selectBaby } = useApp()
+  const { babies, selectedBabyId, selectBaby, addBaby } = useApp()
   const styles = useThemedStyles(createStyles)
+  const [viewBaby, setViewBaby] = useState<Baby | null>(null)
+
+  const handlePress = useCallback(
+    (baby: Baby) => {
+      selectBaby(baby)
+      setViewBaby(baby)
+    },
+    [selectBaby],
+  )
 
   if (!babies.length) {
     return (
@@ -81,7 +93,7 @@ export function BabyChipBar() {
           return (
             <Pressable
               key={baby.id}
-              onPress={() => selectBaby(baby)}
+              onPress={() => handlePress(baby)}
               accessibilityRole="button"
               accessibilityLabel={
                 sharedLabel ? `${name}, shared by ${sharedLabel}` : `Select ${name}`
@@ -100,6 +112,17 @@ export function BabyChipBar() {
           )
         })}
       </ScrollView>
+
+      <BabyDetailsModal
+        baby={viewBaby}
+        open={viewBaby != null}
+        canEdit={Boolean(viewBaby && !viewBaby.isShared)}
+        onBabyUpdated={(updated) => {
+          addBaby(updated)
+          setViewBaby(updated)
+        }}
+        onClose={() => setViewBaby(null)}
+      />
     </>
   )
 }

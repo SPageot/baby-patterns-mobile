@@ -306,6 +306,13 @@ export function logMonthKey(log: LogRecord): string {
   return ymd ? ymd.slice(0, 7) : ''
 }
 
+/** True when an ISO instant falls in the local calendar month. */
+export function isoInLocalMonth(iso: string, year: number, month: number): boolean {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return false
+  return d.getFullYear() === year && d.getMonth() + 1 === month
+}
+
 export function monthCount(logs: LogRecord[], kind: LogKind, year: number, month: number) {
   const prefix = monthPrefix(year, month)
   let n = 0

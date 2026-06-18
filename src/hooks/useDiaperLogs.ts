@@ -14,6 +14,12 @@ import type { Baby } from '@/schemas/user'
 import { diaperLogFromDetails, type DiaperLogCreate, type LogRecord } from '@/types/babyLog'
 import { useDeferredEffect } from '@/lib/scheduleEffect'
 import { isoToDatetimeLocalValue, nowLocalInputValue, todayCount } from '@/lib/trackUtils'
+import { useMultiBabyLogFlow } from '@/hooks/useMultiBabyLogFlow'
+import {
+  diaperFormStateToCreate,
+  type DiaperFormState,
+} from '@/components/track/DiaperLogFormFields'
+import type { MultiBabyDraft } from '@/lib/multiBabyLogFlow'
 
 export function useDiaperLogs() {
   const { babies, selectedBabyId, selectBaby, user, loadBabiesForCurrentUser } = useApp()
@@ -38,6 +44,49 @@ export function useDiaperLogs() {
   const [diaperSick, setDiaperSick] = useState(false)
   const [formBabyId, setFormBabyId] = useState('')
   const [editingLogId, setEditingLogId] = useState('')
+
+  const isEdit = Boolean(editingLogId.trim())
+  const multi = useMultiBabyLogFlow(isEdit)
+
+  const formState: DiaperFormState = useMemo(
+    () => ({
+      diaperPee,
+      diaperPoop,
+      diaperAnythingElse,
+      diaperAnythingElseDesc,
+      diaperTime,
+      diaperBrand,
+      diaperSize,
+      diaperCream,
+      diaperTeething,
+      diaperSick,
+    }),
+    [
+      diaperPee,
+      diaperPoop,
+      diaperAnythingElse,
+      diaperAnythingElseDesc,
+      diaperTime,
+      diaperBrand,
+      diaperSize,
+      diaperCream,
+      diaperTeething,
+      diaperSick,
+    ],
+  )
+
+  const setFormState = useCallback((patch: Partial<DiaperFormState>) => {
+    if (patch.diaperPee !== undefined) setDiaperPee(patch.diaperPee)
+    if (patch.diaperPoop !== undefined) setDiaperPoop(patch.diaperPoop)
+    if (patch.diaperAnythingElse !== undefined) setDiaperAnythingElse(patch.diaperAnythingElse)
+    if (patch.diaperAnythingElseDesc !== undefined) setDiaperAnythingElseDesc(patch.diaperAnythingElseDesc)
+    if (patch.diaperTime !== undefined) setDiaperTime(patch.diaperTime)
+    if (patch.diaperBrand !== undefined) setDiaperBrand(patch.diaperBrand)
+    if (patch.diaperSize !== undefined) setDiaperSize(patch.diaperSize)
+    if (patch.diaperCream !== undefined) setDiaperCream(patch.diaperCream)
+    if (patch.diaperTeething !== undefined) setDiaperTeething(patch.diaperTeething)
+    if (patch.diaperSick !== undefined) setDiaperSick(patch.diaperSick)
+  }, [])
 
   const todayDiapers = useMemo(() => todayCount(diaperLogs, 'diaper'), [diaperLogs])
   const busyLogId = deletingLogId
@@ -114,12 +163,19 @@ export function useDiaperLogs() {
     setDiaperCream('')
     setDiaperTeething(false)
     setDiaperSick(false)
+    multi.resetMultiBabyFlow('')
   }
+
+  const buildDiaperFields = useCallback(
+    (): DiaperLogCreate => diaperFormStateToCreate(formState),
+    [formState],
+  )
 
   const openForm = () => {
     resetForm()
     const defaultId = selectedBabyId || babies.find((b) => b.id?.trim())?.id?.trim() || getBabyId() || ''
     setFormBabyId(defaultId)
+    multi.resetMultiBabyFlow(defaultId)
     if (!selectedBabyId && defaultId) {
       const baby = babies.find((b) => b.id === defaultId)
       if (baby) selectBaby(baby)
@@ -146,6 +202,7 @@ export function useDiaperLogs() {
     setDiaperTeething(Boolean(fields.isTeething))
     setDiaperSick(Boolean(fields.isSick))
     setDiaperTime(isoToDatetimeLocalValue(log.atIso))
+    multi.resetMultiBabyFlow(babyId || selectedBabyId || getBabyId() || '')
     setFormOpen(true)
   }
 
@@ -190,37 +247,55 @@ export function useDiaperLogs() {
       return
     }
 
-    const babyId = formBabyId.trim() || selectedBabyId || getBabyId()
-    if (!babyId) {
-      setError('Select a baby before logging diapers.')
+    const editId = editingLogId.trim()
+
+    if (multi.showReviewStep) {
+      const drafts = multi.reviewDrafts as MultiBabyDraft<DiaperLogCreate>[]
+      if (!drafts.length) {
+        setError('No babies selected.')
+        return
+      }
+
+      setSaving(true)
+      setError(null)
+      try {
+        for (const draft of drafts) {
+          await createDiaperLog(draft.babyId, draft.fields)
+        }
+        const firstBaby = babies.find((b) => b.id === drafts[0]?.babyId)
+        if (firstBaby) selectBaby(firstBaby)
+        closeForm()
+        await syncLogs(babies)
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Failed to save diaper logs')
+      } finally {
+        setSaving(false)
+      }
       return
     }
 
-    const fields: DiaperLogCreate = {
-      isTherePee: diaperPee,
-      isTherePoop: diaperPoop,
-      isThereAnythingElse: diaperAnythingElse,
-      anythingElseDescription: diaperAnythingElseDesc.trim() || null,
-      time: diaperTime.trim(),
-      diaperBrand: diaperBrand.trim(),
-      diaperSize: diaperSize.trim(),
-      diaperCreamUsed: diaperCream.trim(),
-      isTeething: diaperTeething,
-      isSick: diaperSick,
+    const fields = buildDiaperFields()
+
+    if (multi.isMultiCreate) {
+      multi.startReview(multi.formBabyIds, babies, fields)
+      return
+    }
+
+    const babyId = multi.formBabyIds[0] || formBabyId.trim() || selectedBabyId || getBabyId()
+    if (!babyId) {
+      setError('Select a baby before logging diapers.')
+      return
     }
 
     setSaving(true)
     setError(null)
     try {
       const baby = babies.find((b) => b.id === babyId)
-      const editId = editingLogId.trim()
-
       if (editId) {
         await updateDiaperLog(editId, babyId, fields)
       } else {
         await createDiaperLog(babyId, fields)
       }
-
       if (baby) selectBaby(baby)
       closeForm()
       await syncLogs(babies)
@@ -250,26 +325,15 @@ export function useDiaperLogs() {
     onSaveDiaper,
     formBabyId,
     setFormBabyId,
-    diaperPee,
-    setDiaperPee,
-    diaperPoop,
-    setDiaperPoop,
-    diaperAnythingElse,
-    setDiaperAnythingElse,
-    diaperAnythingElseDesc,
-    setDiaperAnythingElseDesc,
-    diaperTime,
-    setDiaperTime,
-    diaperBrand,
-    setDiaperBrand,
-    diaperSize,
-    setDiaperSize,
-    diaperCream,
-    setDiaperCream,
-    diaperTeething,
-    setDiaperTeething,
-    diaperSick,
-    setDiaperSick,
+    formBabyIds: multi.formBabyIds,
+    toggleFormBabyId: multi.toggleFormBabyId,
+    showReviewStep: multi.showReviewStep,
+    isMultiCreate: multi.isMultiCreate,
+    reviewDrafts: multi.reviewDrafts as MultiBabyDraft<DiaperLogCreate>[],
+    updateReviewDraft: multi.updateReviewDraftFields,
+    backToEntry: multi.backToEntry,
+    formState,
+    setFormState,
     editingLogId,
   }
 }

@@ -119,6 +119,12 @@ type NormalizeUserOptions = {
   fallbackUsername?: string
 }
 
+function pickOptionalBool(raw: unknown): boolean | undefined {
+  if (raw === true || raw === 'true') return true
+  if (raw === false || raw === 'false') return false
+  return undefined
+}
+
 function normalizeUser(raw: unknown, options?: NormalizeUserOptions): User | null {
   const envelope = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : null
   const payload = unwrapUserPayload(raw)
@@ -147,10 +153,12 @@ function normalizeUser(raw: unknown, options?: NormalizeUserOptions): User | nul
   const hasProAccessRaw =
     payload.hasProAccess ?? payload.HasProAccess ?? envelope?.hasProAccess ?? envelope?.HasProAccess
 
-  const isSiteDeveloper = isSiteDeveloperRaw === true || isSiteDeveloperRaw === 'true'
-  const isPro = isProRaw === true || isProRaw === 'true'
+  const isPro = pickOptionalBool(isProRaw)
+  const isSiteDeveloper = pickOptionalBool(isSiteDeveloperRaw)
+  const hasProAccessExplicit = pickOptionalBool(hasProAccessRaw)
   const hasProAccess =
-    hasProAccessRaw === true || hasProAccessRaw === 'true' || isPro || isSiteDeveloper
+    hasProAccessExplicit ??
+    (isPro === true || isSiteDeveloper === true ? true : undefined)
 
   return {
     id,
@@ -161,7 +169,7 @@ function normalizeUser(raw: unknown, options?: NormalizeUserOptions): User | nul
     birthdate: pickUserField(payload, envelope, 'birthdate', 'Birthdate', 'birthDate', 'BirthDate'),
     fullName: pickUserField(payload, envelope, 'fullName', 'FullName'),
     location: pickUserField(payload, envelope, 'location', 'Location'),
-    avatarUrl: avatarRaw ? resolveAvatarUrl(avatarRaw) : undefined,
+    avatarUrl: avatarRaw ? avatarRaw.trim() : undefined,
     weeklySummaryEmailEnabled: weeklyEmailRaw === true || weeklyEmailRaw === 'true',
     isPro,
     isSiteDeveloper,
@@ -175,35 +183,59 @@ function normalizeUser(raw: unknown, options?: NormalizeUserOptions): User | nul
   }
 }
 
+function avatarPathFromStoredUrl(url: string): string {
+  const trimmed = url.trim().split('?')[0]?.split('#')[0] ?? ''
+  if (!trimmed) return ''
+  if (/^https?:\/\//i.test(trimmed)) {
+    try {
+      return new URL(trimmed).pathname
+    } catch {
+      return trimmed
+    }
+  }
+  return trimmed.startsWith('/') ? trimmed : `/${trimmed}`
+}
+
+function avatarUrlBases(): string[] {
+  const api = getApiBaseUrl()
+  const media = getMediaBaseUrl()
+  if (!api && !media) return []
+  if (!media || media === api) return api ? [api] : []
+
+  const apiIsLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(api)
+  return apiIsLocal ? [api, media] : [media, api]
+}
+
 export function resolveAvatarUrl(url: string): string {
   const trimmed = url.trim().split('?')[0]?.split('#')[0] ?? ''
   if (!trimmed) return ''
   if (/^https?:\/\//i.test(trimmed)) return trimmed
-  const base = trimmed.startsWith('/uploads/') ? getMediaBaseUrl() : getApiBaseUrl()
+  const path = avatarPathFromStoredUrl(trimmed)
+  const base = path.startsWith('/uploads/') ? getMediaBaseUrl() || getApiBaseUrl() : getApiBaseUrl()
   if (!base) return trimmed
-  return `${base}${trimmed.startsWith('/') ? '' : '/'}${trimmed}`
+  return `${base}${path}`
 }
 
-/** Absolute avatar URL with cache-busting (avoids stale images after re-upload). */
-export function avatarDisplayUrl(userId: string, avatarUrl?: string): string | undefined {
+/** Candidate avatar URLs (media host, then API host) for dev/shared-DB setups. */
+export function avatarDisplayUrlCandidates(userId: string, avatarUrl?: string): string[] {
   const raw = avatarUrl?.trim()
-  if (!raw || !userId.trim()) return undefined
+  if (!raw || !userId.trim()) return []
+
+  const bust = readAvatarCacheBust(userId)
+  const suffix = `?v=${bust}`
+  const path = avatarPathFromStoredUrl(raw)
+
+  if (path.startsWith('/uploads/avatars/')) {
+    return avatarUrlBases().map((base) => `${base}${path}${suffix}`)
+  }
+
   const resolved = resolveAvatarUrl(raw)
-  if (!resolved) return undefined
-  return `${resolved}?v=${readAvatarCacheBust(userId)}`
+  return resolved ? [`${resolved}${suffix}`] : []
 }
 
-function userFromAccount(account: UserSignup, id: string): User {
-  return {
-    id,
-    username: account.username,
-    password: '',
-    email: account.email,
-    phone: account.phone,
-    birthdate: account.birthdate,
-    fullName: account.fullName,
-    location: account.location,
-  }
+/** Primary avatar URL with cache-busting (avoids stale images after re-upload). */
+export function avatarDisplayUrl(userId: string, avatarUrl?: string): string | undefined {
+  return avatarDisplayUrlCandidates(userId, avatarUrl)[0]
 }
 
 function toUserSignupBody(data: UserSignup): Record<string, unknown> {
@@ -263,8 +295,7 @@ export async function createUser(
       tokens.userId ||
       resolveAuthenticatedUserId()
     if (!id) throw new Error('Create user: server did not return a user id')
-    const parsed = normalizeUser(data)
-    return parsed ?? userFromAccount(payload, id)
+    return fetchCurrentUser(payload.username)
   })().finally(() => {
     createUserInFlight = null
   })
@@ -326,7 +357,6 @@ export async function uploadUserAvatar(userId: string, file: AvatarUploadPayload
   if (!user) throw new Error('Upload avatar: invalid response from server')
   if (user.avatarUrl) {
     bumpAvatarCache(user.id)
-    return { ...user, avatarUrl: avatarDisplayUrl(user.id, user.avatarUrl) }
   }
   return user
 }
@@ -397,9 +427,6 @@ export async function loginUser(credentials: LoginCredentials): Promise<User> {
     if (!tokens) {
       throw new UnauthorizedError(INVALID_LOGIN_CREDENTIALS_MESSAGE)
     }
-
-    const embedded = normalizeUser(data, { fallbackUsername: credentials.username })
-    if (embedded?.id && embedded.username) return embedded
 
     return fetchCurrentUser(credentials.username)
   } catch (e) {

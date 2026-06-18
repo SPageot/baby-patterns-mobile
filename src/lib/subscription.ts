@@ -21,8 +21,10 @@ export function shouldShowPricingInNav(
 
 export function isProUser(user: User | null | undefined): boolean {
   if (!user) return false
-  if (user.hasProAccess != null) return Boolean(user.hasProAccess)
-  return Boolean(user.isPro || user.isSiteDeveloper)
+  if (user.isSiteDeveloper) return true
+  if (user.isPro) return true
+  if (user.hasProAccess) return true
+  return false
 }
 
 export function userPlanLabel(user: User | null | undefined): string | null {

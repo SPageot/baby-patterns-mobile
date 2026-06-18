@@ -10,6 +10,7 @@ import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
 import type { AppNotification } from '@/schemas/notification'
+import { notificationRoute } from '@/schemas/notification'
 
 type Props = {
   enabled: boolean
@@ -148,11 +149,7 @@ export function NotificationsMenu({ enabled }: Props) {
   const onSelect = (item: AppNotification) => {
     void markRead(item.id)
     setOpen(false)
-    if (item.type === 'family_share_request') {
-      router.push('/profile')
-      return
-    }
-    router.push('/parents-corner')
+    router.push(notificationRoute(item.type) as Parameters<typeof router.push>[0])
   }
 
   return (

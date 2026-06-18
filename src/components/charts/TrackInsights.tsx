@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Text, View } from 'react-native'
 import Svg, { G, Line, Rect, Text as SvgText } from 'react-native-svg'
 
+import { svgFontFamily } from '@/constants/typography'
 import { parseSleepDurationMinutes, sleepLogDayKey } from '@/lib/trackUtils'
 import type { LogKind, LogRecord } from '@/types/babyLog'
 import type { AppPalette } from '@/constants/homeTheme'
@@ -342,7 +343,7 @@ function WeekdayChart({
           return (
             <G key={`tick-${tickIdx}-${t}`}>
               <Line x1={padL} x2={w - padR} y1={y} y2={y} stroke={colors.strokeSubtle} />
-              <SvgText x="6" y={y + 4} fontSize="10" fill={colors.textMuted}>
+              <SvgText x="6" y={y + 4} fontSize="10" fill={colors.textMuted} fontFamily={svgFontFamily}>
                 {t}
               </SvgText>
             </G>
@@ -365,7 +366,14 @@ function WeekdayChart({
 
           return (
             <G key={s.key}>
-              <SvgText x={labelX} y={h - 8} textAnchor="middle" fontSize="11" fill={colors.textMuted}>
+              <SvgText
+                x={labelX}
+                y={h - 8}
+                textAnchor="middle"
+                fontSize="11"
+                fill={colors.textMuted}
+                fontFamily={svgFontFamily}
+              >
                 {WEEKDAY_SHORT[i]}
               </SvgText>
 

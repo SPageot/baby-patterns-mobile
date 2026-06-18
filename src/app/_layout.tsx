@@ -2,10 +2,8 @@ import { Stack, useSegments } from 'expo-router'
 import { View } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 
-import { installAppTypography } from '@/constants/typography'
 import { SplashController } from '@/components/SplashController'
-
-installAppTypography()
+import { useAppFonts } from '@/hooks/useAppFonts'
 import { BillingReturnHandler } from '@/components/billing/BillingReturnHandler'
 import { Navbar } from '@/components/nav/Navbar'
 import { SideNav } from '@/components/nav/SideNav'
@@ -42,11 +40,17 @@ function AppShell() {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded] = useAppFonts()
+
+  if (!fontsLoaded) {
+    return null
+  }
+
   return (
     <SafeAreaProvider>
       <ThemeProvider>
         <AppProvider>
-          <SplashController />
+          <SplashController fontsReady={fontsLoaded} />
           <BillingReturnHandler />
           <NavMenuProvider>
             <AppShell />

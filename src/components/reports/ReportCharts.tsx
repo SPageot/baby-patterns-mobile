@@ -2,6 +2,7 @@ import { useMemo, type ReactNode } from 'react'
 import { Text, View } from 'react-native'
 import Svg, { G, Line, Path, Rect, Text as SvgText } from 'react-native-svg'
 
+import { svgFontFamily } from '@/constants/typography'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
@@ -26,48 +27,66 @@ type Props = {
   report: KindReport
   title?: string
   emptyMessage?: string
+  size?: 'default' | 'compact'
 }
+
+const CHART_HEIGHT = {
+  default: 200,
+  compact: 120,
+} as const
 
 export function ReportsChartEmpty({ message }: { message: string }) {
   const styles = useThemedStyles(createStyles)
   return <Text style={styles.empty}>{message}</Text>
 }
 
-export function TrendLineChart({ report, emptyMessage }: Props) {
+export function TrendLineChart({ report, emptyMessage, size = 'default' }: Props) {
   const colors = useHomeTheme()
   const styles = useThemedStyles(createStyles)
   const color = reportKindColor(report.kind, colors)
+  const chartHeight = CHART_HEIGHT[size]
+  const viewBoxHeight = size === 'compact' ? 130 : 220
 
-  const { path, areaPath, maxY, ticks, points } = useMemo(() => {
+  const { path, areaPath, maxY, ticks, points, padT, padB } = useMemo(() => {
     const w = 900
-    const h = 220
+    const h = viewBoxHeight
     const padL = 40
     const padR = 12
-    const padT = 16
-    const padB = 36
+    const padTop = size === 'compact' ? 10 : 16
+    const padBottom = size === 'compact' ? 28 : 36
     const innerW = w - padL - padR
-    const innerH = h - padT - padB
+    const innerH = h - padTop - padBottom
     const series = report.dailyTrend
     const max = Math.max(1, ...series.map((row) => row.value))
 
     const pts = series.map((row, i) => {
       const x = padL + (series.length <= 1 ? innerW / 2 : (i / (series.length - 1)) * innerW)
-      const y = padT + innerH - (row.value / max) * innerH
+      const y = padTop + innerH - (row.value / max) * innerH
       return { x, y, ...row }
     })
 
     const line = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
-    const area = `${line} L ${pts[pts.length - 1]?.x ?? padL} ${padT + innerH} L ${pts[0]?.x ?? padL} ${padT + innerH} Z`
+    const area = `${line} L ${pts[pts.length - 1]?.x ?? padL} ${padTop + innerH} L ${pts[0]?.x ?? padL} ${padTop + innerH} Z`
 
     const tickCount = 4
     const tickValues = Array.from({ length: tickCount + 1 }).map((_, i) =>
       Math.round((max * (tickCount - i)) / tickCount),
     )
 
-    return { path: line, areaPath: area, maxY: max, ticks: tickValues, points: pts }
-  }, [report.dailyTrend])
+    return {
+      path: line,
+      areaPath: area,
+      maxY: max,
+      ticks: tickValues,
+      points: pts,
+      padT: padTop,
+      padB: padBottom,
+    }
+  }, [report.dailyTrend, size, viewBoxHeight])
 
   const labelStep = Math.max(1, Math.floor(report.dailyTrend.length / 6))
+  const plotHeight = viewBoxHeight - padT - padB
+  const labelY = viewBoxHeight - (size === 'compact' ? 10 : 14)
 
   if (emptyMessage && report.totalEvents === 0) {
     return <ReportsChartEmpty message={emptyMessage} />
@@ -75,13 +94,19 @@ export function TrendLineChart({ report, emptyMessage }: Props) {
 
   return (
     <View style={styles.wrap}>
-      <Svg width="100%" height={200} viewBox="0 0 900 220">
+      <Svg width="100%" height={chartHeight} viewBox={`0 0 900 ${viewBoxHeight}`}>
         {ticks.map((tick, i) => {
-          const y = 16 + (220 - 52) * (1 - tick / maxY)
+          const y = padT + plotHeight * (1 - tick / maxY)
           return (
             <G key={`tick-${i}`}>
               <Line x1={40} x2={888} y1={y} y2={y} stroke={colors.strokeSubtle} />
-              <SvgText x={6} y={y + 4} fontSize={11} fill={colors.textMuted}>
+              <SvgText
+                x={6}
+                y={y + 4}
+                fontSize={size === 'compact' ? 10 : 11}
+                fill={colors.textMuted}
+                fontFamily={svgFontFamily}
+              >
                 {tick}
               </SvgText>
             </G>
@@ -94,10 +119,11 @@ export function TrendLineChart({ report, emptyMessage }: Props) {
             <SvgText
               key={point.key}
               x={point.x}
-              y={206}
+              y={labelY}
               textAnchor="middle"
-              fontSize={10}
+              fontSize={size === 'compact' ? 9 : 10}
               fill={colors.textMuted}
+              fontFamily={svgFontFamily}
             >
               {point.label}
             </SvgText>
@@ -148,6 +174,7 @@ export function HourlyBarChart({ report, emptyMessage }: Props) {
                 textAnchor="middle"
                 fontSize={10}
                 fill={colors.textMuted}
+                fontFamily={svgFontFamily}
               >
                 {bar.label}
               </SvgText>
@@ -192,7 +219,14 @@ export function WeekdayBarChart({ report, emptyMessage }: Props) {
           return (
             <G key={row.weekday}>
               <Rect x={x} y={y} width={barW} height={height} rx={8} fill={color} />
-              <SvgText x={x + barW / 2} y={h - 12} textAnchor="middle" fontSize={12} fill={colors.textMuted}>
+              <SvgText
+                x={x + barW / 2}
+                y={h - 12}
+                textAnchor="middle"
+                fontSize={12}
+                fill={colors.textMuted}
+                fontFamily={svgFontFamily}
+              >
                 {row.label}
               </SvgText>
             </G>

@@ -11,6 +11,8 @@ import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
 import { postBadgeLabel } from '@/lib/postBadges'
+import { isSafeHttpUrl } from '@/lib/urlSafety'
+import { PostEditor } from '@/components/parentsCorner/PostEditor'
 
 function formatWhen(iso: string): string {
   const d = new Date(iso)
@@ -273,6 +275,7 @@ type Props = {
   onCancelEdit?: () => void
   onSaveEdit?: (input: PostSubmitInput) => Promise<void>
   onDelete: () => void
+  isSiteDeveloper?: boolean
 }
 
 export function PostCard({
@@ -292,11 +295,11 @@ export function PostCard({
   onCancelEdit,
   onSaveEdit,
   onDelete,
+  isSiteDeveloper: viewerIsSiteDeveloper = false,
 }: Props) {
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
   const [commentText, setCommentText] = useState('')
-  const [editContent, setEditContent] = useState(post.content)
   const [submitting, setSubmitting] = useState(false)
   const displayName = post.author.fullName?.trim() || post.author.username || 'Parent'
 
@@ -315,30 +318,17 @@ export function PostCard({
   if (editing && onSaveEdit && onCancelEdit) {
     return (
       <View style={styles.card}>
-        <TextInput
-          value={editContent}
-          onChangeText={setEditContent}
-          multiline
-          style={styles.editInput}
-          maxLength={2000}
+        <PostEditor
+          initialContent={post.content}
+          initialBadge={post.badge}
+          initialCustomBadge={post.customBadge}
+          initialMedia={post.media}
+          isSiteDeveloper={viewerIsSiteDeveloper || Boolean(post.author.isSiteDeveloper)}
+          submitting={saving}
+          submitLabel="Save changes"
+          onSubmit={onSaveEdit}
+          onCancel={onCancelEdit}
         />
-        <View style={styles.editActions}>
-          <Button title="Cancel" variant="secondary" onPress={onCancelEdit} style={styles.editBtn} />
-          <Button
-            title={saving ? 'Saving…' : 'Save'}
-            loading={saving}
-            disabled={!editContent.trim()}
-            onPress={() =>
-              void onSaveEdit({
-                content: editContent.trim(),
-                badge: post.badge,
-                customBadge: post.customBadge,
-                removeMediaIds: [],
-              })
-            }
-            style={styles.editBtn}
-          />
-        </View>
       </View>
     )
   }

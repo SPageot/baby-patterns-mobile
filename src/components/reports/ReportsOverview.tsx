@@ -15,8 +15,8 @@ import { GrowthTrendChart } from '@/components/growth/GrowthTrendChart'
 type SummaryCard = {
   id: string
   title: string
-  icon: 'moon' | 'diaper' | 'bottle' | 'growth'
-  tone: 'sleep' | 'nap' | 'diaper' | 'feeding' | 'growth' | 'milestone'
+  icon: 'moon' | 'diaper' | 'bottle' | 'growth' | 'health'
+  tone: 'sleep' | 'nap' | 'diaper' | 'feeding' | 'growth' | 'milestone' | 'health'
   total: string
   sub: string
   avg: string
@@ -25,7 +25,7 @@ type SummaryCard = {
 }
 
 function buildSummaryCards(report: FullReport): SummaryCard[] {
-  const { sleep, diapers, feeding, growth } = report
+  const { sleep, diapers, feeding, growth, health } = report
   const nap = sleep.napSection
 
   return [
@@ -103,6 +103,25 @@ function buildSummaryCards(report: FullReport): SummaryCard[] {
       avg: '—',
       avgLabel: 'Categories',
     },
+    {
+      id: 'health',
+      title: 'Health',
+      icon: 'health',
+      tone: 'health',
+      total:
+        health.totalEvents > 0
+          ? `${health.sicknessCount} sickness · ${health.injuryCount} injur${health.injuryCount === 1 ? 'y' : 'ies'}`
+          : 'No health events yet',
+      sub:
+        health.totalEvents > 0
+          ? `${health.withDoctorCount} with doctor care · ${health.withMedicationCount} with medication`
+          : 'Log sickness and injuries on the Health page',
+      avg:
+        health.ongoingSicknessCount + health.ongoingInjuryCount > 0
+          ? String(health.ongoingSicknessCount + health.ongoingInjuryCount)
+          : '—',
+      avgLabel: 'Ongoing',
+    },
   ]
 }
 
@@ -112,6 +131,7 @@ const toneBorder = (tone: SummaryCard['tone'], t: AppPalette) => {
   if (tone === 'diaper') return t.mode === 'dark' ? 'rgba(199, 160, 140, 0.35)' : 'rgba(166, 124, 104, 0.3)'
   if (tone === 'growth') return t.mode === 'dark' ? 'rgba(150, 120, 220, 0.35)' : 'rgba(124, 92, 196, 0.25)'
   if (tone === 'milestone') return t.mode === 'dark' ? 'rgba(130, 200, 160, 0.35)' : 'rgba(74, 154, 114, 0.3)'
+  if (tone === 'health') return t.mode === 'dark' ? 'rgba(220, 130, 150, 0.35)' : 'rgba(196, 92, 122, 0.28)'
   return t.mode === 'dark' ? 'rgba(130, 200, 160, 0.35)' : 'rgba(74, 154, 114, 0.3)'
 }
 
@@ -195,17 +215,18 @@ export function ReportsOverview({ report }: Props) {
     report.diapers.totalEvents > 0 ||
     report.feeding.totalEvents > 0 ||
     report.growth.measurementCount > 0 ||
-    report.growth.milestoneCount > 0
+    report.growth.milestoneCount > 0 ||
+    report.health.totalEvents > 0
 
   return (
     <View style={styles.section}>
       <Text style={styles.title}>Overview</Text>
       <Text style={styles.sub}>
-        Snapshot across sleep, naps, diapers, feeding, growth, and milestones. Open a tab above for full charts and log tables.
+        Snapshot across sleep, naps, diapers, feeding, growth, milestones, and health. Open a tab above for full charts and log tables.
       </Text>
 
       {!hasAnyData ? (
-        <Text style={styles.empty}>Start logging sleep, diapers, feeding, growth, or milestones to unlock your overview.</Text>
+        <Text style={styles.empty}>Start logging sleep, diapers, feeding, growth, milestones, or health events to unlock your overview.</Text>
       ) : (
         <>
           <View style={styles.cards}>

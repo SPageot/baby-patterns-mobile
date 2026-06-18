@@ -7,13 +7,17 @@ void SplashScreen.preventAutoHideAsync().catch(() => {
   /* splash already hidden in dev reload */
 })
 
-export function SplashController() {
+type Props = {
+  fontsReady: boolean
+}
+
+export function SplashController({ fontsReady }: Props) {
   const { authReady } = useApp()
 
   useEffect(() => {
-    if (!authReady) return
+    if (!authReady || !fontsReady) return
     void SplashScreen.hideAsync()
-  }, [authReady])
+  }, [authReady, fontsReady])
 
   return null
 }

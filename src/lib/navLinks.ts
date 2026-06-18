@@ -9,6 +9,7 @@ export type NavIconName =
   | 'moon'
   | 'chart'
   | 'growth'
+  | 'health'
   | 'calendar'
   | 'tag'
 
@@ -21,6 +22,7 @@ export type NavLink = {
 
 export const NAV_LINKS: NavLink[] = [
   { label: 'Home', href: '/', requiresBaby: false, icon: 'heart' },
+  { label: 'Why track', href: '/why', requiresBaby: false, icon: 'heart' },
   { label: 'Parents Corner', href: '/parents-corner', requiresBaby: false, icon: 'users' },
   { label: 'Reviews', href: '/reviews', requiresBaby: false, icon: 'star' },
   { label: 'Pricing', href: '/pricing', requiresBaby: false, icon: 'tag' },
@@ -28,6 +30,7 @@ export const NAV_LINKS: NavLink[] = [
   { label: 'Feeding', href: '/feeding', requiresBaby: true, icon: 'bottle' },
   { label: 'Sleep', href: '/sleep', requiresBaby: true, icon: 'moon' },
   { label: 'Growth', href: '/growth', requiresBaby: true, icon: 'growth' },
+  { label: 'Health', href: '/health', requiresBaby: true, icon: 'health' },
   { label: 'Reports', href: '/reports', requiresBaby: true, icon: 'chart' },
   { label: 'Weekly summary', href: '/weekly-summary', requiresBaby: true, icon: 'calendar' },
 ]

@@ -102,25 +102,19 @@ export function FeedingTrackScreen() {
         open={feeding.formOpen}
         onClose={feeding.closeForm}
         onSave={() => void feeding.onSaveFeeding()}
+        onBackToEntry={feeding.backToEntry}
         saving={feeding.saving}
         babies={feeding.babies}
         formBabyId={feeding.formBabyId}
         setFormBabyId={feeding.setFormBabyId}
-        feedingTypes={feeding.feedingTypes}
-        feedingType={feeding.feedingType}
-        setFeedingType={feeding.setFeedingType}
-        feedingWhen={feeding.feedingWhen}
-        setFeedingWhen={feeding.setFeedingWhen}
-        feedingOz={feeding.feedingOz}
-        setFeedingOz={feeding.setFeedingOz}
-        feedingMin={feeding.feedingMin}
-        setFeedingMin={feeding.setFeedingMin}
-        feedingNotes={feeding.feedingNotes}
-        setFeedingNotes={feeding.setFeedingNotes}
-        feedingTeething={feeding.feedingTeething}
-        setFeedingTeething={feeding.setFeedingTeething}
-        feedingSick={feeding.feedingSick}
-        setFeedingSick={feeding.setFeedingSick}
+        formBabyIds={feeding.formBabyIds}
+        onToggleFormBabyId={feeding.toggleFormBabyId}
+        showReviewStep={feeding.showReviewStep}
+        isMultiCreate={feeding.isMultiCreate}
+        reviewDrafts={feeding.reviewDrafts}
+        onUpdateReviewDraft={feeding.updateReviewDraft}
+        formState={feeding.formState}
+        setFormState={feeding.setFormState}
         editingLogId={feeding.editingLogId}
       />
     </TrackLogSection>

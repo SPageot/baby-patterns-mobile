@@ -7,6 +7,7 @@ import { Eyebrow, ErrorText } from '@/components/ui/primitives'
 import { NavIcon } from '@/components/icons/NavIcon'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
+import { useParentsCorner } from '@/hooks/useParentsCorner'
 import { isSiteDeveloper } from '@/lib/subscription'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
@@ -202,6 +203,7 @@ export function ParentsCornerScreen() {
               },
             ])
           }}
+          isSiteDeveloper={isSiteDeveloper(user)}
         />
       ))}
     </ScrollView>

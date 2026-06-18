@@ -1,6 +1,5 @@
 import { getApiBaseUrl, getMediaBaseUrl } from './config'
 import { isPostBadge } from '@/lib/postBadges'
-import { resolveAvatarUrl } from './userApi'
 import { apiFetch } from './client'
 import type { Post, PostComment, PostLinkPreview, PostSubmitInput } from '@/schemas/post'
 
@@ -41,7 +40,7 @@ function normalizeAuthor(raw: unknown): Post['author'] {
     id: pickStr(o, 'id', 'Id'),
     username: pickStr(o, 'username', 'Username'),
     fullName: pickStr(o, 'fullName', 'FullName'),
-    avatarUrl: avatarRaw ? resolveAvatarUrl(avatarRaw) : undefined,
+    avatarUrl: avatarRaw ? avatarRaw.trim() : undefined,
     isPro: pickBool(o, 'isPro', 'IsPro'),
     isSiteDeveloper: pickBool(o, 'isSiteDeveloper', 'IsSiteDeveloper'),
   }
@@ -154,10 +153,27 @@ function appendPostFormFields(form: FormData, input: PostSubmitInput): void {
   if (input.removeMediaIds.length > 0) {
     form.append('removeMediaIds', input.removeMediaIds.join(','))
   }
+  for (const file of input.files) {
+    form.append('media', {
+      uri: file.uri,
+      name: file.name,
+      type: file.type,
+    } as unknown as Blob)
+  }
 }
 
 export async function fetchPosts(page = 1): Promise<Post[]> {
   const q = new URLSearchParams({ page: String(page), pageSize: '20' })
+  const data = await apiFetch<unknown>(`api/posts?${q}`)
+  return normalizePostList(data)
+}
+
+export async function fetchPostsByUser(userId: string, page = 1): Promise<Post[]> {
+  const q = new URLSearchParams({
+    page: String(page),
+    pageSize: '50',
+    authorId: userId.trim(),
+  })
   const data = await apiFetch<unknown>(`api/posts?${q}`)
   return normalizePostList(data)
 }
@@ -183,6 +199,16 @@ export async function updatePost(postId: string, input: PostSubmitInput): Promis
   const post = normalizePost(data)
   if (!post) throw new Error('Invalid post response from server')
   return post
+}
+
+export async function fetchLinkPreview(url: string): Promise<PostLinkPreview | null> {
+  const q = new URLSearchParams({ url })
+  try {
+    const data = await apiFetch<unknown>(`api/posts/link-preview?${q}`)
+    return normalizeLinkPreview(data)
+  } catch {
+    return null
+  }
 }
 
 export async function togglePostLike(postId: string): Promise<{ liked: boolean; likeCount: number }> {

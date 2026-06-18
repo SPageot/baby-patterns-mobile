@@ -6,24 +6,26 @@ import {
   createSleepLog,
   deleteSleepLog,
   loadSleepLogsForBabies,
-  sleepFieldsToUtc,
   sleepWriteFromForm,
   updateSleepLog,
 } from '@/api/sleepApi'
 import { useApp } from '@/context/AppContext'
 import type { Baby } from '@/schemas/user'
 import {
-  datetimeUtcInputToIso,
-  formatMinutesHuman,
   isoToDatetimeUtcValue,
   isoToUtcDateValue,
-  minutesBetweenUtcDateTimeInputs,
   nowUtcDateValue,
   nowUtcInputValue,
   todayCount,
 } from '@/lib/trackUtils'
 import { useDeferredEffect } from '@/lib/scheduleEffect'
-import type { LogRecord } from '@/types/babyLog'
+import type { LogRecord, SleepLogCreate } from '@/types/babyLog'
+import { useMultiBabyLogFlow } from '@/hooks/useMultiBabyLogFlow'
+import {
+  sleepFormStateToCreate,
+  type SleepFormState,
+} from '@/components/track/SleepLogFormFields'
+import type { MultiBabyDraft } from '@/lib/multiBabyLogFlow'
 
 export function useSleepLogs() {
   const { babies, selectedBabyId, selectBaby, user, loadBabiesForCurrentUser } = useApp()
@@ -47,13 +49,36 @@ export function useSleepLogs() {
   const [sleepSick, setSleepSick] = useState(false)
   const [sleepNap, setSleepNap] = useState(false)
 
+  const isEdit = Boolean(editingLogId.trim())
+  const multi = useMultiBabyLogFlow(isEdit)
+
+  const formState: SleepFormState = useMemo(
+    () => ({
+      sleepDate,
+      sleepStart,
+      sleepEnd,
+      sleepMood,
+      sleepEnvironment,
+      sleepTeething,
+      sleepSick,
+      sleepNap,
+    }),
+    [sleepDate, sleepStart, sleepEnd, sleepMood, sleepEnvironment, sleepTeething, sleepSick, sleepNap],
+  )
+
+  const setFormState = useCallback((patch: Partial<SleepFormState>) => {
+    if (patch.sleepDate !== undefined) setSleepDate(patch.sleepDate)
+    if (patch.sleepStart !== undefined) setSleepStart(patch.sleepStart)
+    if (patch.sleepEnd !== undefined) setSleepEnd(patch.sleepEnd)
+    if (patch.sleepMood !== undefined) setSleepMood(patch.sleepMood)
+    if (patch.sleepEnvironment !== undefined) setSleepEnvironment(patch.sleepEnvironment)
+    if (patch.sleepTeething !== undefined) setSleepTeething(patch.sleepTeething)
+    if (patch.sleepSick !== undefined) setSleepSick(patch.sleepSick)
+    if (patch.sleepNap !== undefined) setSleepNap(patch.sleepNap)
+  }, [])
+
   const todaySleep = useMemo(() => todayCount(sleepLogs, 'sleep'), [sleepLogs])
   const busyLogId = deletingLogId
-
-  const sleepDurationPreview = useMemo(() => {
-    const m = minutesBetweenUtcDateTimeInputs(sleepStart, sleepEnd)
-    return m == null ? '—' : formatMinutesHuman(m)
-  }, [sleepStart, sleepEnd])
 
   const babyIdsKey = useMemo(
     () =>
@@ -125,12 +150,20 @@ export function useSleepLogs() {
     setSleepDate(nowUtcDateValue())
     setSleepStart(nowUtcInputValue())
     setSleepEnd(nowUtcInputValue())
+    multi.resetMultiBabyFlow('')
   }
+
+  const buildSleepFields = useCallback((): SleepLogCreate | null => {
+    if (!formState.sleepMood.trim()) return null
+    if (!formState.sleepEnvironment.trim()) return null
+    return sleepFormStateToCreate(formState)
+  }, [formState])
 
   const openForm = () => {
     resetForm()
     const defaultId = selectedBabyId || babies.find((b) => b.id?.trim())?.id?.trim() || getBabyId() || ''
     setFormBabyId(defaultId)
+    multi.resetMultiBabyFlow(defaultId)
     if (!selectedBabyId && defaultId) {
       const baby = babies.find((b) => b.id === defaultId)
       if (baby) selectBaby(baby)
@@ -158,6 +191,7 @@ export function useSleepLogs() {
     setSleepTeething(d.isTeething === 'true')
     setSleepSick(d.isSick === 'true')
     setSleepNap(d.isNap === 'true')
+    multi.resetMultiBabyFlow(babyId || selectedBabyId || getBabyId() || '')
     setFormOpen(true)
   }
 
@@ -200,43 +234,57 @@ export function useSleepLogs() {
       return
     }
 
-    const babyId = formBabyId.trim() || selectedBabyId || getBabyId()
-    if (!babyId) {
-      setError('Select a baby before logging sleep.')
+    const editId = editingLogId.trim()
+
+    if (multi.showReviewStep) {
+      const drafts = multi.reviewDrafts as MultiBabyDraft<SleepLogCreate>[]
+      if (!drafts.length) {
+        setError('No babies selected.')
+        return
+      }
+
+      setSaving(true)
+      setError(null)
+      try {
+        for (const draft of drafts) {
+          await createSleepLog(sleepWriteFromForm(draft.babyId, draft.fields))
+        }
+        const firstBaby = babies.find((b) => b.id === drafts[0]?.babyId)
+        if (firstBaby) selectBaby(firstBaby)
+        closeForm()
+        await syncLogs(babies)
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Failed to save sleep logs')
+      } finally {
+        setSaving(false)
+      }
       return
     }
 
-    if (!sleepMood.trim()) {
-      setError('Enter a sleep mood.')
-      return
-    }
-
-    if (!sleepEnvironment.trim()) {
-      setError('Enter a sleep environment.')
-      return
-    }
-
-    const startIso = datetimeUtcInputToIso(sleepStart)
-    const endIso = datetimeUtcInputToIso(sleepEnd)
-    const durationMin = minutesBetweenUtcDateTimeInputs(sleepStart, sleepEnd)
-    if (durationMin == null) {
+    const fields = buildSleepFields()
+    if (!fields) {
+      if (!formState.sleepMood.trim()) {
+        setError('Enter a sleep mood.')
+        return
+      }
+      if (!formState.sleepEnvironment.trim()) {
+        setError('Enter a sleep environment.')
+        return
+      }
       setError('Enter valid start and end times.')
       return
     }
 
-    const fields = sleepFieldsToUtc({
-      sleepDate: sleepDate.trim(),
-      sleepDuration: String(durationMin),
-      sleepMood: sleepMood.trim(),
-      sleepStartTime: startIso,
-      sleepEndTime: endIso,
-      sleepEnvironment: sleepEnvironment.trim(),
-      isTeething: sleepTeething,
-      isSick: sleepSick,
-      isNap: sleepNap,
-    })
+    if (multi.isMultiCreate) {
+      multi.startReview(multi.formBabyIds, babies, fields)
+      return
+    }
 
-    const editId = editingLogId.trim()
+    const babyId = multi.formBabyIds[0] || formBabyId.trim() || selectedBabyId || getBabyId()
+    if (!babyId) {
+      setError('Select a baby before logging sleep.')
+      return
+    }
 
     setSaving(true)
     setError(null)
@@ -278,23 +326,15 @@ export function useSleepLogs() {
     onSaveSleep,
     formBabyId,
     setFormBabyId,
-    sleepDate,
-    setSleepDate,
-    sleepStart,
-    setSleepStart,
-    sleepEnd,
-    setSleepEnd,
-    sleepMood,
-    setSleepMood,
-    sleepEnvironment,
-    setSleepEnvironment,
-    sleepTeething,
-    setSleepTeething,
-    sleepSick,
-    setSleepSick,
-    sleepNap,
-    setSleepNap,
-    sleepDurationPreview,
+    formBabyIds: multi.formBabyIds,
+    toggleFormBabyId: multi.toggleFormBabyId,
+    showReviewStep: multi.showReviewStep,
+    isMultiCreate: multi.isMultiCreate,
+    reviewDrafts: multi.reviewDrafts as MultiBabyDraft<SleepLogCreate>[],
+    updateReviewDraft: multi.updateReviewDraftFields,
+    backToEntry: multi.backToEntry,
+    formState,
+    setFormState,
     editingLogId,
   }
 }

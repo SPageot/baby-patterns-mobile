@@ -1,5 +1,6 @@
 import { apiFetch } from '@/api/client'
 import type { AppNotification } from '@/schemas/notification'
+import { isNotificationType } from '@/schemas/notification'
 
 function pickStr(obj: Record<string, unknown>, ...keys: string[]): string {
   for (const k of keys) {
@@ -31,13 +32,7 @@ function normalizeNotification(raw: unknown): AppNotification | null {
   const actorObj = actorRaw && typeof actorRaw === 'object' ? (actorRaw as Record<string, unknown>) : {}
 
   const typeRaw = pickStr(o, 'type', 'Type').toLowerCase()
-  const type: AppNotification['type'] =
-    typeRaw === 'mention' ||
-    typeRaw === 'post_liked' ||
-    typeRaw === 'comment_liked' ||
-    typeRaw === 'family_share_request'
-      ? typeRaw
-      : 'mention'
+  const type: AppNotification['type'] = isNotificationType(typeRaw) ? typeRaw : 'mention'
 
   return {
     id,
@@ -45,6 +40,8 @@ function normalizeNotification(raw: unknown): AppNotification | null {
     postId: pickStr(o, 'postId', 'PostId') || null,
     commentId: pickStr(o, 'commentId', 'CommentId') || null,
     familyRequestId: pickStr(o, 'familyRequestId', 'FamilyRequestId') || null,
+    babyId: pickStr(o, 'babyId', 'BabyId') || null,
+    trackingEntityId: pickStr(o, 'trackingEntityId', 'TrackingEntityId') || null,
     isRead: pickBool(o, 'isRead', 'IsRead'),
     createdAt: pickStr(o, 'createdAt', 'CreatedAt'),
     message: pickStr(o, 'message', 'Message'),

@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Alert } from 'react-native'
 
-import { toUtcIsoTime } from '@/api/diaperApi'
 import {
   createFeedingLog,
   deleteFeedingLog,
@@ -16,8 +15,12 @@ import type { Baby } from '@/schemas/user'
 import { feedingLogFromDetails, type FeedingLogCreate, type LogRecord } from '@/types/babyLog'
 import { useDeferredEffect } from '@/lib/scheduleEffect'
 import { isoToDatetimeLocalValue, nowLocalInputValue, todayCount } from '@/lib/trackUtils'
-
-const FEEDING_TYPES = ['breast', 'bottle', 'solids', 'snack'] as const
+import { useMultiBabyLogFlow } from '@/hooks/useMultiBabyLogFlow'
+import {
+  feedingFormStateToCreate,
+  type FeedingFormState,
+} from '@/components/track/FeedingLogFormFields'
+import type { MultiBabyDraft } from '@/lib/multiBabyLogFlow'
 
 export function useFeedingLogs() {
   const { babies, selectedBabyId, selectBaby, user, loadBabiesForCurrentUser } = useApp()
@@ -39,6 +42,32 @@ export function useFeedingLogs() {
   const [feedingSick, setFeedingSick] = useState(false)
   const [formBabyId, setFormBabyId] = useState('')
   const [editingLogId, setEditingLogId] = useState('')
+
+  const isEdit = Boolean(editingLogId.trim())
+  const multi = useMultiBabyLogFlow(isEdit)
+
+  const formState: FeedingFormState = useMemo(
+    () => ({
+      feedingType,
+      feedingWhen,
+      feedingOz,
+      feedingMin,
+      feedingNotes,
+      feedingTeething,
+      feedingSick,
+    }),
+    [feedingType, feedingWhen, feedingOz, feedingMin, feedingNotes, feedingTeething, feedingSick],
+  )
+
+  const setFormState = useCallback((patch: Partial<FeedingFormState>) => {
+    if (patch.feedingType !== undefined) setFeedingType(patch.feedingType)
+    if (patch.feedingWhen !== undefined) setFeedingWhen(patch.feedingWhen)
+    if (patch.feedingOz !== undefined) setFeedingOz(patch.feedingOz)
+    if (patch.feedingMin !== undefined) setFeedingMin(patch.feedingMin)
+    if (patch.feedingNotes !== undefined) setFeedingNotes(patch.feedingNotes)
+    if (patch.feedingTeething !== undefined) setFeedingTeething(patch.feedingTeething)
+    if (patch.feedingSick !== undefined) setFeedingSick(patch.feedingSick)
+  }, [])
 
   const todayFeeds = useMemo(() => todayCount(feedingLogs, 'feeding'), [feedingLogs])
   const busyLogId = deletingLogId
@@ -112,12 +141,20 @@ export function useFeedingLogs() {
     setFeedingTeething(false)
     setFeedingSick(false)
     setFeedingWhen(nowLocalInputValue())
+    multi.resetMultiBabyFlow('')
   }
+
+  const buildFeedingFields = useCallback((): FeedingLogCreate | null => {
+    const started = new Date(formState.feedingWhen)
+    if (Number.isNaN(started.getTime())) return null
+    return feedingFormStateToCreate(formState)
+  }, [formState])
 
   const openForm = () => {
     resetForm()
     const defaultId = selectedBabyId || babies.find((b) => b.id?.trim())?.id?.trim() || getBabyId() || ''
     setFormBabyId(defaultId)
+    multi.resetMultiBabyFlow(defaultId)
     if (!selectedBabyId && defaultId) {
       const baby = babies.find((b) => b.id === defaultId)
       if (baby) selectBaby(baby)
@@ -141,6 +178,7 @@ export function useFeedingLogs() {
     setFeedingNotes(fields.notes ?? '')
     setFeedingTeething(Boolean(fields.isTeething))
     setFeedingSick(Boolean(fields.isSick))
+    multi.resetMultiBabyFlow(babyId || selectedBabyId || getBabyId() || '')
     setFormOpen(true)
   }
 
@@ -183,29 +221,49 @@ export function useFeedingLogs() {
       return
     }
 
-    const babyId = formBabyId.trim() || selectedBabyId || getBabyId()
-    if (!babyId) {
-      setError('Select a baby before logging feedings.')
+    const editId = editingLogId.trim()
+
+    if (multi.showReviewStep) {
+      const drafts = multi.reviewDrafts as MultiBabyDraft<FeedingLogCreate>[]
+      if (!drafts.length) {
+        setError('No babies selected.')
+        return
+      }
+
+      setSaving(true)
+      setError(null)
+      try {
+        for (const draft of drafts) {
+          await createFeedingLog(feedingWriteFromForm(draft.babyId, draft.fields))
+        }
+        const firstBaby = babies.find((b) => b.id === drafts[0]?.babyId)
+        if (firstBaby) selectBaby(firstBaby)
+        closeForm()
+        await syncLogs(babies)
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Failed to save feeding logs')
+      } finally {
+        setSaving(false)
+      }
       return
     }
 
-    const started = new Date(feedingWhen)
-    if (Number.isNaN(started.getTime())) {
+    const fields = buildFeedingFields()
+    if (!fields) {
       setError('Enter a valid date and time.')
       return
     }
 
-    const fields: FeedingLogCreate = {
-      feedingType,
-      feedingAt: toUtcIsoTime(started.toISOString()),
-      amountOz: feedingOz.trim() || undefined,
-      durationMin: feedingMin.trim() || undefined,
-      notes: feedingNotes.trim() || undefined,
-      isTeething: feedingTeething,
-      isSick: feedingSick,
+    if (multi.isMultiCreate) {
+      multi.startReview(multi.formBabyIds, babies, fields)
+      return
     }
 
-    const editId = editingLogId.trim()
+    const babyId = multi.formBabyIds[0] || formBabyId.trim() || selectedBabyId || getBabyId()
+    if (!babyId) {
+      setError('Select a baby before logging feedings.')
+      return
+    }
 
     setSaving(true)
     setError(null)
@@ -240,7 +298,6 @@ export function useFeedingLogs() {
     formOpen,
     todayFeeds,
     busyLogId,
-    feedingTypes: FEEDING_TYPES,
     openForm,
     closeForm,
     openEditFeeding,
@@ -248,20 +305,15 @@ export function useFeedingLogs() {
     onSaveFeeding,
     formBabyId,
     setFormBabyId,
-    feedingType,
-    setFeedingType,
-    feedingWhen,
-    setFeedingWhen,
-    feedingOz,
-    setFeedingOz,
-    feedingMin,
-    setFeedingMin,
-    feedingNotes,
-    setFeedingNotes,
-    feedingTeething,
-    setFeedingTeething,
-    feedingSick,
-    setFeedingSick,
+    formBabyIds: multi.formBabyIds,
+    toggleFormBabyId: multi.toggleFormBabyId,
+    showReviewStep: multi.showReviewStep,
+    isMultiCreate: multi.isMultiCreate,
+    reviewDrafts: multi.reviewDrafts as MultiBabyDraft<FeedingLogCreate>[],
+    updateReviewDraft: multi.updateReviewDraftFields,
+    backToEntry: multi.backToEntry,
+    formState,
+    setFormState,
     editingLogId,
   }
 }

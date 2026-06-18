@@ -4,12 +4,15 @@ import { Alert } from 'react-native'
 import { loadDiaperLogsForBabies } from '@/api/diaperApi'
 import { loadFeedingLogsForBabies } from '@/api/feedingApi'
 import { loadGrowthForBabies } from '@/api/growthApi'
+import { loadInjuryForBabies } from '@/api/injuryApi'
 import { loadMilestonesForBabies } from '@/api/milestoneApi'
+import { loadSicknessForBabies } from '@/api/sicknessApi'
 import { loadSleepLogsForBabies } from '@/api/sleepApi'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
 import type { LogRecord } from '@/types/babyLog'
 import type { GrowthMeasurementDto, MilestoneDto } from '@/types/growth'
+import type { InjuryEventDto, SicknessEventDto } from '@/types/health'
 import { buildFullReport, type FullReport, type ReportRange } from '@/lib/reportAnalytics'
 import { FREE_REPORT_MAX_DAYS, isProUser } from '@/lib/subscription'
 
@@ -22,6 +25,8 @@ export function useReports() {
   const [logs, setLogs] = useState<LogRecord[]>([])
   const [measurements, setMeasurements] = useState<GrowthMeasurementDto[]>([])
   const [milestones, setMilestones] = useState<MilestoneDto[]>([])
+  const [sicknessRows, setSicknessRows] = useState<SicknessEventDto[]>([])
+  const [injuryRows, setInjuryRows] = useState<InjuryEventDto[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [rangeDays, setRangeDaysState] = useState<ReportRange>(defaultRange)
@@ -44,6 +49,8 @@ export function useReports() {
       setLogs([])
       setMeasurements([])
       setMilestones([])
+      setSicknessRows([])
+      setInjuryRows([])
       return
     }
 
@@ -51,21 +58,27 @@ export function useReports() {
     setError(null)
     try {
       const babyRefs = ownBabies.map((baby) => ({ id: baby.id, fullName: baby.fullName }))
-      const [diapers, sleep, feeding, growthRows, milestoneRows] = await Promise.all([
+      const [diapers, sleep, feeding, growthRows, milestoneRows, sickness, injuries] = await Promise.all([
         loadDiaperLogsForBabies(babyRefs),
         loadSleepLogsForBabies(babyRefs),
         loadFeedingLogsForBabies(babyRefs),
         loadGrowthForBabies(babyRefs),
         loadMilestonesForBabies(babyRefs),
+        loadSicknessForBabies(babyRefs),
+        loadInjuryForBabies(babyRefs),
       ])
       setLogs([...diapers, ...sleep, ...feeding])
       setMeasurements(growthRows)
       setMilestones(milestoneRows)
+      setSicknessRows(sickness)
+      setInjuryRows(injuries)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not load tracking data')
       setLogs([])
       setMeasurements([])
       setMilestones([])
+      setSicknessRows([])
+      setInjuryRows([])
     } finally {
       setLoading(false)
     }
@@ -77,8 +90,14 @@ export function useReports() {
   }, [authReady, loadLogs])
 
   const report = useMemo<FullReport>(
-    () => buildFullReport(logs, rangeDays, { measurements, milestones }),
-    [logs, rangeDays, measurements, milestones],
+    () =>
+      buildFullReport(logs, rangeDays, {
+        measurements,
+        milestones,
+        sickness: sicknessRows,
+        injuries: injuryRows,
+      }),
+    [logs, rangeDays, measurements, milestones, sicknessRows, injuryRows],
   )
 
   const downloadPdf = useCallback(async () => {
@@ -104,6 +123,8 @@ export function useReports() {
         logs,
         measurements,
         milestones,
+        sickness: sicknessRows,
+        injuries: injuryRows,
         babies: ownBabies,
         parentName,
         includeAnalysis: true,
@@ -114,7 +135,7 @@ export function useReports() {
     } finally {
       setExportingPdf(false)
     }
-  }, [logs, measurements, milestones, ownBabies, user, rangeDays, isPro])
+  }, [logs, measurements, milestones, sicknessRows, injuryRows, ownBabies, user, rangeDays, isPro])
 
   return {
     logs,

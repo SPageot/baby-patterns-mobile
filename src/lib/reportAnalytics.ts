@@ -1,6 +1,8 @@
 import type { LogKind, LogRecord } from '@/types/babyLog'
 import type { GrowthMeasurementDto, MilestoneDto } from '@/types/growth'
+import type { InjuryEventDto, SicknessEventDto } from '@/types/health'
 import { buildGrowthMilestonesReport } from '@/lib/growthReportAnalytics'
+import { buildHealthEventsReport } from '@/lib/healthReportAnalytics'
 import { formatSleepUtcStamp } from '@/lib/sleepLogUtils'
 import { isoLocalYmd } from '@/lib/trackUtils'
 
@@ -577,20 +579,29 @@ export function buildKindReport(logs: LogRecord[], kind: LogKind, rangeDays: Rep
   }
 }
 
+export type ReportExtras = {
+  measurements?: GrowthMeasurementDto[]
+  milestones?: MilestoneDto[]
+  sickness?: SicknessEventDto[]
+  injuries?: InjuryEventDto[]
+}
+
 export function buildFullReport(
   logs: LogRecord[],
   rangeDays: ReportRange,
-  growth?: { measurements: GrowthMeasurementDto[]; milestones: MilestoneDto[] },
+  extras?: ReportExtras,
 ) {
+  const measurements = extras?.measurements ?? []
+  const milestones = extras?.milestones ?? []
+  const sickness = extras?.sickness ?? []
+  const injuries = extras?.injuries ?? []
+
   return {
     diapers: buildKindReport(logs, 'diaper', rangeDays),
     feeding: buildKindReport(logs, 'feeding', rangeDays),
     sleep: buildKindReport(logs, 'sleep', rangeDays),
-    growth: buildGrowthMilestonesReport(
-      growth?.measurements ?? [],
-      growth?.milestones ?? [],
-      rangeDays,
-    ),
+    growth: buildGrowthMilestonesReport(measurements, milestones, rangeDays),
+    health: buildHealthEventsReport(sickness, injuries, rangeDays),
     rangeDays,
   }
 }

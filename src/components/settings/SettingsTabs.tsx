@@ -7,6 +7,12 @@ import { Spacing } from '@/constants/theme'
 
 export type SettingsTabId = 'password' | 'subscription' | 'weekly-summary' | 'account'
 
+const SETTINGS_TAB_IDS: SettingsTabId[] = ['password', 'subscription', 'weekly-summary', 'account']
+
+export function isSettingsTabId(value: string): value is SettingsTabId {
+  return SETTINGS_TAB_IDS.includes(value as SettingsTabId)
+}
+
 const TABS: { id: SettingsTabId; label: string }[] = [
   { id: 'password', label: 'Password' },
   { id: 'subscription', label: 'Subscription' },

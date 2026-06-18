@@ -9,7 +9,7 @@ import { useThemedStyles } from '@/hooks/useThemedStyles'
 import type { NavIconName } from '@/lib/navLinks'
 import { Spacing } from '@/constants/theme'
 
-export type ReportsTabId = 'overview' | 'sleep' | 'diapers' | 'feeding' | 'growth'
+export type ReportsTabId = 'overview' | 'sleep' | 'diapers' | 'feeding' | 'growth' | 'health'
 
 const TABS: { id: ReportsTabId; label: string; icon: NavIconName }[] = [
   { id: 'overview', label: 'Overview', icon: 'chart' },
@@ -17,6 +17,7 @@ const TABS: { id: ReportsTabId; label: string; icon: NavIconName }[] = [
   { id: 'diapers', label: 'Diapers', icon: 'diaper' },
   { id: 'feeding', label: 'Feeding', icon: 'bottle' },
   { id: 'growth', label: 'Growth & milestones', icon: 'growth' },
+  { id: 'health', label: 'Health', icon: 'health' },
 ]
 
 const createStyles = (t: AppPalette) => ({

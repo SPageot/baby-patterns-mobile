@@ -274,7 +274,11 @@ export function WeeklySummaryScreen() {
 
         <View style={styles.linksRow}>
           <Button title="Full reports" variant="secondary" onPress={() => router.push('/reports')} />
-          <Button title="Email settings" variant="ghost" onPress={() => router.push('/settings')} />
+          <Button
+            title="Email settings"
+            variant="ghost"
+            onPress={() => router.push('/settings?tab=weekly-summary')}
+          />
         </View>
       </View>
 
@@ -286,7 +290,7 @@ export function WeeklySummaryScreen() {
         <WeeklySummaryContent
           report={summary.report}
           bounds={summary.bounds}
-          narrative={summary.narrative}
+          narrativeOutline={summary.narrativeOutline}
           highlights={summary.highlights}
           babyName={summary.selectedBaby?.fullName ?? ''}
           onCopy={summary.copySummary}

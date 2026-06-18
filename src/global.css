@@ -1,9 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
+
 :root {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-  --font-serif: ui-serif, Georgia, 'Times New Roman', Times, serif;
-  --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
-  --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
+  --font-sans: 'Roboto', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-serif: 'Roboto', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'Roboto', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-rounded: 'Roboto', ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
 html,

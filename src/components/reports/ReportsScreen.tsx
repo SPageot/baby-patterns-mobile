@@ -4,6 +4,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native'
 
 import { KindReportPanel } from '@/components/reports/KindReportPanel'
 import { GrowthReportPanel } from '@/components/reports/GrowthReportPanel'
+import { HealthReportPanel } from '@/components/reports/HealthReportPanel'
 import { ReportsOverview } from '@/components/reports/ReportsOverview'
 import { ReportsTabPanel, ReportsTabs, type ReportsTabId } from '@/components/reports/ReportsTabs'
 import { NavIcon } from '@/components/icons/NavIcon'
@@ -252,6 +253,10 @@ export function ReportsScreen() {
 
           <ReportsTabPanel tab="growth" active={activeTab}>
             <GrowthReportPanel report={reports.report.growth} />
+          </ReportsTabPanel>
+
+          <ReportsTabPanel tab="health" active={activeTab}>
+            <HealthReportPanel report={reports.report.health} />
           </ReportsTabPanel>
         </>
       )}

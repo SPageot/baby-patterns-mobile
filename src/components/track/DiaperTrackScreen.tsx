@@ -99,33 +99,21 @@ export function DiaperTrackScreen() {
         open={diaper.formOpen}
         onClose={diaper.closeForm}
         onSave={() => void diaper.onSaveDiaper()}
+        onBackToEntry={diaper.backToEntry}
         saving={diaper.saving}
         babies={diaper.babies}
         formBabyId={diaper.formBabyId}
         setFormBabyId={diaper.setFormBabyId}
-        diaperPee={diaper.diaperPee}
-        setDiaperPee={diaper.setDiaperPee}
-        diaperPoop={diaper.diaperPoop}
-        setDiaperPoop={diaper.setDiaperPoop}
-        diaperAnythingElse={diaper.diaperAnythingElse}
-        setDiaperAnythingElse={diaper.setDiaperAnythingElse}
-        diaperAnythingElseDesc={diaper.diaperAnythingElseDesc}
-        setDiaperAnythingElseDesc={diaper.setDiaperAnythingElseDesc}
-        diaperTime={diaper.diaperTime}
-        setDiaperTime={diaper.setDiaperTime}
-        diaperBrand={diaper.diaperBrand}
-        setDiaperBrand={diaper.setDiaperBrand}
-        diaperSize={diaper.diaperSize}
-        setDiaperSize={diaper.setDiaperSize}
-        diaperCream={diaper.diaperCream}
-        setDiaperCream={diaper.setDiaperCream}
-        diaperTeething={diaper.diaperTeething}
-        setDiaperTeething={diaper.setDiaperTeething}
-        diaperSick={diaper.diaperSick}
-        setDiaperSick={diaper.setDiaperSick}
+        formBabyIds={diaper.formBabyIds}
+        onToggleFormBabyId={diaper.toggleFormBabyId}
+        showReviewStep={diaper.showReviewStep}
+        isMultiCreate={diaper.isMultiCreate}
+        reviewDrafts={diaper.reviewDrafts}
+        onUpdateReviewDraft={diaper.updateReviewDraft}
+        formState={diaper.formState}
+        setFormState={diaper.setFormState}
         editingLogId={diaper.editingLogId}
       />
     </DiaperLogSection>
   )
 }
-

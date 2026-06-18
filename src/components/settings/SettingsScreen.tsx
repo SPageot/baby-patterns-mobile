@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Pressable, ScrollView, Text, View } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 
 import { BillingSettingsSection } from '@/components/settings/BillingSettingsSection'
 import { DeleteAccountModal } from '@/components/settings/DeleteAccountModal'
-import { SettingsTabs, type SettingsTabId } from '@/components/settings/SettingsTabs'
+import { SettingsTabs, isSettingsTabId, type SettingsTabId } from '@/components/settings/SettingsTabs'
 import { WeeklySummarySettingsSection } from '@/components/settings/WeeklySummarySettingsSection'
 import { HomeButton } from '@/components/home/HomeButton'
 import {
@@ -70,10 +70,19 @@ const createStyles = (t: AppPalette) => ({
 
 export function SettingsScreen() {
   const router = useRouter()
+  const { tab } = useLocalSearchParams<{ tab?: string }>()
   const { user, authReady, logout, setUser } = useApp()
   const styles = useThemedStyles(createStyles)
 
-  const [activeTab, setActiveTab] = useState<SettingsTabId>('password')
+  const [activeTab, setActiveTab] = useState<SettingsTabId>(() =>
+    tab && isSettingsTabId(tab) ? tab : 'password',
+  )
+
+  useEffect(() => {
+    if (tab && isSettingsTabId(tab)) {
+      setActiveTab(tab)
+    }
+  }, [tab])
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')

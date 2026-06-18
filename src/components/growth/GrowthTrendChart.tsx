@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { Text, View } from 'react-native'
 import Svg, { Circle, G, Path, Text as SvgText } from 'react-native-svg'
 
+import { svgFontFamily } from '@/constants/typography'
 import type { AppPalette } from '@/constants/homeTheme'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
@@ -87,7 +88,14 @@ export function GrowthTrendChart({ measurements, metric, title, unit, color }: P
         {pts.map((p) => (
           <G key={p.key}>
             <Circle cx={p.x} cy={p.y} r={4} fill={color} />
-            <SvgText x={p.x} y={206} textAnchor="middle" fontSize={10} fill={colors.textMuted}>
+            <SvgText
+              x={p.x}
+              y={206}
+              textAnchor="middle"
+              fontSize={10}
+              fill={colors.textMuted}
+              fontFamily={svgFontFamily}
+            >
               {p.label}
             </SvgText>
           </G>

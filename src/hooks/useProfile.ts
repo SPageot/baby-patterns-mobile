@@ -3,13 +3,31 @@ import * as ImagePicker from 'expo-image-picker'
 
 import { loadDiaperLogsForBabies } from '@/api/diaperApi'
 import { loadFeedingLogsForBabies } from '@/api/feedingApi'
+import { loadGrowthForBabies } from '@/api/growthApi'
+import { loadInjuryForBabies } from '@/api/injuryApi'
+import { loadMilestonesForBabies } from '@/api/milestoneApi'
+import {
+  addPostComment,
+  deletePost,
+  fetchPostComments,
+  fetchPostsByUser,
+  toggleCommentLike,
+  togglePostLike,
+  updatePost,
+} from '@/api/postsApi'
+import { loadSicknessForBabies } from '@/api/sicknessApi'
 import { loadSleepLogsForBabies } from '@/api/sleepApi'
 import { isApiConfigured } from '@/api/config'
 import { fetchCurrentUser, updateUser, uploadUserAvatar, deleteUserAvatar } from '@/api/userApi'
 import { prepareAvatarUpload } from '@/lib/avatarUpload'
 import { useDeferredEffect } from '@/lib/scheduleEffect'
+import { isOwnPost } from '@/lib/postUtils'
 import { useApp } from '@/context/AppContext'
+import type { Post, PostComment, PostSubmitInput } from '@/schemas/post'
 import type { LogRecord } from '@/types/babyLog'
+import type { GrowthMeasurementDto, MilestoneDto } from '@/types/growth'
+import type { InjuryEventDto, SicknessEventDto } from '@/types/health'
+import { buildProfileExtendedMonthStats } from '@/lib/profileMonthStats'
 import {
   currentMonthLabel,
   formatAvgPerDay,
@@ -40,6 +58,17 @@ export function useProfile() {
   const [statsLoading, setStatsLoading] = useState(false)
   const [exportingPdf, setExportingPdf] = useState(false)
   const [allLogs, setAllLogs] = useState<LogRecord[]>([])
+  const [growthRows, setGrowthRows] = useState<GrowthMeasurementDto[]>([])
+  const [milestoneRows, setMilestoneRows] = useState<MilestoneDto[]>([])
+  const [sicknessRows, setSicknessRows] = useState<SicknessEventDto[]>([])
+  const [injuryRows, setInjuryRows] = useState<InjuryEventDto[]>([])
+  const [posts, setPosts] = useState<Post[]>([])
+  const [postsLoading, setPostsLoading] = useState(false)
+  const [commentsByPost, setCommentsByPost] = useState<Record<string, PostComment[]>>({})
+  const [commentsOpen, setCommentsOpen] = useState<Record<string, boolean>>({})
+  const [commentsLoading, setCommentsLoading] = useState<Record<string, boolean>>({})
+  const [editingPostId, setEditingPostId] = useState<string | null>(null)
+  const [savingPostId, setSavingPostId] = useState<string | null>(null)
 
   useDeferredEffect(() => {
     if (!authReady || !user?.id || !isApiConfigured()) return
@@ -65,18 +94,30 @@ export function useProfile() {
   const loadStats = useCallback(async () => {
     if (!isApiConfigured() || ownBabies.length === 0) {
       setAllLogs([])
+      setGrowthRows([])
+      setMilestoneRows([])
+      setSicknessRows([])
+      setInjuryRows([])
       return
     }
 
     setStatsLoading(true)
     try {
       const babyRefs = ownBabies.map((b) => ({ id: b.id, fullName: b.fullName }))
-      const [diapers, sleep, feeding] = await Promise.all([
+      const [diapers, sleep, feeding, growth, milestones, sickness, injuries] = await Promise.all([
         loadDiaperLogsForBabies(babyRefs),
         loadSleepLogsForBabies(babyRefs),
         loadFeedingLogsForBabies(babyRefs),
+        loadGrowthForBabies(babyRefs),
+        loadMilestonesForBabies(babyRefs),
+        loadSicknessForBabies(babyRefs),
+        loadInjuryForBabies(babyRefs),
       ])
       setAllLogs([...diapers, ...sleep, ...feeding])
+      setGrowthRows(growth)
+      setMilestoneRows(milestones)
+      setSicknessRows(sickness)
+      setInjuryRows(injuries)
     } catch (e) {
       setProfileError(e instanceof Error ? e.message : 'Could not load activity stats')
     } finally {
@@ -87,6 +128,27 @@ export function useProfile() {
   useDeferredEffect(() => {
     void loadStats()
   }, [loadStats])
+
+  const loadPosts = useCallback(async () => {
+    if (!user?.id || !isApiConfigured()) {
+      setPosts([])
+      return
+    }
+
+    setPostsLoading(true)
+    try {
+      const list = await fetchPostsByUser(user.id, 1)
+      setPosts(list)
+    } catch (e) {
+      setProfileError(e instanceof Error ? e.message : 'Could not load your posts')
+    } finally {
+      setPostsLoading(false)
+    }
+  }, [user?.id])
+
+  useDeferredEffect(() => {
+    void loadPosts()
+  }, [loadPosts])
 
   const now = new Date()
   const statsYear = now.getFullYear()
@@ -117,6 +179,19 @@ export function useProfile() {
       logCount: monthCount(allLogs, 'sleep', statsYear, statsMonth),
     }),
     [allLogs, statsYear, statsMonth],
+  )
+
+  const monthExtendedStats = useMemo(
+    () =>
+      buildProfileExtendedMonthStats(
+        growthRows,
+        milestoneRows,
+        sicknessRows,
+        injuryRows,
+        statsYear,
+        statsMonth,
+      ),
+    [growthRows, milestoneRows, sicknessRows, injuryRows, statsYear, statsMonth],
   )
 
   const saveLocation = useCallback(async () => {
@@ -194,6 +269,85 @@ export function useProfile() {
     }
   }, [setUser, user])
 
+  const likePost = useCallback(async (postId: string) => {
+    const result = await togglePostLike(postId)
+    setPosts((prev) =>
+      prev.map((p) =>
+        p.id === postId ? { ...p, likedByMe: result.liked, likeCount: result.likeCount } : p,
+      ),
+    )
+  }, [])
+
+  const likeComment = useCallback(async (postId: string, commentId: string) => {
+    const result = await toggleCommentLike(commentId)
+    setCommentsByPost((prev) => ({
+      ...prev,
+      [postId]: (prev[postId] ?? []).map((comment) =>
+        comment.id === commentId
+          ? { ...comment, likedByMe: result.liked, likeCount: result.likeCount }
+          : comment,
+      ),
+    }))
+  }, [])
+
+  const toggleComments = useCallback(
+    async (postId: string) => {
+      const open = !commentsOpen[postId]
+      setCommentsOpen((prev) => ({ ...prev, [postId]: open }))
+      if (!open || commentsByPost[postId]) return
+
+      setCommentsLoading((prev) => ({ ...prev, [postId]: true }))
+      try {
+        const comments = await fetchPostComments(postId)
+        setCommentsByPost((prev) => ({ ...prev, [postId]: comments }))
+      } catch (e) {
+        setProfileError(e instanceof Error ? e.message : 'Could not load comments')
+      } finally {
+        setCommentsLoading((prev) => ({ ...prev, [postId]: false }))
+      }
+    },
+    [commentsByPost, commentsOpen],
+  )
+
+  const submitComment = useCallback(async (postId: string, content: string) => {
+    const comment = await addPostComment(postId, content)
+    setCommentsByPost((prev) => ({
+      ...prev,
+      [postId]: [...(prev[postId] ?? []), comment],
+    }))
+    setPosts((prev) =>
+      prev.map((p) => (p.id === postId ? { ...p, commentCount: p.commentCount + 1 } : p)),
+    )
+    setCommentsOpen((prev) => ({ ...prev, [postId]: true }))
+  }, [])
+
+  const removePost = useCallback(
+    async (postId: string) => {
+      if (!user?.id) return
+      const post = posts.find((p) => p.id === postId)
+      if (post && !isOwnPost(post, user.id)) return
+      await deletePost(postId)
+      setPosts((prev) => prev.filter((p) => p.id !== postId))
+      if (editingPostId === postId) setEditingPostId(null)
+    },
+    [editingPostId, posts, user?.id],
+  )
+
+  const savePostEdit = useCallback(async (postId: string, input: PostSubmitInput) => {
+    setSavingPostId(postId)
+    setProfileError(null)
+    try {
+      const updated = await updatePost(postId, input)
+      setPosts((prev) => prev.map((p) => (p.id === postId ? updated : p)))
+      setEditingPostId(null)
+    } catch (e) {
+      setProfileError(e instanceof Error ? e.message : 'Could not update post')
+      throw e
+    } finally {
+      setSavingPostId(null)
+    }
+  }, [])
+
   const downloadTrackingPdf = useCallback(async () => {
     if (!isApiConfigured()) {
       setProfileError('Set EXPO_PUBLIC_API_URL in .env to export tracking data.')
@@ -208,17 +362,33 @@ export function useProfile() {
     setProfileError(null)
     try {
       const babyRefs = ownBabies.map((b) => ({ id: b.id, fullName: b.fullName }))
-      const [diapers, sleep, feeding] = await Promise.all([
+      const [diapers, sleep, feeding, growth, milestones, sickness, injuries] = await Promise.all([
         loadDiaperLogsForBabies(babyRefs),
         loadSleepLogsForBabies(babyRefs),
         loadFeedingLogsForBabies(babyRefs),
+        loadGrowthForBabies(babyRefs),
+        loadMilestonesForBabies(babyRefs),
+        loadSicknessForBabies(babyRefs),
+        loadInjuryForBabies(babyRefs),
       ])
       const logs = [...diapers, ...sleep, ...feeding]
       setAllLogs(logs)
+      setGrowthRows(growth)
+      setMilestoneRows(milestones)
+      setSicknessRows(sickness)
+      setInjuryRows(injuries)
 
       const parentName = user?.fullName?.trim() || user?.username?.trim() || 'Parent'
       const { downloadTrackingReportPdf } = await import('@/lib/trackingReportPdf')
-      await downloadTrackingReportPdf({ logs, babies: ownBabies, parentName })
+      await downloadTrackingReportPdf({
+        logs,
+        measurements: growth,
+        milestones,
+        sickness,
+        injuries,
+        babies: ownBabies,
+        parentName,
+      })
     } catch (e) {
       setProfileError(e instanceof Error ? e.message : 'Could not create PDF report')
     } finally {
@@ -240,12 +410,27 @@ export function useProfile() {
     monthStats,
     monthAverages,
     monthSleepStats,
+    monthExtendedStats,
     currentMonthLabel,
     formatAvgPerDay,
     formatSleepDurationShort,
+    posts,
+    postsLoading,
+    commentsByPost,
+    commentsOpen,
+    commentsLoading,
+    editingPostId,
+    setEditingPostId,
+    savingPostId,
     saveLocation,
     pickAvatar,
     removeAvatar,
+    likePost,
+    likeComment,
+    toggleComments,
+    submitComment,
+    removePost,
+    savePostEdit,
     downloadTrackingPdf,
     apiConfigured: isApiConfigured(),
     allLogs,
