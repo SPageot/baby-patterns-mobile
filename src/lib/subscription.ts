@@ -3,12 +3,20 @@ import type { User } from '@/schemas/user'
 
 export const FREE_REPORT_MAX_DAYS: ReportRange = 7
 
-export function isSiteDeveloper(user: User | null | undefined): boolean {
+export function isSiteDeveloper(user: Pick<User, 'isSiteDeveloper'> | null | undefined): boolean {
   return Boolean(user?.isSiteDeveloper)
 }
 
-export function isPaidProUser(user: User | null | undefined): boolean {
+export function isPaidProUser(user: Pick<User, 'isPro'> | null | undefined): boolean {
   return Boolean(user?.isPro)
+}
+
+export function shouldShowPricingInNav(
+  user: Pick<User, 'isPro' | 'isSiteDeveloper'> | null | undefined,
+): boolean {
+  if (!user) return true
+  if (isSiteDeveloper(user)) return true
+  return !isPaidProUser(user)
 }
 
 export function isProUser(user: User | null | undefined): boolean {

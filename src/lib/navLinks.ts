@@ -1,3 +1,5 @@
+import { shouldShowPricingInNav } from './subscription'
+
 export type NavIconName =
   | 'heart'
   | 'users'
@@ -35,12 +37,9 @@ export function getVisibleNavLinks(options: {
   user: { id?: string; isPro?: boolean; isSiteDeveloper?: boolean; hasProAccess?: boolean } | null
 }): NavLink[] {
   const { hasBaby, user } = options
-  const hasProAccess = Boolean(
-    user?.hasProAccess ?? user?.isPro ?? user?.isSiteDeveloper,
-  )
   return NAV_LINKS.filter((link) => {
     if (link.href === '/' && user) return false
-    if (link.href === '/pricing' && hasProAccess) return false
+    if (link.href === '/pricing' && !shouldShowPricingInNav(user)) return false
     if (!link.requiresBaby) return true
     if (hasBaby) return true
     return Boolean(user && link.href === '/diapers')

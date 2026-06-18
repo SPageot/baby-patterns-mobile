@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native'
+import { Linking, Pressable, ScrollView, Text, View } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import { NavIcon } from '@/components/icons/NavIcon'
@@ -8,7 +8,7 @@ import { createCheckoutSession } from '@/api/billingApi'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
 import { markBillingCheckoutStarted } from '@/lib/billingReturn'
-import { isProUser } from '@/lib/subscription'
+import { isPaidProUser, isProUser, isSiteDeveloper } from '@/lib/subscription'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { heading } from '@/constants/typography'
@@ -19,6 +19,7 @@ import { Spacing } from '@/constants/theme'
 type PlanFeature = {
   text: string
   highlight?: boolean
+  comingSoon?: boolean
 }
 
 type PricingPlan = {
@@ -54,6 +55,7 @@ const PLANS: PricingPlan[] = [
       { text: 'Product reviews' },
       { text: 'Milestones' },
       { text: '7-day report history' },
+      { text: 'Ads', comingSoon: true },
     ],
   },
   {
@@ -124,6 +126,7 @@ const createStyles = (t: AppPalette) => ({
     gap: Spacing.three,
   },
   card: {
+    position: 'relative' as const,
     padding: Spacing.three,
     borderRadius: HomeRadius.xl,
     borderWidth: 1,
@@ -134,26 +137,40 @@ const createStyles = (t: AppPalette) => ({
     borderColor: t.accentLavender,
     backgroundColor: t.card,
   },
+  cardCurrent: {
+    borderColor: 'rgba(74, 154, 114, 0.35)',
+  },
   ribbon: {
-    alignSelf: 'flex-start' as const,
+    position: 'absolute' as const,
+    top: 16,
+    right: 16,
     fontSize: 11,
     fontWeight: '800' as const,
     letterSpacing: 0.6,
     textTransform: 'uppercase' as const,
-    color: t.accentDeep,
-    backgroundColor: t.accentSoft,
+    color: '#fff',
+    backgroundColor: t.accent,
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 6,
     borderRadius: HomeRadius.pill,
-    marginBottom: 12,
     overflow: 'hidden' as const,
   },
   currentBadge: {
-    alignSelf: 'flex-start' as const,
+    position: 'absolute' as const,
+    top: 16,
+    right: 16,
     fontSize: 11,
-    fontWeight: '700' as const,
-    color: t.textMuted,
-    marginBottom: 12,
+    fontWeight: '800' as const,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase' as const,
+    color: '#2f7a55',
+    backgroundColor: 'rgba(74, 154, 114, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(74, 154, 114, 0.35)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: HomeRadius.pill,
+    overflow: 'hidden' as const,
   },
   planIcon: {
     width: 44,
@@ -163,6 +180,9 @@ const createStyles = (t: AppPalette) => ({
     justifyContent: 'center' as const,
     backgroundColor: t.accentSoft,
     marginBottom: 12,
+  },
+  planIconWithBadge: {
+    marginTop: 28,
   },
   planName: {
     ...heading(22, { weight: '800' }),
@@ -224,6 +244,8 @@ const createStyles = (t: AppPalette) => ({
   },
   feature: {
     flexDirection: 'row' as const,
+    alignItems: 'flex-start' as const,
+    flexWrap: 'wrap' as const,
     gap: 10,
     marginBottom: 8,
   },
@@ -245,6 +267,21 @@ const createStyles = (t: AppPalette) => ({
     color: t.text,
     lineHeight: 20,
   },
+  comingSoon: {
+    alignSelf: 'center' as const,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: HomeRadius.pill,
+    backgroundColor: t.accentSoft,
+    borderWidth: 1,
+    borderColor: t.accentLavender,
+    color: t.accentDeep,
+    fontSize: 10,
+    fontWeight: '800' as const,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase' as const,
+    overflow: 'hidden' as const,
+  },
   cta: {
     marginTop: Spacing.two,
   },
@@ -254,6 +291,11 @@ const createStyles = (t: AppPalette) => ({
     color: t.textMuted,
     textAlign: 'center' as const,
     marginTop: Spacing.three,
+  },
+  disclaimerError: {
+    color: t.error,
+    marginBottom: Spacing.two,
+    textAlign: 'center' as const,
   },
 })
 
@@ -273,6 +315,7 @@ function PlanFeatureList({
         >
           <Text style={styles.check}>✓</Text>
           <Text style={styles.featureText}>{feature.text}</Text>
+          {feature.comingSoon ? <Text style={styles.comingSoon}>Coming soon</Text> : null}
         </View>
       ))}
     </View>
@@ -285,34 +328,43 @@ export function PricingScreen() {
   const router = useRouter()
   const { user } = useApp()
   const loggedIn = Boolean(user?.id)
-  const userIsPro = isProUser(user)
+  const userIsPaidPro = isPaidProUser(user)
+  const isSiteDev = isSiteDeveloper(user)
+  const hasProAccess = isProUser(user)
   const [proBilling, setProBilling] = useState<ProBilling>('monthly')
   const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const proPrice = PRO_PRICING[proBilling]
 
   useEffect(() => {
-    if (userIsPro) router.replace('/profile')
-  }, [router, userIsPro])
+    if (userIsPaidPro && !isSiteDev) router.replace('/profile')
+  }, [router, userIsPaidPro, isSiteDev])
+
+  const onFreeAction = () => {
+    if (loggedIn) return
+    router.push('/signup')
+  }
 
   const onProAction = async () => {
     if (!loggedIn) {
       router.push('/signup')
       return
     }
-    if (userIsPro) return
+    if (hasProAccess) return
 
     if (!isApiConfigured()) {
-      Alert.alert('API not configured', 'Set EXPO_PUBLIC_API_URL in .env to subscribe.')
+      setCheckoutError('Set EXPO_PUBLIC_API_URL in .env to subscribe.')
       return
     }
 
     setCheckoutLoading(true)
+    setCheckoutError(null)
     try {
       const url = await createCheckoutSession(proBilling)
       await markBillingCheckoutStarted()
       await Linking.openURL(url)
     } catch (err) {
-      Alert.alert('Checkout failed', err instanceof Error ? err.message : 'Could not start checkout')
+      setCheckoutError(err instanceof Error ? err.message : 'Could not start checkout')
     } finally {
       setCheckoutLoading(false)
     }
@@ -335,26 +387,32 @@ export function PricingScreen() {
         </Text>
       </View>
 
+      {checkoutError ? <Text style={styles.disclaimerError}>{checkoutError}</Text> : null}
+
       <View style={styles.grid}>
         {PLANS.map((plan) => {
           const isFree = plan.id === 'free'
           const isPro = plan.id === 'pro'
-          const isCurrent = (isFree && loggedIn && !userIsPro) || (isPro && userIsPro)
+          const isCurrent = (isFree && loggedIn && !hasProAccess) || (isPro && hasProAccess)
 
           return (
             <View
               key={plan.id}
-              style={[styles.card, plan.featured && styles.cardFeatured]}
+              style={[
+                styles.card,
+                plan.featured && styles.cardFeatured,
+                isCurrent && styles.cardCurrent,
+              ]}
             >
-              {isPro && proBilling === 'annual' ? (
+              {isPro && !isCurrent && proBilling === 'annual' ? (
                 <Text style={styles.ribbon}>Best value</Text>
               ) : null}
-              {isPro && proBilling === 'monthly' ? (
+              {isPro && !isCurrent && proBilling === 'monthly' ? (
                 <Text style={styles.ribbon}>Most popular</Text>
               ) : null}
               {isCurrent ? <Text style={styles.currentBadge}>Your current plan</Text> : null}
 
-              <View style={styles.planIcon}>
+              <View style={[styles.planIcon, ((isPro && !isCurrent) || isCurrent) && styles.planIconWithBadge]}>
                 <NavIcon name={plan.icon} size={22} color={palette.accentDeep} />
               </View>
 
@@ -404,33 +462,31 @@ export function PricingScreen() {
               <PlanFeatureList features={plan.features} styles={styles} />
 
               {isFree ? (
-                loggedIn ? (
-                  <Button title="Current plan" variant="secondary" disabled style={styles.cta} />
-                ) : (
-                  <Button
-                    title="Get started free"
-                    variant="ghost"
-                    style={styles.cta}
-                    onPress={() => router.push('/signup')}
-                  />
-                )
-              ) : loggedIn ? (
+                <Button
+                  title={isCurrent ? 'Current plan' : 'Get started free'}
+                  variant={isCurrent ? 'secondary' : 'ghost'}
+                  disabled={isCurrent}
+                  style={styles.cta}
+                  onPress={onFreeAction}
+                />
+              ) : (
                 <Button
                   title={
-                    userIsPro
+                    isCurrent
                       ? 'Current plan'
                       : checkoutLoading
                         ? 'Redirecting…'
-                        : proBilling === 'annual'
-                          ? 'Upgrade to Pro Annual'
-                          : 'Upgrade to Pro Monthly'
+                        : loggedIn
+                          ? proBilling === 'annual'
+                            ? 'Upgrade to Pro Annual'
+                            : 'Upgrade to Pro Monthly'
+                          : 'Sign up to upgrade'
                   }
+                  variant={isCurrent ? 'secondary' : 'primary'}
                   onPress={() => void onProAction()}
-                  disabled={userIsPro || checkoutLoading}
+                  disabled={isCurrent || checkoutLoading}
                   style={styles.cta}
                 />
-              ) : (
-                <Button title="Sign up to upgrade" style={styles.cta} onPress={() => router.push('/signup')} />
               )}
             </View>
           )
@@ -438,7 +494,7 @@ export function PricingScreen() {
       </View>
 
       <Text style={styles.disclaimer}>
-        Pro is $4.99/month or $49.99/year. Checkout is powered by Stripe. Free features work today at no cost.
+        Pro is $4.99/month or $49.99/year. Checkout is powered by Stripe. Free features work today at no cost — no credit card required.
       </Text>
     </ScrollView>
   )

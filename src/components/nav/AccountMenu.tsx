@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { useApp } from '@/context/AppContext'
 import { ACCOUNT_LINKS } from '@/lib/navLinks'
-import { userPlanLabel } from '@/lib/subscription'
+import { isSiteDeveloper, userPlanLabel } from '@/lib/subscription'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
@@ -99,6 +99,15 @@ export function AccountMenu({ open, onClose }: Props) {
               <Text style={styles.itemText}>{link.label}</Text>
             </Pressable>
           ))}
+          {isSiteDeveloper(user) ? (
+            <Pressable
+              accessibilityRole="menuitem"
+              onPress={() => navigate('/pricing')}
+              style={({ pressed }) => [styles.item, pressed && styles.pressed]}
+            >
+              <Text style={styles.itemText}>Pricing</Text>
+            </Pressable>
+          ) : null}
           <Pressable
             accessibilityRole="menuitem"
             onPress={onLogout}

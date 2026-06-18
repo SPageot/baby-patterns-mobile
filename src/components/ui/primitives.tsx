@@ -111,11 +111,13 @@ export function Button({ title, variant = 'primary', loading, disabled, style, .
   const t = useHomeTheme()
   const isPrimary = variant === 'primary'
   const isSecondary = variant === 'secondary'
+  const isGhost = variant === 'ghost'
+  const isDisabled = Boolean(disabled || loading)
 
   return (
     <Pressable
       accessibilityRole="button"
-      disabled={disabled || loading}
+      disabled={isDisabled}
       style={(state) => [
         {
           borderRadius: HomeRadius.pill,
@@ -125,9 +127,22 @@ export function Button({ title, variant = 'primary', loading, disabled, style, .
           justifyContent: 'center',
           minHeight: 48,
         },
-        isPrimary && { backgroundColor: t.accent },
-        isSecondary && { backgroundColor: 'transparent', borderWidth: 1, borderColor: t.text },
-        (state.pressed || disabled) && styles.pressed,
+        isPrimary && {
+          backgroundColor: isDisabled ? t.card2 : t.accent,
+          borderWidth: isDisabled ? 1 : 0,
+          borderColor: isDisabled ? t.strokeSubtle : 'transparent',
+        },
+        isSecondary && {
+          backgroundColor: isDisabled ? t.card2 : 'transparent',
+          borderWidth: 1,
+          borderColor: t.strokeSubtle,
+        },
+        isGhost && {
+          backgroundColor: 'transparent',
+          borderWidth: 1,
+          borderColor: t.strokeSubtle,
+        },
+        state.pressed && !isDisabled && styles.pressed,
         typeof style === 'function' ? style(state) : style,
       ]}
       {...props}
@@ -140,7 +155,7 @@ export function Button({ title, variant = 'primary', loading, disabled, style, .
             ...bodyText,
             fontSize: 15,
             fontWeight: '600',
-            color: isPrimary ? t.onPrimary : t.text,
+            color: isPrimary && !isDisabled ? t.onPrimary : isDisabled ? t.textMuted : t.text,
           }}
         >
           {title}
