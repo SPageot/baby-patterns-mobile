@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from 'react'
-import { Alert } from 'react-native'
 
 import {
   createDiaperLog,
@@ -9,7 +8,9 @@ import {
   updateDiaperLog,
 } from '@/api/diaperApi'
 import { getBabyId, isApiConfigured } from '@/api/config'
+import { ensureBrand } from '@/api/reviewsApi'
 import { useApp } from '@/context/AppContext'
+import { useConfirmAction } from '@/context/ConfirmContext'
 import type { Baby } from '@/schemas/user'
 import { diaperLogFromDetails, type DiaperLogCreate, type LogRecord } from '@/types/babyLog'
 import { useDeferredEffect } from '@/lib/scheduleEffect'
@@ -23,6 +24,7 @@ import type { MultiBabyDraft } from '@/lib/multiBabyLogFlow'
 
 export function useDiaperLogs() {
   const { babies, selectedBabyId, selectBaby, user, loadBabiesForCurrentUser } = useApp()
+  const confirm = useConfirmAction()
 
   const [babiesLoading, setBabiesLoading] = useState(false)
   const [diaperLogs, setDiaperLogs] = useState<LogRecord[]>([])
@@ -216,29 +218,24 @@ export function useDiaperLogs() {
     if (!logId || !isApiConfigured()) return
 
     const babyName = log.details.babyName?.trim() || 'this log'
-    Alert.alert('Delete diaper change?', `Remove the change for ${babyName}?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => {
-          void (async () => {
-            setDeletingLogId(logId)
-            setError(null)
-            try {
-              if (!logId.startsWith('local-')) {
-                await deleteDiaperLog(logId)
-              }
-              setDiaperLogs((prev) => prev.filter((l) => l.id !== logId))
-            } catch (e) {
-              setError(e instanceof Error ? e.message : 'Failed to delete diaper log')
-            } finally {
-              setDeletingLogId('')
-            }
-          })()
-        },
+    confirm({
+      title: 'Delete diaper change?',
+      message: `Remove the change for ${babyName}? This cannot be undone.`,
+      onConfirm: async () => {
+        setDeletingLogId(logId)
+        setError(null)
+        try {
+          if (!logId.startsWith('local-')) {
+            await deleteDiaperLog(logId)
+          }
+          setDiaperLogs((prev) => prev.filter((l) => l.id !== logId))
+        } catch (e) {
+          setError(e instanceof Error ? e.message : 'Failed to delete diaper log')
+        } finally {
+          setDeletingLogId('')
+        }
       },
-    ])
+    })
   }
 
   const onSaveDiaper = async () => {
@@ -259,6 +256,8 @@ export function useDiaperLogs() {
       setSaving(true)
       setError(null)
       try {
+        const brand = drafts[0]?.fields.diaperBrand?.trim()
+        if (brand) await ensureBrand(brand)
         for (const draft of drafts) {
           await createDiaperLog(draft.babyId, draft.fields)
         }
@@ -290,6 +289,9 @@ export function useDiaperLogs() {
     setSaving(true)
     setError(null)
     try {
+      if (fields.diaperBrand.trim()) {
+        await ensureBrand(fields.diaperBrand)
+      }
       const baby = babies.find((b) => b.id === babyId)
       if (editId) {
         await updateDiaperLog(editId, babyId, fields)

@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { BillingSettingsSection } from '@/components/settings/BillingSettingsSection'
 import { DeleteAccountModal } from '@/components/settings/DeleteAccountModal'
 import { SettingsTabs, isSettingsTabId, type SettingsTabId } from '@/components/settings/SettingsTabs'
+import { PushNotificationSettingsSection } from '@/components/settings/PushNotificationSettingsSection'
 import { WeeklySummarySettingsSection } from '@/components/settings/WeeklySummarySettingsSection'
 import { HomeButton } from '@/components/home/HomeButton'
 import {
@@ -171,7 +172,13 @@ export function SettingsScreen() {
         <SectionTitle>Account settings</SectionTitle>
         <Subtitle>Manage your password, subscription, notifications, and account.</Subtitle>
 
-        <SettingsTabs active={activeTab} onChange={setActiveTab} />
+        <SettingsTabs
+          active={activeTab}
+          onChange={(nextTab) => {
+            setActiveTab(nextTab)
+            router.setParams({ tab: nextTab })
+          }}
+        />
 
         {activeTab === 'password' ? (
           <Card>
@@ -196,6 +203,12 @@ export function SettingsScreen() {
         {activeTab === 'subscription' ? (
           <Card>
             <BillingSettingsSection user={user} onUserUpdated={setUser} />
+          </Card>
+        ) : null}
+
+        {activeTab === 'notifications' ? (
+          <Card>
+            <PushNotificationSettingsSection />
           </Card>
         ) : null}
 

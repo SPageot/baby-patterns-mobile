@@ -5,6 +5,7 @@ import { loadDiaperLogsForBabies } from '@/api/diaperApi'
 import { loadFeedingLogsForBabies } from '@/api/feedingApi'
 import { loadGrowthForBabies } from '@/api/growthApi'
 import { loadInjuryForBabies } from '@/api/injuryApi'
+import { loadPediatricianVisitsForBabies } from '@/api/pediatricianApi'
 import { loadMilestonesForBabies } from '@/api/milestoneApi'
 import { loadSicknessForBabies } from '@/api/sicknessApi'
 import { loadSleepLogsForBabies } from '@/api/sleepApi'
@@ -13,6 +14,7 @@ import { useApp } from '@/context/AppContext'
 import type { LogRecord } from '@/types/babyLog'
 import type { GrowthMeasurementDto, MilestoneDto } from '@/types/growth'
 import type { InjuryEventDto, SicknessEventDto } from '@/types/health'
+import type { PediatricianVisitDto } from '@/types/pediatrician'
 import {
   buildWeeklyHighlights,
   buildWeeklyNarrative,
@@ -32,6 +34,7 @@ export function useWeeklySummary() {
   const [milestones, setMilestones] = useState<MilestoneDto[]>([])
   const [sicknessRows, setSicknessRows] = useState<SicknessEventDto[]>([])
   const [injuryRows, setInjuryRows] = useState<InjuryEventDto[]>([])
+  const [pediatricianRows, setPediatricianRows] = useState<PediatricianVisitDto[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [weekSelection, setWeekSelection] = useState<WeekSelection>('last')
@@ -50,6 +53,7 @@ export function useWeeklySummary() {
       setMilestones([])
       setSicknessRows([])
       setInjuryRows([])
+      setPediatricianRows([])
       return
     }
 
@@ -57,7 +61,8 @@ export function useWeeklySummary() {
     setError(null)
     try {
       const babyRefs = ownBabies.map((baby) => ({ id: baby.id, fullName: baby.fullName }))
-      const [diapers, sleep, feeding, growthRows, milestoneRows, sickness, injuries] = await Promise.all([
+      const [diapers, sleep, feeding, growthRows, milestoneRows, sickness, injuries, pediatricianVisits] =
+        await Promise.all([
         loadDiaperLogsForBabies(babyRefs),
         loadSleepLogsForBabies(babyRefs),
         loadFeedingLogsForBabies(babyRefs),
@@ -65,12 +70,14 @@ export function useWeeklySummary() {
         loadMilestonesForBabies(babyRefs),
         loadSicknessForBabies(babyRefs),
         loadInjuryForBabies(babyRefs),
+        loadPediatricianVisitsForBabies(babyRefs),
       ])
       setLogs([...diapers, ...sleep, ...feeding])
       setMeasurements(growthRows)
       setMilestones(milestoneRows)
       setSicknessRows(sickness)
       setInjuryRows(injuries)
+      setPediatricianRows(pediatricianVisits)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not load tracking data')
       setLogs([])
@@ -78,6 +85,7 @@ export function useWeeklySummary() {
       setMilestones([])
       setSicknessRows([])
       setInjuryRows([])
+      setPediatricianRows([])
     } finally {
       setLoading(false)
     }
@@ -121,11 +129,25 @@ export function useWeeklySummary() {
     return injuryRows.filter((row) => row.babyId === selectedBaby.id)
   }, [injuryRows, selectedBaby?.id])
 
+  const babyPediatricianVisits = useMemo(() => {
+    if (!selectedBaby?.id) return pediatricianRows
+    return pediatricianRows.filter((row) => row.babyId === selectedBaby.id)
+  }, [pediatricianRows, selectedBaby?.id])
+
   const bounds = useMemo(() => getWeekBounds(weekSelection), [weekSelection])
 
   const weekly = useMemo(
-    () => buildWeeklyReport(babyLogs, babyMeasurements, babyMilestones, babySickness, babyInjuries, bounds),
-    [babyLogs, babyMeasurements, babyMilestones, babySickness, babyInjuries, bounds],
+    () =>
+      buildWeeklyReport(
+        babyLogs,
+        babyMeasurements,
+        babyMilestones,
+        babySickness,
+        babyInjuries,
+        babyPediatricianVisits,
+        bounds,
+      ),
+    [babyLogs, babyMeasurements, babyMilestones, babySickness, babyInjuries, babyPediatricianVisits, bounds],
   )
 
   const narrativeOutline = useMemo(

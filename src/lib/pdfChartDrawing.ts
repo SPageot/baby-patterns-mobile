@@ -9,6 +9,7 @@ export const PDF_KIND_COLORS: Record<KindReport['kind'], PdfRgb> = {
   sleep: [122, 159, 212],
   feeding: [90, 154, 114],
   diaper: [199, 160, 140],
+  potty: [107, 143, 113],
 }
 
 export const PDF_GROWTH_COLORS = {

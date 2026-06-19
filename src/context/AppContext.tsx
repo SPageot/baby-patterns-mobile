@@ -15,6 +15,7 @@ import { fetchCurrentUser } from '@/api/userApi'
 import { syncAppStore } from '@/lib/appStore'
 import { hydrateAvatarCache } from '@/lib/avatarCache'
 import { clearAuthSession, getAccessToken, hydrateAuthSession } from '@/lib/authSession'
+import { ensureLiveConnection, stopLiveConnection } from '@/lib/liveHub'
 import type { Baby, User } from '@/schemas/user'
 
 type AppContextValue = {
@@ -53,6 +54,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     syncAppStore({ user, babies, selectedBabyId })
   }, [user, babies, selectedBabyId])
+
+  useEffect(() => {
+    if (!user?.id || !isApiConfigured() || !getAccessToken()) {
+      void stopLiveConnection()
+      return
+    }
+
+    void ensureLiveConnection()
+    return () => {
+      void stopLiveConnection()
+    }
+  }, [user?.id])
 
   useEffect(() => {
     let cancelled = false
@@ -133,6 +146,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     await logoutUser()
+    await stopLiveConnection()
     setUserState(null)
     setBabiesState([])
     setSelectedBabyId('')

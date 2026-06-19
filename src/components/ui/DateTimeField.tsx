@@ -21,7 +21,7 @@ type Props = {
   label: string
   value: string
   onChange: (value: string) => void
-  mode?: 'date' | 'datetime'
+  mode?: 'date' | 'datetime' | 'time'
   zone?: 'local' | 'utc'
   placeholder?: string
 }
@@ -82,16 +82,21 @@ export function DateTimeField({
   onChange,
   mode = 'datetime',
   zone = 'local',
-  placeholder = mode === 'date' ? 'Select date' : 'Select date and time',
+  placeholder = mode === 'date' ? 'Select date' : mode === 'time' ? 'Select time' : 'Select date and time',
 }: Props) {
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
   const [showPicker, setShowPicker] = useState(false)
-  const pickerDate = zone === 'utc' ? wallClockToPicker(value) : parseDatetimeLocalValue(value, zone)
+  const pickerDate =
+    zone === 'utc' ? wallClockToPicker(value, mode) : parseDatetimeLocalValue(value, zone)
   const display = formatPickerLabel(value, mode, zone)
 
   const commit = (date: Date) => {
     if (zone === 'utc') {
+      onChange(wallClockFromPicker(date, mode))
+      return
+    }
+    if (mode === 'time') {
       onChange(wallClockFromPicker(date, mode))
       return
     }
@@ -125,11 +130,11 @@ export function DateTimeField({
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`Open calendar for ${label}`}
+          accessibilityLabel={`Open ${mode === 'time' ? 'time' : 'calendar'} for ${label}`}
           onPress={openPicker}
           style={({ pressed }) => [styles.iconBtn, pressed && styles.pressed]}
         >
-          <Text style={styles.icon}>📅</Text>
+          <Text style={styles.icon}>{mode === 'time' ? '🕐' : '📅'}</Text>
         </Pressable>
       </View>
 
@@ -137,7 +142,7 @@ export function DateTimeField({
         <View style={styles.pickerWrap}>
           <DateTimePicker
             value={pickerDate}
-            mode={mode}
+            mode={mode === 'time' ? 'time' : mode}
             display={Platform.OS === 'ios' ? 'inline' : 'default'}
             onChange={onPickerChange}
             themeVariant={palette.mode === 'dark' ? 'dark' : 'light'}

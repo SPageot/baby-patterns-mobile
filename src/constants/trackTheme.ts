@@ -23,6 +23,12 @@ const TrackAccents = {
       accentBorder: 'rgba(90, 127, 212, 0.28)',
       icon: 'moon' as const,
     },
+    potty: {
+      accent: '#6b8f71',
+      accentSoft: 'rgba(107, 143, 113, 0.12)',
+      accentBorder: 'rgba(107, 143, 113, 0.28)',
+      icon: 'potty' as const,
+    },
   },
   dark: {
     diaper: {
@@ -42,6 +48,12 @@ const TrackAccents = {
       accentSoft: 'rgba(120, 160, 255, 0.12)',
       accentBorder: 'rgba(120, 160, 255, 0.28)',
       icon: 'moon' as const,
+    },
+    potty: {
+      accent: 'rgba(140, 190, 150, 0.95)',
+      accentSoft: 'rgba(140, 190, 150, 0.14)',
+      accentBorder: 'rgba(140, 190, 150, 0.28)',
+      icon: 'potty' as const,
     },
   },
 } as const

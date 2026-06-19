@@ -8,5 +8,8 @@ export function reportKindColor(kind: KindReport['kind'], colors: AppPalette): s
   if (kind === 'feeding') {
     return colors.mode === 'dark' ? 'rgba(130, 200, 160, 0.95)' : '#4a9a72'
   }
+  if (kind === 'potty') {
+    return colors.mode === 'dark' ? 'rgba(140, 190, 150, 0.95)' : '#6b8f71'
+  }
   return colors.mode === 'dark' ? 'rgba(130, 175, 255, 0.9)' : '#5a7fd4'
 }

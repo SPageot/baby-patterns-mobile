@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from 'react'
-import { Alert } from 'react-native'
 
 import { getBabyId, isApiConfigured } from '@/api/config'
 import {
@@ -10,12 +9,13 @@ import {
   updateSleepLog,
 } from '@/api/sleepApi'
 import { useApp } from '@/context/AppContext'
+import { useConfirmAction } from '@/context/ConfirmContext'
 import type { Baby } from '@/schemas/user'
 import {
-  isoToDatetimeUtcValue,
   isoToUtcDateValue,
+  isoToUtcTimeValue,
   nowUtcDateValue,
-  nowUtcInputValue,
+  nowUtcTimeValue,
   todayCount,
 } from '@/lib/trackUtils'
 import { useDeferredEffect } from '@/lib/scheduleEffect'
@@ -29,6 +29,7 @@ import type { MultiBabyDraft } from '@/lib/multiBabyLogFlow'
 
 export function useSleepLogs() {
   const { babies, selectedBabyId, selectBaby, user, loadBabiesForCurrentUser } = useApp()
+  const confirm = useConfirmAction()
 
   const [babiesLoading, setBabiesLoading] = useState(false)
   const [sleepLogs, setSleepLogs] = useState<LogRecord[]>([])
@@ -41,8 +42,8 @@ export function useSleepLogs() {
   const [formBabyId, setFormBabyId] = useState('')
   const [editingLogId, setEditingLogId] = useState('')
   const [sleepDate, setSleepDate] = useState(nowUtcDateValue)
-  const [sleepStart, setSleepStart] = useState(nowUtcInputValue)
-  const [sleepEnd, setSleepEnd] = useState(nowUtcInputValue)
+  const [sleepStart, setSleepStart] = useState(nowUtcTimeValue)
+  const [sleepEnd, setSleepEnd] = useState(nowUtcTimeValue)
   const [sleepMood, setSleepMood] = useState('')
   const [sleepEnvironment, setSleepEnvironment] = useState('')
   const [sleepTeething, setSleepTeething] = useState(false)
@@ -148,8 +149,8 @@ export function useSleepLogs() {
     setSleepSick(false)
     setSleepNap(false)
     setSleepDate(nowUtcDateValue())
-    setSleepStart(nowUtcInputValue())
-    setSleepEnd(nowUtcInputValue())
+    setSleepStart(nowUtcTimeValue())
+    setSleepEnd(nowUtcTimeValue())
     multi.resetMultiBabyFlow('')
   }
 
@@ -184,8 +185,8 @@ export function useSleepLogs() {
     setEditingLogId(log.id)
     setFormBabyId(babyId || selectedBabyId || getBabyId() || '')
     setSleepDate(d.sleepDate?.trim() || isoToUtcDateValue(startIso) || nowUtcDateValue())
-    setSleepStart(isoToDatetimeUtcValue(startIso))
-    setSleepEnd(isoToDatetimeUtcValue(endIso))
+    setSleepStart(isoToUtcTimeValue(startIso))
+    setSleepEnd(isoToUtcTimeValue(endIso))
     setSleepMood(d.sleepMood?.trim() ?? '')
     setSleepEnvironment(d.sleepEnvironment?.trim() ?? '')
     setSleepTeething(d.isTeething === 'true')
@@ -204,28 +205,23 @@ export function useSleepLogs() {
     const logId = log.id?.trim()
     if (!logId || !isApiConfigured()) return
 
-    Alert.alert('Delete sleep log?', 'Remove this sleep session from your history?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => {
-          void (async () => {
-            setDeletingLogId(logId)
-            setError(null)
-            try {
-              await deleteSleepLog(logId)
-              if (editingLogId === logId) closeForm()
-              await syncLogs(babies)
-            } catch (e) {
-              setError(e instanceof Error ? e.message : 'Failed to delete sleep log')
-            } finally {
-              setDeletingLogId('')
-            }
-          })()
-        },
+    confirm({
+      title: 'Delete sleep log?',
+      message: 'Remove this sleep session from your history? This cannot be undone.',
+      onConfirm: async () => {
+        setDeletingLogId(logId)
+        setError(null)
+        try {
+          await deleteSleepLog(logId)
+          if (editingLogId === logId) closeForm()
+          await syncLogs(babies)
+        } catch (e) {
+          setError(e instanceof Error ? e.message : 'Failed to delete sleep log')
+        } finally {
+          setDeletingLogId('')
+        }
       },
-    ])
+    })
   }
 
   const onSaveSleep = async () => {

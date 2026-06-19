@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from 'react'
-import { Alert } from 'react-native'
 
 import {
   createFeedingLog,
@@ -11,6 +10,7 @@ import {
 } from '@/api/feedingApi'
 import { getBabyId, isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
+import { useConfirmAction } from '@/context/ConfirmContext'
 import type { Baby } from '@/schemas/user'
 import { feedingLogFromDetails, type FeedingLogCreate, type LogRecord } from '@/types/babyLog'
 import { useDeferredEffect } from '@/lib/scheduleEffect'
@@ -24,6 +24,7 @@ import type { MultiBabyDraft } from '@/lib/multiBabyLogFlow'
 
 export function useFeedingLogs() {
   const { babies, selectedBabyId, selectBaby, user, loadBabiesForCurrentUser } = useApp()
+  const confirm = useConfirmAction()
 
   const [babiesLoading, setBabiesLoading] = useState(false)
   const [feedingLogs, setFeedingLogs] = useState<LogRecord[]>([])
@@ -191,28 +192,23 @@ export function useFeedingLogs() {
     const logId = log.id?.trim()
     if (!logId || !isApiConfigured()) return
 
-    Alert.alert('Delete feeding log?', 'Remove this feeding from your history?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => {
-          void (async () => {
-            setDeletingLogId(logId)
-            setError(null)
-            try {
-              await deleteFeedingLog(logId)
-              if (editingLogId === logId) closeForm()
-              await syncLogs(babies)
-            } catch (e) {
-              setError(e instanceof Error ? e.message : 'Failed to delete feeding log')
-            } finally {
-              setDeletingLogId('')
-            }
-          })()
-        },
+    confirm({
+      title: 'Delete feeding log?',
+      message: 'Remove this feeding from your history? This cannot be undone.',
+      onConfirm: async () => {
+        setDeletingLogId(logId)
+        setError(null)
+        try {
+          await deleteFeedingLog(logId)
+          if (editingLogId === logId) closeForm()
+          await syncLogs(babies)
+        } catch (e) {
+          setError(e instanceof Error ? e.message : 'Failed to delete feeding log')
+        } finally {
+          setDeletingLogId('')
+        }
       },
-    ])
+    })
   }
 
   const onSaveFeeding = async () => {

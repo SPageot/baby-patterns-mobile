@@ -1,4 +1,4 @@
-import { Alert, ScrollView, Text, View } from 'react-native'
+import { ScrollView, Text, View } from 'react-native'
 import { Link } from 'expo-router'
 
 import { PostCard } from '@/components/parentsCorner/PostCard'
@@ -7,6 +7,7 @@ import { Eyebrow, ErrorText } from '@/components/ui/primitives'
 import { NavIcon } from '@/components/icons/NavIcon'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
+import { useConfirmAction } from '@/context/ConfirmContext'
 import { useParentsCorner } from '@/hooks/useParentsCorner'
 import { isSiteDeveloper } from '@/lib/subscription'
 import type { AppPalette } from '@/constants/homeTheme'
@@ -103,6 +104,7 @@ export function ParentsCornerScreen() {
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
   const { user, authReady } = useApp()
+  const confirm = useConfirmAction()
   const corner = useParentsCorner(Boolean(user?.id), user?.id)
 
   if (!authReady) {
@@ -194,14 +196,11 @@ export function ParentsCornerScreen() {
           onCancelEdit={() => corner.setEditingPostId(null)}
           onSaveEdit={(input) => corner.savePostEdit(post.id, input)}
           onDelete={() => {
-            Alert.alert('Delete post?', 'This cannot be undone.', [
-              { text: 'Cancel', style: 'cancel' },
-              {
-                text: 'Delete',
-                style: 'destructive',
-                onPress: () => void corner.removePost(post.id),
-              },
-            ])
+            confirm({
+              title: 'Delete post?',
+              message: 'This post and its comments will be removed. This cannot be undone.',
+              onConfirm: () => corner.removePost(post.id),
+            })
           }}
           isSiteDeveloper={isSiteDeveloper(user)}
         />

@@ -1,3 +1,5 @@
+import { ageYearsFromBirthdate } from '@/lib/babyAge'
+
 export type UserAccountFields = {
   username: string
   password: string
@@ -144,11 +146,12 @@ export function normalizeUserSignup(data: UserSignup): UserSignup {
 }
 
 export function normalizeBabySignup(data: BabySignup): BabySignup {
+  const birthdate = data.birthdate.trim()
   return {
     userId: data.userId.trim(),
     fullName: data.fullName.trim(),
-    age: data.age == null ? null : Number(data.age),
-    birthdate: data.birthdate.trim(),
+    age: ageYearsFromBirthdate(birthdate),
+    birthdate,
     locationBorn: data.locationBorn.trim(),
     currentLocation: data.currentLocation.trim(),
     weight: data.weight == null ? null : Number(data.weight),

@@ -19,6 +19,7 @@ const KIND_ICON = {
   diaper: 'diaper' as const,
   feeding: 'bottle' as const,
   sleep: 'moon' as const,
+  potty: 'potty' as const,
 }
 
 const createStyles = (t: AppPalette) => ({

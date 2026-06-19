@@ -38,4 +38,13 @@ export const LOG_SECTION: Record<LogKind, LogSectionMeta> = {
     ctaHint: 'Start, end, mood, and environment',
     storageNote: 'Synced with your API when configured',
   },
+  potty: {
+    path: '/potty',
+    title: 'Potty',
+    subtitle: 'Log potty training successes, practice sits, and accidents.',
+    todayUnit: 'visits today',
+    ctaLabel: 'Log potty visit',
+    ctaHint: 'Result, time, location, and notes',
+    storageNote: 'Synced with your API when configured',
+  },
 }

@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, Text, View, Alert } from 'react-native'
+import { Pressable, ScrollView, Text, View } from 'react-native'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useState } from 'react'
 
@@ -20,6 +20,7 @@ import {
   Subtitle,
 } from '@/components/ui/primitives'
 import { useApp } from '@/context/AppContext'
+import { useConfirmAction } from '@/context/ConfirmContext'
 import { useProfile } from '@/hooks/useProfile'
 import { consumeBillingWelcome, completeBillingReturn } from '@/lib/billingReturn'
 import { isOwnPost } from '@/lib/postUtils'
@@ -205,6 +206,7 @@ const createStyles = (t: AppPalette) => ({
 export function ProfileScreen() {
   const router = useRouter()
   const { user, authReady, loadBabiesForCurrentUser, setUser, addBaby } = useApp()
+  const confirm = useConfirmAction()
   const profile = useProfile()
   const colors = useHomeTheme()
   const styles = useThemedStyles(createStyles)
@@ -335,12 +337,20 @@ export function ProfileScreen() {
               <Subtitle>{profile.currentMonthLabel()} across all your babies</Subtitle>
             </View>
             {profile.apiConfigured && profile.babies.length > 0 ? (
-              <Button
-                title={profile.exportingPdf ? 'Preparing…' : 'Download PDF'}
-                variant="secondary"
-                disabled={profile.exportingPdf}
-                onPress={() => void profile.downloadTrackingPdf()}
-              />
+              profile.isPro ? (
+                <Button
+                  title={profile.exportingPdf ? 'Preparing…' : 'Download PDF'}
+                  variant="secondary"
+                  disabled={profile.exportingPdf}
+                  onPress={() => void profile.downloadTrackingPdf()}
+                />
+              ) : (
+                <Button
+                  title="Upgrade for PDF"
+                  variant="secondary"
+                  onPress={() => router.push('/pricing')}
+                />
+              )
             ) : null}
           </View>
 
@@ -376,6 +386,12 @@ export function ProfileScreen() {
                 <Text style={styles.statAvg}>{profile.formatAvgPerDay(profile.monthAverages.feeding)} avg / day</Text>
               </View>
               <View style={styles.stat}>
+                <NavIcon name="potty" size={18} color={colors.text} />
+                <Text style={styles.statValue}>{profile.monthStats.potty}</Text>
+                <Text style={styles.statLabel}>Potty</Text>
+                <Text style={styles.statAvg}>{profile.formatAvgPerDay(profile.monthAverages.potty)} avg / day</Text>
+              </View>
+              <View style={styles.stat}>
                 <NavIcon name="growth" size={18} color={colors.text} />
                 <Text style={styles.statValue}>{profile.monthExtendedStats.growth}</Text>
                 <Text style={styles.statLabel}>Growth logs</Text>
@@ -397,7 +413,11 @@ export function ProfileScreen() {
           )}
 
           {profile.babies.length > 0 && !profile.statsLoading ? (
-            <ProfileActivityCalendar logs={profile.allLogs} />
+            <ProfileActivityCalendar
+              logs={profile.allLogs}
+              injuries={profile.injuryRows}
+              pediatricianVisits={profile.pediatricianRows}
+            />
           ) : null}
         </Card>
 
@@ -465,14 +485,11 @@ export function ProfileScreen() {
                 onCancelEdit={() => profile.setEditingPostId(null)}
                 onSaveEdit={(input) => profile.savePostEdit(post.id, input)}
                 onDelete={() => {
-                  Alert.alert('Delete post?', 'This cannot be undone.', [
-                    { text: 'Cancel', style: 'cancel' },
-                    {
-                      text: 'Delete',
-                      style: 'destructive',
-                      onPress: () => void profile.removePost(post.id),
-                    },
-                  ])
+                  confirm({
+                    title: 'Delete post?',
+                    message: 'This post and its comments will be removed. This cannot be undone.',
+                    onConfirm: () => profile.removePost(post.id),
+                  })
                 }}
                 isSiteDeveloper={isSiteDev}
               />

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useRef, useState, useMemo } from 'react'
 import { KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native'
 import { useRouter } from 'expo-router'
 
@@ -27,6 +27,7 @@ import {
 import type { AppPalette } from '@/constants/homeTheme'
 import { heading } from '@/constants/typography'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
+import { formatBabyAge } from '@/lib/babyAge'
 
 const REQUEST_TIMEOUT_MS = 20_000
 
@@ -55,6 +56,12 @@ const createStyles = (t: AppPalette) => ({
     color: t.textMuted,
     textAlign: 'center' as const,
     lineHeight: 22,
+  },
+  ageHint: {
+    fontSize: 13,
+    color: t.textMuted,
+    marginTop: -4,
+    marginBottom: 8,
   },
 })
 
@@ -163,6 +170,7 @@ export function AddBabyScreen() {
   }
 
   const firstFieldError = fieldErrors[0]?.message
+  const agePreview = useMemo(() => formatBabyAge(babyBirthdate), [babyBirthdate])
 
   return (
     <Screen style={{ paddingTop: 0 }}>
@@ -180,6 +188,7 @@ export function AddBabyScreen() {
 
             <Label>Birthdate (YYYY-MM-DD)</Label>
             <Input placeholder="2024-06-01" value={babyBirthdate} onChangeText={setBabyBirthdate} editable={!submitting} />
+            {agePreview ? <Text style={styles.ageHint}>Age: {agePreview}</Text> : null}
 
             <Label>Location born</Label>
             <Input value={locationBorn} onChangeText={setLocationBorn} editable={!submitting} />

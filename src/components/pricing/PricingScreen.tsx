@@ -16,6 +16,8 @@ import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
 
+const PRO_TRIAL_DAYS = 14
+
 type PlanFeature = {
   text: string
   highlight?: boolean
@@ -33,7 +35,9 @@ type PricingPlan = {
 
 const PRO_FEATURES: PlanFeature[] = [
   { text: 'Everything in Free', highlight: true },
+  { text: `${PRO_TRIAL_DAYS}-day free trial`, highlight: true },
   { text: 'Family sharing' },
+  { text: 'Family tracking alerts' },
   { text: 'Unlimited history' },
   { text: 'Reports for pediatrician' },
   { text: 'Weekly summaries' },
@@ -54,7 +58,8 @@ const PLANS: PricingPlan[] = [
       { text: 'Parents Corner (Social Feed)' },
       { text: 'Product reviews' },
       { text: 'Milestones' },
-      { text: '7-day report history' },
+      { text: 'Health logging' },
+      { text: '7-day log & report history' },
       { text: 'Ads', comingSoon: true },
     ],
   },
@@ -236,6 +241,12 @@ const createStyles = (t: AppPalette) => ({
     fontWeight: '600' as const,
     marginBottom: 8,
   },
+  trial: {
+    fontSize: 15,
+    fontWeight: '800' as const,
+    color: '#2f7a55',
+    marginBottom: 8,
+  },
   description: {
     fontSize: 14,
     lineHeight: 22,
@@ -375,15 +386,16 @@ export function PricingScreen() {
       <View style={styles.hero}>
         <View style={styles.badge}>
           <NavIcon name="star" size={16} color={palette.accentDeep} />
-          <Text style={styles.badgeText}>Simple pricing</Text>
+          <Text style={styles.badgeText}>{PRO_TRIAL_DAYS}-day Pro trial</Text>
         </View>
         <Text style={styles.title}>
           Start free.{'\n'}
           <Text style={styles.titleAccent}>Go Pro when your family needs more.</Text>
         </Text>
         <Text style={styles.subtitle}>
-          Track sleep, feeding, diapers, growth, and milestones at no cost. Upgrade to Pro for family sharing,
-          unlimited history, pediatrician-ready reports, weekly summaries, and an ad-free experience.
+          Track sleep, feeding, diapers, growth, and milestones at no cost. Try Pro free for{' '}
+          {PRO_TRIAL_DAYS} days — family sharing, unlimited history, pediatrician-ready reports,
+          weekly summaries, and an ad-free experience.
         </Text>
       </View>
 
@@ -408,7 +420,7 @@ export function PricingScreen() {
                 <Text style={styles.ribbon}>Best value</Text>
               ) : null}
               {isPro && !isCurrent && proBilling === 'monthly' ? (
-                <Text style={styles.ribbon}>Most popular</Text>
+                <Text style={styles.ribbon}>{PRO_TRIAL_DAYS}-day free trial</Text>
               ) : null}
               {isCurrent ? <Text style={styles.currentBadge}>Your current plan</Text> : null}
 
@@ -443,9 +455,15 @@ export function PricingScreen() {
                     </Pressable>
                   </View>
 
+                  {!isCurrent ? (
+                    <Text style={styles.trial}>Try Pro free for {PRO_TRIAL_DAYS} days</Text>
+                  ) : null}
+
                   <View style={styles.priceRow}>
                     <Text style={styles.price}>{proPrice.price}</Text>
-                    <Text style={styles.priceNote}>{proPrice.priceNote}</Text>
+                    <Text style={styles.priceNote}>
+                      {isCurrent ? proPrice.priceNote : `after trial · ${proPrice.priceNote}`}
+                    </Text>
                   </View>
 
                   {proPrice.savings ? <Text style={styles.savings}>{proPrice.savings}</Text> : null}
@@ -463,7 +481,7 @@ export function PricingScreen() {
 
               {isFree ? (
                 <Button
-                  title={isCurrent ? 'Current plan' : 'Get started free'}
+                  title={isCurrent ? 'Current plan' : 'Sign Up'}
                   variant={isCurrent ? 'secondary' : 'ghost'}
                   disabled={isCurrent}
                   style={styles.cta}
@@ -477,10 +495,8 @@ export function PricingScreen() {
                       : checkoutLoading
                         ? 'Redirecting…'
                         : loggedIn
-                          ? proBilling === 'annual'
-                            ? 'Upgrade to Pro Annual'
-                            : 'Upgrade to Pro Monthly'
-                          : 'Sign up to upgrade'
+                          ? `Start ${PRO_TRIAL_DAYS}-day free trial`
+                          : 'Sign up for free trial'
                   }
                   variant={isCurrent ? 'secondary' : 'primary'}
                   onPress={() => void onProAction()}
@@ -494,7 +510,7 @@ export function PricingScreen() {
       </View>
 
       <Text style={styles.disclaimer}>
-        Pro is $4.99/month or $49.99/year. Checkout is powered by Stripe. Free features work today at no cost — no credit card required.
+        Pro includes a {PRO_TRIAL_DAYS}-day free trial, then $4.99/month or $49.99/year. You won't be charged until after the trial. The free plan works at no cost with no credit card.
       </Text>
     </ScrollView>
   )

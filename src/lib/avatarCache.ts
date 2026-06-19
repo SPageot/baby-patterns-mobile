@@ -22,6 +22,13 @@ export function readAvatarCacheBust(userId: string): string {
   return created
 }
 
+export function wasAvatarRecentlyUpdated(userId: string, maxAgeMs = 120_000): boolean {
+  const cached = bustByUser.get(userId.trim())
+  if (!cached) return false
+  const age = Date.now() - Number(cached)
+  return Number.isFinite(age) && age >= 0 && age < maxAgeMs
+}
+
 export async function hydrateAvatarCache(userId: string): Promise<void> {
   const id = userId.trim()
   if (!id) return

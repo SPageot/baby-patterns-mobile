@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { KeyboardAvoidingView, Platform, ScrollView, Text } from 'react-native'
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text } from 'react-native'
 import { Link, router } from 'expo-router'
 
 import { UnauthorizedError, RequestTimeoutError } from '@/api/client'
@@ -107,6 +107,10 @@ export default function LoginScreen() {
 
             <Button title={loading ? 'Signing in…' : 'Log in'} loading={loading} onPress={() => void onSubmit()} />
           </Card>
+
+          <Pressable onPress={() => router.push('/forgot-password' as never)}>
+            <Text style={styles.link}>Forgot password?</Text>
+          </Pressable>
 
           <Link href="/signup" asChild>
             <Text style={styles.link}>Create an account</Text>

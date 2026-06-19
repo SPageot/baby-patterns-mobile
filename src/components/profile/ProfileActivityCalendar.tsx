@@ -3,6 +3,8 @@ import { Pressable, Text, View } from 'react-native'
 
 import { NavIcon } from '@/components/icons/NavIcon'
 import type { LogRecord } from '@/types/babyLog'
+import type { InjuryEventDto } from '@/types/health'
+import type { PediatricianVisitDto } from '@/types/pediatrician'
 import {
   addCalendarDays,
   buildDailyCountsMap,
@@ -26,10 +28,20 @@ const WEEKDAY_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as cons
 
 type Props = {
   logs: LogRecord[]
+  injuries?: InjuryEventDto[]
+  pediatricianVisits?: PediatricianVisitDto[]
 }
 
 function hasActivity(row: DailyKindCounts): boolean {
-  return row.diapers > 0 || row.sleepMinutes > 0 || row.sleep > 0 || row.feeding > 0
+  return (
+    row.diapers > 0 ||
+    row.sleepMinutes > 0 ||
+    row.sleep > 0 ||
+    row.feeding > 0 ||
+    row.potty > 0 ||
+    row.injuries > 0 ||
+    row.pediatricianVisits > 0
+  )
 }
 
 function formatRangeLabel(startYmd: string, endYmd: string): string {
@@ -97,6 +109,24 @@ function DayMetrics({
         <View style={styles.metric}>
           <NavIcon name="bottle" size={12} color={colors.textMuted} />
           <Text style={styles.metricText}>{counts.feeding}</Text>
+        </View>
+      ) : null}
+      {counts.potty > 0 ? (
+        <View style={styles.metric}>
+          <NavIcon name="potty" size={12} color={colors.textMuted} />
+          <Text style={styles.metricText}>{counts.potty}</Text>
+        </View>
+      ) : null}
+      {counts.injuries > 0 ? (
+        <View style={styles.metric}>
+          <NavIcon name="health" size={12} color={colors.textMuted} />
+          <Text style={styles.metricText}>{counts.injuries}</Text>
+        </View>
+      ) : null}
+      {counts.pediatricianVisits > 0 ? (
+        <View style={styles.metric}>
+          <NavIcon name="hospital" size={12} color={colors.textMuted} />
+          <Text style={styles.metricText}>{counts.pediatricianVisits}</Text>
         </View>
       ) : null}
     </View>
@@ -342,11 +372,18 @@ const createStyles = (t: AppPalette) => ({
   },
 })
 
-export function ProfileActivityCalendar({ logs }: Props) {
+export function ProfileActivityCalendar({
+  logs,
+  injuries = [],
+  pediatricianVisits = [],
+}: Props) {
   const colors = useHomeTheme()
   const styles = useThemedStyles(createStyles)
   const todayYmd = ymdFromDate(new Date())
-  const dailyMap = useMemo(() => buildDailyCountsMap(logs), [logs])
+  const dailyMap = useMemo(
+    () => buildDailyCountsMap(logs, injuries, pediatricianVisits),
+    [logs, injuries, pediatricianVisits],
+  )
 
   const [view, setView] = useState<CalendarView>('week')
   const [anchor, setAnchor] = useState(() => startOfWeekMonday(new Date()))
@@ -435,7 +472,9 @@ export function ProfileActivityCalendar({ logs }: Props) {
     <View style={styles.wrap}>
       <View style={styles.head}>
         <Text style={styles.title}>Activity calendar</Text>
-        <Text style={styles.sub}>Sleep, diapers, and feeding across all your babies</Text>
+        <Text style={styles.sub}>
+          Sleep, naps, diapers, feeding, potty, injuries, and pediatrician visits across all your babies
+        </Text>
       </View>
 
       <View style={styles.viewToggle}>
@@ -572,6 +611,21 @@ export function ProfileActivityCalendar({ logs }: Props) {
               <NavIcon name="bottle" size={18} color={colors.text} />
               <Text style={styles.dayStatValue}>{selectedCounts.feeding}</Text>
               <Text style={styles.dayStatLabel}>Feedings</Text>
+            </View>
+            <View style={styles.dayStat}>
+              <NavIcon name="potty" size={18} color={colors.text} />
+              <Text style={styles.dayStatValue}>{selectedCounts.potty}</Text>
+              <Text style={styles.dayStatLabel}>Potty</Text>
+            </View>
+            <View style={styles.dayStat}>
+              <NavIcon name="health" size={18} color={colors.text} />
+              <Text style={styles.dayStatValue}>{selectedCounts.injuries}</Text>
+              <Text style={styles.dayStatLabel}>Injuries</Text>
+            </View>
+            <View style={styles.dayStat}>
+              <NavIcon name="hospital" size={18} color={colors.text} />
+              <Text style={styles.dayStatValue}>{selectedCounts.pediatricianVisits}</Text>
+              <Text style={styles.dayStatLabel}>Pediatrician</Text>
             </View>
           </View>
 

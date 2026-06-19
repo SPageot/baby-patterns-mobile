@@ -1,9 +1,10 @@
-import { Alert, Pressable, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback } from 'react'
 
 import { Button, ErrorText, Input, Label } from '@/components/ui/primitives'
 import { useFamilyMembers } from '@/hooks/useFamilyMembers'
+import { useConfirmAction } from '@/context/ConfirmContext'
 import { isProUser } from '@/lib/subscription'
 import type { User } from '@/schemas/user'
 import type { AppPalette } from '@/constants/homeTheme'
@@ -210,6 +211,7 @@ const createStyles = (t: AppPalette) => ({
 export function FamilyMembersSection({ enabled, user }: Props) {
   const router = useRouter()
   const family = useFamilyMembers(enabled)
+  const confirm = useConfirmAction()
   const userIsPro = isProUser(user)
   const styles = useThemedStyles(createStyles)
 
@@ -221,30 +223,22 @@ export function FamilyMembersSection({ enabled, user }: Props) {
 
   const onRemoveMember = (memberUserId: string, displayName: string) => {
     const name = displayName.trim() || 'this person'
-    Alert.alert(
-      'Remove family member',
-      `Remove ${name} from family & friends? You will both lose access to each other's babies.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: () => void family.removeMember(memberUserId),
-        },
-      ],
-    )
+    confirm({
+      title: 'Remove family member?',
+      message: `Remove ${name} from family & friends? You will both lose access to each other's babies.`,
+      confirmLabel: 'Remove',
+      onConfirm: () => family.removeMember(memberUserId),
+    })
   }
 
   const onCancelInvite = (requestId: string, displayName: string) => {
     const name = displayName.trim() || 'this person'
-    Alert.alert('Cancel invite', `Cancel your invite to ${name}?`, [
-      { text: 'Keep invite', style: 'cancel' },
-      {
-        text: 'Cancel invite',
-        style: 'destructive',
-        onPress: () => void family.cancelOutgoingRequest(requestId),
-      },
-    ])
+    confirm({
+      title: 'Cancel invite?',
+      message: `Cancel your invite to ${name}?`,
+      confirmLabel: 'Cancel invite',
+      onConfirm: () => family.cancelOutgoingRequest(requestId),
+    })
   }
 
   return (

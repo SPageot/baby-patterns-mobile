@@ -16,6 +16,7 @@ import {
   type BabySignup,
   type ValidationIssue,
 } from '@/schemas/user'
+import { formatBabyAge } from '@/lib/babyAge'
 import type { AppPalette } from '@/constants/homeTheme'
 
 type Props = {
@@ -137,7 +138,7 @@ export function BabyDetailsModal({
     const raw: Omit<BabySignup, 'userId'> = {
       fullName,
       birthdate,
-      age: baby.age ?? null,
+      age: null,
       locationBorn,
       currentLocation,
       weight: baby.weight ?? null,
@@ -237,9 +238,11 @@ export function BabyDetailsModal({
           <View style={styles.row}>
             <Text style={styles.label}>Age</Text>
             <Text style={styles.value}>
-              {baby.age != null && Number.isFinite(baby.age)
-                ? `${baby.age} year${baby.age === 1 ? '' : 's'}`
-                : '—'}
+              {baby.birthdate?.trim()
+                ? formatBabyAge(baby.birthdate) || '—'
+                : baby.age != null && Number.isFinite(baby.age)
+                  ? `${baby.age} year${baby.age === 1 ? '' : 's'}`
+                  : '—'}
             </Text>
           </View>
           <View style={styles.row}>

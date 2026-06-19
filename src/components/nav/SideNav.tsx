@@ -175,10 +175,10 @@ export function SideNav() {
   const router = useRouter()
   const pathname = normalizePath(usePathname())
   const { open, close } = useNavMenu()
-  const { user, hasBaby } = useApp()
+  const { user } = useApp()
   const colors = useHomeTheme()
   const styles = useThemedStyles(createStyles)
-  const visibleLinks = getVisibleNavLinks({ hasBaby, user })
+  const visibleLinks = getVisibleNavLinks({ user })
 
   const onNavigate = (href: string) => {
     close()

@@ -110,12 +110,20 @@ function buildSummaryCards(report: FullReport): SummaryCard[] {
       tone: 'health',
       total:
         health.totalEvents > 0
-          ? `${health.sicknessCount} sickness · ${health.injuryCount} injur${health.injuryCount === 1 ? 'y' : 'ies'}`
+          ? [
+              `${health.sicknessCount} sickness`,
+              `${health.injuryCount} injur${health.injuryCount === 1 ? 'y' : 'ies'}`,
+              health.pediatricianCount > 0
+                ? `${health.pediatricianCount} visit${health.pediatricianCount === 1 ? '' : 's'}`
+                : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')
           : 'No health events yet',
       sub:
         health.totalEvents > 0
           ? `${health.withDoctorCount} with doctor care · ${health.withMedicationCount} with medication`
-          : 'Log sickness and injuries on the Health page',
+          : 'Log sickness, injuries, and pediatrician visits',
       avg:
         health.ongoingSicknessCount + health.ongoingInjuryCount > 0
           ? String(health.ongoingSicknessCount + health.ongoingInjuryCount)

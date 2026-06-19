@@ -1,9 +1,10 @@
 import { Link } from 'expo-router'
-import { Text } from 'react-native'
+import { Text, View } from 'react-native'
 
 import { BabyChipBar } from '@/components/BabyChipBar'
 import { TrackInsights } from '@/components/charts/TrackInsights'
 import { FeedingLogModal } from '@/components/track/FeedingLogModal'
+import { FeedingLogsHistory } from '@/components/track/FeedingLogsHistory'
 import { FeedingLogsList } from '@/components/track/FeedingLogsList'
 import { TrackLogSection } from '@/components/track/TrackLogSection'
 import { ErrorText } from '@/components/ui/primitives'
@@ -90,12 +91,21 @@ export function FeedingTrackScreen() {
       panelToolbar={<BabyChipBar />}
       insights={<TrackInsights logs={feeding.feedingLogs} kind="feeding" />}
       recent={
-        <FeedingLogsList
-          logs={feeding.feedingLogs}
-          onEditLog={feeding.openEditFeeding}
-          onDeleteLog={feeding.onDeleteFeeding}
-          busyLogId={feeding.busyLogId}
-        />
+        <View>
+          <FeedingLogsList
+            logs={feeding.feedingLogs}
+            onEditLog={feeding.openEditFeeding}
+            onDeleteLog={feeding.onDeleteFeeding}
+            busyLogId={feeding.busyLogId}
+          />
+          <FeedingLogsHistory
+            logs={feeding.feedingLogs}
+            babies={feeding.babies}
+            onEditLog={feeding.openEditFeeding}
+            onDeleteLog={feeding.onDeleteFeeding}
+            busyLogId={feeding.busyLogId}
+          />
+        </View>
       }
     >
       <FeedingLogModal

@@ -45,7 +45,10 @@ export function formatDateValue(date: Date, zone: 'local' | 'utc' = 'local'): st
   return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
 }
 
-function wallClockFromPicker(date: Date, mode: 'date' | 'datetime'): string {
+function wallClockFromPicker(date: Date, mode: 'date' | 'datetime' | 'time'): string {
+  if (mode === 'time') {
+    return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`
+  }
   const y = date.getFullYear()
   const mo = pad2(date.getMonth() + 1)
   const d = pad2(date.getDate())
@@ -53,15 +56,39 @@ function wallClockFromPicker(date: Date, mode: 'date' | 'datetime'): string {
   return `${y}-${mo}-${d}T${pad2(date.getHours())}:${pad2(date.getMinutes())}`
 }
 
-function wallClockToPicker(value: string): Date {
+function wallClockToPicker(value: string, mode: 'date' | 'datetime' | 'time' = 'datetime'): Date {
+  if (mode === 'time') {
+    const timeMatch = /^(\d{1,2}):(\d{2})/.exec(value.trim())
+    if (!timeMatch) return new Date()
+    return new Date(2000, 0, 1, Number(timeMatch[1]), Number(timeMatch[2]), 0, 0)
+  }
   const m = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}))?/.exec(value.trim())
   if (!m) return new Date()
   return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4] ?? 0), Number(m[5] ?? 0), 0, 0)
 }
 
-export function formatPickerLabel(value: string, mode: 'date' | 'datetime', zone: 'local' | 'utc' = 'local'): string {
+export function formatPickerLabel(
+  value: string,
+  mode: 'date' | 'datetime' | 'time',
+  zone: 'local' | 'utc' = 'local',
+): string {
   if (!value.trim()) return ''
-  const date = zone === 'utc' ? wallClockToPicker(value) : parseDatetimeLocalValue(value, zone)
+  if (mode === 'time') {
+    const timeMatch = /^(\d{1,2}):(\d{2})/.exec(value.trim())
+    if (!timeMatch) return value
+    const hours = Number(timeMatch[1])
+    const minutes = Number(timeMatch[2])
+    const date =
+      zone === 'utc'
+        ? new Date(Date.UTC(2000, 0, 1, hours, minutes))
+        : new Date(2000, 0, 1, hours, minutes)
+    return date.toLocaleTimeString(undefined, {
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZone: zone === 'utc' ? 'UTC' : undefined,
+    })
+  }
+  const date = zone === 'utc' ? wallClockToPicker(value, mode) : parseDatetimeLocalValue(value, zone)
   if (Number.isNaN(date.getTime())) return value
   if (mode === 'date') {
     return date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })

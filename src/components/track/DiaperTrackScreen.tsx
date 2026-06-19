@@ -1,10 +1,11 @@
 import { Link } from 'expo-router'
-import { Text } from 'react-native'
+import { Text, View } from 'react-native'
 
 import { BabyChipBar } from '@/components/BabyChipBar'
 import { TrackInsights } from '@/components/charts/TrackInsights'
 import { DiaperLogModal } from '@/components/track/DiaperLogModal'
 import { DiaperLogSection } from '@/components/track/DiaperLogSection'
+import { DiaperLogsHistory } from '@/components/track/DiaperLogsHistory'
 import { DiaperLogsList } from '@/components/track/DiaperLogsList'
 import { ErrorText } from '@/components/ui/primitives'
 import { isApiConfigured } from '@/api/config'
@@ -87,12 +88,21 @@ export function DiaperTrackScreen() {
       panelToolbar={<BabyChipBar />}
       insights={<TrackInsights logs={diaper.diaperLogs} kind="diaper" />}
       recent={
-        <DiaperLogsList
-          logs={diaper.diaperLogs}
-          onEditLog={diaper.openEditDiaper}
-          onDeleteLog={diaper.onDeleteDiaper}
-          busyLogId={diaper.busyLogId}
-        />
+        <View>
+          <DiaperLogsList
+            logs={diaper.diaperLogs}
+            onEditLog={diaper.openEditDiaper}
+            onDeleteLog={diaper.onDeleteDiaper}
+            busyLogId={diaper.busyLogId}
+          />
+          <DiaperLogsHistory
+            logs={diaper.diaperLogs}
+            babies={diaper.babies}
+            onEditLog={diaper.openEditDiaper}
+            onDeleteLog={diaper.onDeleteDiaper}
+            busyLogId={diaper.busyLogId}
+          />
+        </View>
       }
     >
       <DiaperLogModal

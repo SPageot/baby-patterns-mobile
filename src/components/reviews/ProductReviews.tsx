@@ -1,8 +1,9 @@
 import { useCallback, useState } from 'react'
-import { Alert, Pressable, Text, TextInput, View } from 'react-native'
+import { Pressable, Text, TextInput, View } from 'react-native'
 
 import { StarRating } from '@/components/reviews/StarRating'
 import { Button } from '@/components/ui/primitives'
+import { useConfirmAction } from '@/context/ConfirmContext'
 import {
   deleteProductReview,
   fetchProductReviews,
@@ -167,6 +168,7 @@ const createStyles = (t: AppPalette) => ({
 })
 
 export function ProductReviews({ product, brandName, isLoggedIn, onReviewChange }: Props) {
+  const confirm = useConfirmAction()
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
   const [expanded, setExpanded] = useState(false)
@@ -220,30 +222,26 @@ export function ProductReviews({ product, brandName, isLoggedIn, onReviewChange 
   }
 
   const onDelete = (reviewId: string) => {
-    Alert.alert('Remove review?', 'Delete your review for this product?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => {
-          void (async () => {
-            setDeletingId(reviewId)
-            setError(null)
-            try {
-              await deleteProductReview(reviewId)
-              setContent('')
-              setRating(5)
-              await loadReviews()
-              onReviewChange()
-            } catch (e) {
-              setError(e instanceof Error ? e.message : 'Could not delete review')
-            } finally {
-              setDeletingId(null)
-            }
-          })()
-        },
+    confirm({
+      title: 'Remove review?',
+      message: 'Delete your review for this product? This cannot be undone.',
+      confirmLabel: 'Remove',
+      onConfirm: async () => {
+        setDeletingId(reviewId)
+        setError(null)
+        try {
+          await deleteProductReview(reviewId)
+          setContent('')
+          setRating(5)
+          await loadReviews()
+          onReviewChange()
+        } catch (e) {
+          setError(e instanceof Error ? e.message : 'Could not delete review')
+        } finally {
+          setDeletingId(null)
+        }
       },
-    ])
+    })
   }
 
   return (

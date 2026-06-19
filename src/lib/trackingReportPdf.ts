@@ -3,6 +3,7 @@ import autoTable from 'jspdf-autotable'
 import type { Baby } from '@/schemas/user'
 import type { GrowthMeasurementDto, MilestoneDto } from '@/types/growth'
 import type { InjuryEventDto, SicknessEventDto } from '@/types/health'
+import type { PediatricianVisitDto } from '@/types/pediatrician'
 import { MILESTONE_CATEGORY_LABELS } from '@/types/growth'
 import type { LogRecord } from '@/types/babyLog'
 import {
@@ -20,6 +21,7 @@ import type { HealthEventsReport } from '@/lib/healthReportAnalytics'
 import {
   formatInjuryCareSummary,
   formatInjuryRowSummary,
+  formatPediatricianRowSummary,
   formatSicknessCareSummary,
   healthSummaryLines,
 } from '@/lib/healthReportAnalytics'
@@ -28,7 +30,6 @@ import { formatDiaperContents, getDiaperLogMeta } from '@/lib/diaperFeedUtils'
 import { feedingTypeLabel, formatFeedingWhen } from '@/lib/feedingLogUtils'
 import { formatSleepDurationDisplay, formatSleepUtcStamp } from '@/lib/sleepLogUtils'
 import { formatWhen } from '@/lib/trackUtils'
-import { sharePdfDocument } from '@/lib/sharePdfDocument'
 import {
   drawMetricTrendChart,
   drawMilestoneCategoryBars,
@@ -49,6 +50,7 @@ type ReportOptions = {
   milestones?: MilestoneDto[]
   sickness?: SicknessEventDto[]
   injuries?: InjuryEventDto[]
+  pediatricianVisits?: PediatricianVisitDto[]
   babies: Baby[]
   parentName: string
   includeAnalysis?: boolean
@@ -459,7 +461,7 @@ function addHealthSection(doc: jsPDF, health: HealthEventsReport, y: number): nu
   y += 2
 
   if (health.totalEvents === 0) {
-    return addNarrativeBlock(doc, ['No sickness or injury data in this period.'], y)
+    return addNarrativeBlock(doc, ['No sickness, injury, or pediatrician visit data in this period.'], y)
   }
 
   y = drawStatRow(
@@ -470,13 +472,26 @@ function addHealthSection(doc: jsPDF, health: HealthEventsReport, y: number): nu
     [
       { label: 'Sickness logs', value: String(health.sicknessCount) },
       { label: 'Injuries', value: String(health.injuryCount) },
-      { label: 'Ongoing', value: String(health.ongoingSicknessCount + health.ongoingInjuryCount) },
-      { label: 'Doctor care', value: String(health.withDoctorCount) },
+      { label: 'Pediatrician', value: String(health.pediatricianCount) },
+      { label: 'Immunizations', value: String(health.withImmunizationCount) },
     ],
     PDF_HEALTH_COLOR,
   )
 
   return y + 8
+}
+
+function pediatricianRow(row: PediatricianVisitDto, babies: Baby[]): string[] {
+  const baby = babies.find((b) => b.id === row.babyId)
+  return [
+    formatWhen(row.visitedAt),
+    baby?.fullName?.trim() || 'Baby',
+    row.pediatricianName,
+    row.hospital?.trim() || '—',
+    row.immunizations.length > 0 ? row.immunizations.join(', ') : '—',
+    formatPediatricianRowSummary(row),
+    row.notes?.trim() || '—',
+  ]
 }
 
 function sicknessRow(row: SicknessEventDto, babies: Baby[]): string[] {
@@ -609,12 +624,13 @@ function addAppendixSection(
   return ((doc as PdfWithTable).lastAutoTable?.finalY ?? y) + 10
 }
 
-export async function downloadTrackingReportPdf({
+export function downloadTrackingReportPdf({
   logs,
   measurements = [],
   milestones = [],
   sickness = [],
   injuries = [],
+  pediatricianVisits = [],
   babies,
   parentName,
   includeAnalysis = false,
@@ -626,7 +642,7 @@ export async function downloadTrackingReportPdf({
   const babyNames = babies.map((b) => b.fullName?.trim()).filter(Boolean).join(', ')
 
   const analysis = includeAnalysis
-    ? buildFullReport(logs, rangeDays, { measurements, milestones, sickness, injuries })
+    ? buildFullReport(logs, rangeDays, { measurements, milestones, sickness, injuries, pediatricianVisits })
     : null
 
   const diapers = sortNewestFirst(filterLogsForKindReport(logs, 'diaper', rangeDays))
@@ -636,6 +652,7 @@ export async function downloadTrackingReportPdf({
   const milestoneRows = analysis?.growth.milestones ?? milestones
   const sicknessRows = analysis?.health.sickness ?? sickness
   const injuryRows = analysis?.health.injuries ?? injuries
+  const pediatricianVisitRows = analysis?.health.pediatricianVisits ?? pediatricianVisits
 
   let y = addCoverHeader(doc, parentName, generated, babyNames, rangeLabel)
 
@@ -727,7 +744,7 @@ export async function downloadTrackingReportPdf({
     'No sickness logs in this period.',
   )
 
-  addAppendixSection(
+  y = addAppendixSection(
     doc,
     'Injuries',
     y,
@@ -737,8 +754,18 @@ export async function downloadTrackingReportPdf({
     'No injuries in this period.',
   )
 
+  addAppendixSection(
+    doc,
+    'Pediatrician visits',
+    y,
+    [['When', 'Baby', 'Pediatrician', 'Hospital', 'Immunizations', 'Details', 'Notes']],
+    pediatricianVisitRows.map((row) => pediatricianRow(row, babies)),
+    PDF_HEALTH_COLOR,
+    'No pediatrician visits in this period.',
+  )
+
   addPageFooter(doc)
 
   const stamp = new Date().toISOString().slice(0, 10)
-  await sharePdfDocument(doc, `baby-patterns-report-${stamp}.pdf`)
+  doc.save(`baby-patterns-report-${stamp}.pdf`)
 }

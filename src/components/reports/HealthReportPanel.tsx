@@ -9,6 +9,7 @@ import { useThemedStyles } from '@/hooks/useThemedStyles'
 import {
   formatInjuryCareSummary,
   formatInjuryRowSummary,
+  formatPediatricianRowSummary,
   formatSicknessCareSummary,
   healthSummaryLines,
   type HealthEventsReport,
@@ -100,15 +101,23 @@ export function HealthReportPanel({ report }: Props) {
           <Text style={styles.title}>Health events</Text>
           <Text style={styles.sub}>
             {hasData
-              ? `${report.sicknessCount} sickness · ${report.injuryCount} injur${report.injuryCount === 1 ? 'y' : 'ies'} in this period`
-              : 'No sickness or injury data in this period yet.'}
+              ? [
+                  `${report.sicknessCount} sickness`,
+                  `${report.injuryCount} injur${report.injuryCount === 1 ? 'y' : 'ies'}`,
+                  report.pediatricianCount > 0
+                    ? `${report.pediatricianCount} pediatrician visit${report.pediatricianCount === 1 ? '' : 's'}`
+                    : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')
+              : 'No sickness, injury, or pediatrician visit data in this period yet.'}
           </Text>
         </View>
       </View>
 
       {!hasData ? (
         <Text style={styles.empty}>
-          Log sickness and injuries on the Health page to see them in reports and PDF exports.
+          Log sickness, injuries, and pediatrician visits to see them in reports and PDF exports.
         </Text>
       ) : (
         <>
@@ -120,6 +129,10 @@ export function HealthReportPanel({ report }: Props) {
             <View style={styles.stat}>
               <Text style={styles.statLabel}>Injuries</Text>
               <Text style={styles.statValue}>{report.injuryCount}</Text>
+            </View>
+            <View style={styles.stat}>
+              <Text style={styles.statLabel}>Pediatrician</Text>
+              <Text style={styles.statValue}>{report.pediatricianCount}</Text>
             </View>
             <View style={styles.stat}>
               <Text style={styles.statLabel}>Ongoing</Text>
@@ -179,6 +192,29 @@ export function HealthReportPanel({ report }: Props) {
                           {date} {time} · {formatInjuryRowSummary(row)}
                         </Text>
                         <Text style={styles.rowMeta}>Care: {formatInjuryCareSummary(row)}</Text>
+                      </View>
+                    )
+                  })}
+                </ScrollView>
+              </View>
+            </View>
+          ) : null}
+
+          {report.pediatricianCount > 0 ? (
+            <View style={styles.tableWrap}>
+              <Text style={styles.tableTitle}>Pediatrician visits</Text>
+              <Text style={styles.tableSub}>Newest first.</Text>
+              <View style={styles.table}>
+                <ScrollView style={styles.scroll} nestedScrollEnabled>
+                  {report.pediatricianVisits.map((row) => {
+                    const { date, time } = formatWhen(row.visitedAt)
+                    return (
+                      <View key={row.id} style={styles.row}>
+                        <Text style={styles.rowTitle}>{row.pediatricianName}</Text>
+                        <Text style={styles.rowMeta}>
+                          {date} {time} · {row.hospital}
+                        </Text>
+                        <Text style={styles.rowMeta}>{formatPediatricianRowSummary(row)}</Text>
                       </View>
                     )
                   })}

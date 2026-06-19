@@ -1,7 +1,7 @@
 import { persistAuthTokens, resolveAuthenticatedUserId } from '@/api/authApi'
 import { apiFetch, RequestTimeoutError, UnauthorizedError } from '@/api/client'
 import { getApiBaseUrl, getMediaBaseUrl } from '@/api/config'
-import { bumpAvatarCache, readAvatarCacheBust } from '@/lib/avatarCache'
+import { bumpAvatarCache, readAvatarCacheBust, wasAvatarRecentlyUpdated } from '@/lib/avatarCache'
 import type { AvatarUploadPayload } from '@/lib/avatarUpload'
 import type { LoginCredentials, User, UserSignup, UserUpdate } from '@/schemas/user'
 import { INVALID_LOGIN_CREDENTIALS_MESSAGE } from '@/schemas/user'
@@ -196,14 +196,44 @@ function avatarPathFromStoredUrl(url: string): string {
   return trimmed.startsWith('/') ? trimmed : `/${trimmed}`
 }
 
-function avatarUrlBases(): string[] {
+function avatarUrlBases(storedUrl?: string, userId?: string): string[] {
   const api = getApiBaseUrl()
   const media = getMediaBaseUrl()
   if (!api && !media) return []
   if (!media || media === api) return api ? [api] : []
 
+  const bases = [api, media]
+  const ordered: string[] = []
+
+  const stored = storedUrl?.trim()
+  if (stored && /^https?:\/\//i.test(stored)) {
+    try {
+      ordered.push(new URL(stored).origin)
+    } catch {
+      /* ignore */
+    }
+  }
+
+  if (userId && wasAvatarRecentlyUpdated(userId)) {
+    const apiIsLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(api)
+    if (apiIsLocal && !ordered.includes(api)) {
+      ordered.push(api)
+    }
+  }
+
+  const mediaExplicit = Boolean(process.env.EXPO_PUBLIC_MEDIA_URL?.trim())
+  if (mediaExplicit) {
+    for (const base of [media, api]) {
+      if (base && !ordered.includes(base)) ordered.push(base)
+    }
+    return ordered
+  }
+
   const apiIsLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(api)
-  return apiIsLocal ? [api, media] : [media, api]
+  for (const base of apiIsLocal ? bases : [media, api]) {
+    if (base && !ordered.includes(base)) ordered.push(base)
+  }
+  return ordered
 }
 
 export function resolveAvatarUrl(url: string): string {
@@ -226,7 +256,7 @@ export function avatarDisplayUrlCandidates(userId: string, avatarUrl?: string): 
   const path = avatarPathFromStoredUrl(raw)
 
   if (path.startsWith('/uploads/avatars/')) {
-    return avatarUrlBases().map((base) => `${base}${path}${suffix}`)
+    return avatarUrlBases(raw, userId).map((base) => `${base}${path}${suffix}`)
   }
 
   const resolved = resolveAvatarUrl(raw)

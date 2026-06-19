@@ -1,4 +1,4 @@
-export type LogKind = 'diaper' | 'feeding' | 'sleep'
+export type LogKind = 'diaper' | 'feeding' | 'sleep' | 'potty'
 
 /** Create/update payload for feeding logs. */
 export type FeedingLogCreate = {
@@ -34,6 +34,34 @@ export type LogRecord = {
   kind: LogKind
   atIso: string
   details: Record<string, string>
+}
+
+/** Potty training log create/update payload. */
+export type PottyLogCreate = {
+  /** success | pee | poop | both | accident | dry_attempt */
+  result: string
+  loggedAt: string
+  /** potty-chair | toilet | training-seat | other */
+  location: string
+  notes?: string | null
+  isTeething?: boolean
+  isSick?: boolean
+}
+
+export function pottyLogFromDetails(
+  details: Record<string, string>,
+  atIso: string,
+): PottyLogCreate {
+  const raw = details.result?.trim()
+  const result = raw && raw !== 'success' ? raw : 'pee'
+  return {
+    result,
+    loggedAt: details.loggedAt?.trim() || atIso,
+    location: details.location?.trim() || 'potty-chair',
+    notes: details.notes?.trim() || null,
+    isTeething: BOOL(details.isTeething),
+    isSick: BOOL(details.isSick),
+  }
 }
 
 /** Matches create/update payload for a diaper log (Id omitted when creating). Stored as string values in `details` for localStorage. */

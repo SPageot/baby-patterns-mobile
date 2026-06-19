@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from 'react'
-import { Alert } from 'react-native'
 import { useFocusEffect } from 'expo-router'
 import {
   createInjuryEvent,
@@ -15,6 +14,7 @@ import {
 } from '@/api/sicknessApi'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
+import { useConfirmAction } from '@/context/ConfirmContext'
 import type {
   HealthTabId,
   InjuryEventDto,
@@ -22,9 +22,12 @@ import type {
 } from '@/types/health'
 import { SICKNESS_TYPE_OPTIONS } from '@/types/health'
 import { isoToDatetimeLocalValue, nowLocalInputValue } from '@/lib/trackUtils'
+import { filterInjuryHistoryForUser, filterSicknessHistoryForUser } from '@/lib/healthAccess'
+import { isProUser } from '@/lib/subscription'
 
 export function useHealthEventsPage() {
   const { babies, selectedBabyId, selectBaby, user, loadBabiesForCurrentUser } = useApp()
+  const confirm = useConfirmAction()
 
   const [activeTab, setActiveTab] = useState<HealthTabId>('sickness')
   const [babiesLoading, setBabiesLoading] = useState(false)
@@ -77,16 +80,21 @@ export function useHealthEventsPage() {
   )
 
   const filterBabyId = selectedBabyId?.trim() || ''
+  const isPro = isProUser(user)
 
   const visibleSickness = useMemo(() => {
-    if (!filterBabyId) return sicknessRows
-    return sicknessRows.filter((r) => r.babyId === filterBabyId)
-  }, [sicknessRows, filterBabyId])
+    const scoped = !filterBabyId
+      ? sicknessRows
+      : sicknessRows.filter((r) => r.babyId === filterBabyId)
+    return filterSicknessHistoryForUser(scoped, user)
+  }, [sicknessRows, filterBabyId, user])
 
   const visibleInjuries = useMemo(() => {
-    if (!filterBabyId) return injuryRows
-    return injuryRows.filter((r) => r.babyId === filterBabyId)
-  }, [injuryRows, filterBabyId])
+    const scoped = !filterBabyId
+      ? injuryRows
+      : injuryRows.filter((r) => r.babyId === filterBabyId)
+    return filterInjuryHistoryForUser(scoped, user)
+  }, [injuryRows, filterBabyId, user])
 
   const syncAll = useCallback(async () => {
     if (!isApiConfigured() || !babies.length) {
@@ -321,14 +329,11 @@ export function useHealthEventsPage() {
 
   const onDeleteSickness = (id: string) => {
     if (!id.trim()) return
-    Alert.alert('Delete sickness log?', 'Delete this sickness event?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => void onDeleteSicknessConfirmed(id),
-      },
-    ])
+    confirm({
+      title: 'Delete sickness log?',
+      message: 'Delete this sickness event? This cannot be undone.',
+      onConfirm: () => onDeleteSicknessConfirmed(id),
+    })
   }
 
   const onDeleteSicknessConfirmed = async (id: string) => {
@@ -343,14 +348,11 @@ export function useHealthEventsPage() {
 
   const onDeleteInjury = (id: string) => {
     if (!id.trim()) return
-    Alert.alert('Delete injury?', 'Delete this injury log?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => void onDeleteInjuryConfirmed(id),
-      },
-    ])
+    confirm({
+      title: 'Delete injury?',
+      message: 'Delete this injury log? This cannot be undone.',
+      onConfirm: () => onDeleteInjuryConfirmed(id),
+    })
   }
 
   const onDeleteInjuryConfirmed = async (id: string) => {
@@ -441,5 +443,6 @@ export function useHealthEventsPage() {
     setInjuryNotes,
     formBabyId,
     setFormBabyId,
+    isPro,
   }
 }

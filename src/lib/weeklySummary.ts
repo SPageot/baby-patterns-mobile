@@ -1,6 +1,7 @@
 import type { LogRecord } from '@/types/babyLog'
 import type { GrowthMeasurementDto, MilestoneDto } from '@/types/growth'
 import type { InjuryEventDto, SicknessEventDto } from '@/types/health'
+import type { PediatricianVisitDto } from '@/types/pediatrician'
 import {
   buildFullReport,
   formatReportCount,
@@ -101,11 +102,13 @@ export function filterGrowthForWeek(
 export function filterHealthForWeek(
   sickness: SicknessEventDto[],
   injuries: InjuryEventDto[],
+  pediatricianVisits: PediatricianVisitDto[],
   bounds: WeekBounds,
 ) {
   return {
     sickness: sickness.filter((row) => inWeekBounds(row.startedAt, bounds)),
     injuries: injuries.filter((row) => inWeekBounds(row.occurredAt, bounds)),
+    pediatricianVisits: pediatricianVisits.filter((row) => inWeekBounds(row.visitedAt, bounds)),
   }
 }
 
@@ -115,16 +118,18 @@ export function buildWeeklyReport(
   milestones: MilestoneDto[],
   sickness: SicknessEventDto[],
   injuries: InjuryEventDto[],
+  pediatricianVisits: PediatricianVisitDto[],
   bounds: WeekBounds,
 ) {
   const weekLogs = filterLogsForWeek(logs, bounds)
   const growth = filterGrowthForWeek(measurements, milestones, bounds)
-  const health = filterHealthForWeek(sickness, injuries, bounds)
+  const health = filterHealthForWeek(sickness, injuries, pediatricianVisits, bounds)
   const report = buildFullReport(weekLogs, 0, {
     measurements: growth.measurements,
     milestones: growth.milestones,
     sickness: health.sickness,
     injuries: health.injuries,
+    pediatricianVisits: health.pediatricianVisits,
   })
   return { report, bounds, weekLogs }
 }
@@ -189,7 +194,19 @@ export function buildWeeklyHighlights(report: FullReport): WeeklyHighlight[] {
       label: 'Health',
       value:
         report.health.totalEvents > 0
-          ? `${report.health.sicknessCount} sickness · ${report.health.injuryCount} injur${report.health.injuryCount === 1 ? 'y' : 'ies'}`
+          ? [
+              report.health.sicknessCount > 0
+                ? `${report.health.sicknessCount} sickness`
+                : null,
+              report.health.injuryCount > 0
+                ? `${report.health.injuryCount} injur${report.health.injuryCount === 1 ? 'y' : 'ies'}`
+                : null,
+              report.health.pediatricianCount > 0
+                ? `${report.health.pediatricianCount} visit${report.health.pediatricianCount === 1 ? '' : 's'}`
+                : null,
+            ]
+              .filter(Boolean)
+              .join(' · ')
           : 'No health events',
       detail:
         report.health.totalEvents > 0 && report.health.ongoingSicknessCount + report.health.ongoingInjuryCount > 0
@@ -583,6 +600,17 @@ export function buildWeeklyNarrativeOutline(
     bullets.push({
       id: 'health-injury',
       text: `${report.health.injuryCount} injur${report.health.injuryCount === 1 ? 'y' : 'ies'} logged this week.`,
+    })
+  }
+
+  if (report.health.pediatricianCount > 0) {
+    bullets.push({
+      id: 'health-pediatrician',
+      text: `${report.health.pediatricianCount} pediatrician visit${report.health.pediatricianCount === 1 ? '' : 's'} this week${
+        report.health.withImmunizationCount > 0
+          ? ` (${report.health.withImmunizationCount} with immunizations)`
+          : ''
+      }.`,
     })
   }
 

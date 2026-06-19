@@ -7,9 +7,11 @@ export type NavIconName =
   | 'diaper'
   | 'bottle'
   | 'moon'
+  | 'potty'
   | 'chart'
   | 'growth'
   | 'health'
+  | 'hospital'
   | 'calendar'
   | 'tag'
 
@@ -29,23 +31,27 @@ export const NAV_LINKS: NavLink[] = [
   { label: 'Diapers', href: '/diapers', requiresBaby: true, icon: 'diaper' },
   { label: 'Feeding', href: '/feeding', requiresBaby: true, icon: 'bottle' },
   { label: 'Sleep', href: '/sleep', requiresBaby: true, icon: 'moon' },
+  { label: 'Potty', href: '/potty', requiresBaby: true, icon: 'potty' },
   { label: 'Growth', href: '/growth', requiresBaby: true, icon: 'growth' },
   { label: 'Health', href: '/health', requiresBaby: true, icon: 'health' },
+  { label: 'Pediatrician', href: '/pediatrician', requiresBaby: true, icon: 'hospital' },
   { label: 'Reports', href: '/reports', requiresBaby: true, icon: 'chart' },
   { label: 'Weekly summary', href: '/weekly-summary', requiresBaby: true, icon: 'calendar' },
 ]
 
 export function getVisibleNavLinks(options: {
-  hasBaby: boolean
   user: { id?: string; isPro?: boolean; isSiteDeveloper?: boolean; hasProAccess?: boolean } | null
 }): NavLink[] {
-  const { hasBaby, user } = options
+  const { user } = options
+
+  if (!user) {
+    return NAV_LINKS.filter((link) => link.href === '/' || link.href === '/pricing')
+  }
+
   return NAV_LINKS.filter((link) => {
-    if (link.href === '/' && user) return false
+    if (link.href === '/') return false
     if (link.href === '/pricing' && !shouldShowPricingInNav(user)) return false
-    if (!link.requiresBaby) return true
-    if (hasBaby) return true
-    return Boolean(user && link.href === '/diapers')
+    return true
   })
 }
 

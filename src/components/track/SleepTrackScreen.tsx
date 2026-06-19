@@ -1,9 +1,10 @@
 import { Link } from 'expo-router'
-import { Text } from 'react-native'
+import { Text, View } from 'react-native'
 
 import { BabyChipBar } from '@/components/BabyChipBar'
 import { TrackInsights } from '@/components/charts/TrackInsights'
 import { SleepLogModal } from '@/components/track/SleepLogModal'
+import { SleepLogsHistory } from '@/components/track/SleepLogsHistory'
 import { SleepLogsList } from '@/components/track/SleepLogsList'
 import { TrackLogSection } from '@/components/track/TrackLogSection'
 import { ErrorText } from '@/components/ui/primitives'
@@ -90,12 +91,21 @@ export function SleepTrackScreen() {
       panelToolbar={<BabyChipBar />}
       insights={<TrackInsights logs={sleep.sleepLogs} kind="sleep" />}
       recent={
-        <SleepLogsList
-          logs={sleep.sleepLogs}
-          onEditLog={sleep.openEditSleep}
-          onDeleteLog={sleep.onDeleteSleep}
-          busyLogId={sleep.busyLogId}
-        />
+        <View>
+          <SleepLogsList
+            logs={sleep.sleepLogs}
+            onEditLog={sleep.openEditSleep}
+            onDeleteLog={sleep.onDeleteSleep}
+            busyLogId={sleep.busyLogId}
+          />
+          <SleepLogsHistory
+            logs={sleep.sleepLogs}
+            babies={sleep.babies}
+            onEditLog={sleep.openEditSleep}
+            onDeleteLog={sleep.onDeleteSleep}
+            busyLogId={sleep.busyLogId}
+          />
+        </View>
       }
     >
       <SleepLogModal

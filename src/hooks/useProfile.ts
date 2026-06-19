@@ -3,8 +3,10 @@ import * as ImagePicker from 'expo-image-picker'
 
 import { loadDiaperLogsForBabies } from '@/api/diaperApi'
 import { loadFeedingLogsForBabies } from '@/api/feedingApi'
+import { loadPottyLogsForBabies } from '@/api/pottyApi'
 import { loadGrowthForBabies } from '@/api/growthApi'
 import { loadInjuryForBabies } from '@/api/injuryApi'
+import { loadPediatricianVisitsForBabies } from '@/api/pediatricianApi'
 import { loadMilestonesForBabies } from '@/api/milestoneApi'
 import {
   addPostComment,
@@ -23,10 +25,13 @@ import { prepareAvatarUpload } from '@/lib/avatarUpload'
 import { useDeferredEffect } from '@/lib/scheduleEffect'
 import { isOwnPost } from '@/lib/postUtils'
 import { useApp } from '@/context/AppContext'
+import { useConfirmAction } from '@/context/ConfirmContext'
+import { isProUser } from '@/lib/subscription'
 import type { Post, PostComment, PostSubmitInput } from '@/schemas/post'
 import type { LogRecord } from '@/types/babyLog'
 import type { GrowthMeasurementDto, MilestoneDto } from '@/types/growth'
 import type { InjuryEventDto, SicknessEventDto } from '@/types/health'
+import type { PediatricianVisitDto } from '@/types/pediatrician'
 import { buildProfileExtendedMonthStats } from '@/lib/profileMonthStats'
 import {
   currentMonthLabel,
@@ -40,6 +45,7 @@ import {
 
 export function useProfile() {
   const { user, babies, setUser, authReady } = useApp()
+  const confirm = useConfirmAction()
 
   const ownBabies = useMemo(() => babies.filter((b) => !b.isShared), [babies])
 
@@ -62,6 +68,7 @@ export function useProfile() {
   const [milestoneRows, setMilestoneRows] = useState<MilestoneDto[]>([])
   const [sicknessRows, setSicknessRows] = useState<SicknessEventDto[]>([])
   const [injuryRows, setInjuryRows] = useState<InjuryEventDto[]>([])
+  const [pediatricianRows, setPediatricianRows] = useState<PediatricianVisitDto[]>([])
   const [posts, setPosts] = useState<Post[]>([])
   const [postsLoading, setPostsLoading] = useState(false)
   const [commentsByPost, setCommentsByPost] = useState<Record<string, PostComment[]>>({})
@@ -98,26 +105,31 @@ export function useProfile() {
       setMilestoneRows([])
       setSicknessRows([])
       setInjuryRows([])
+      setPediatricianRows([])
       return
     }
 
     setStatsLoading(true)
     try {
       const babyRefs = ownBabies.map((b) => ({ id: b.id, fullName: b.fullName }))
-      const [diapers, sleep, feeding, growth, milestones, sickness, injuries] = await Promise.all([
+      const [diapers, sleep, feeding, potty, growth, milestones, sickness, injuries, pediatricianVisits] =
+        await Promise.all([
         loadDiaperLogsForBabies(babyRefs),
         loadSleepLogsForBabies(babyRefs),
         loadFeedingLogsForBabies(babyRefs),
+        loadPottyLogsForBabies(babyRefs),
         loadGrowthForBabies(babyRefs),
         loadMilestonesForBabies(babyRefs),
         loadSicknessForBabies(babyRefs),
         loadInjuryForBabies(babyRefs),
+        loadPediatricianVisitsForBabies(babyRefs),
       ])
-      setAllLogs([...diapers, ...sleep, ...feeding])
+      setAllLogs([...diapers, ...sleep, ...feeding, ...potty])
       setGrowthRows(growth)
       setMilestoneRows(milestones)
       setSicknessRows(sickness)
       setInjuryRows(injuries)
+      setPediatricianRows(pediatricianVisits)
     } catch (e) {
       setProfileError(e instanceof Error ? e.message : 'Could not load activity stats')
     } finally {
@@ -159,6 +171,7 @@ export function useProfile() {
       diapers: monthCount(allLogs, 'diaper', statsYear, statsMonth),
       sleep: monthCount(allLogs, 'sleep', statsYear, statsMonth),
       feeding: monthCount(allLogs, 'feeding', statsYear, statsMonth),
+      potty: monthCount(allLogs, 'potty', statsYear, statsMonth),
     }),
     [allLogs, statsYear, statsMonth],
   )
@@ -168,6 +181,7 @@ export function useProfile() {
       diapers: monthAvgPerDay(allLogs, 'diaper', statsYear, statsMonth),
       sleep: monthAvgPerDay(allLogs, 'sleep', statsYear, statsMonth),
       feeding: monthAvgPerDay(allLogs, 'feeding', statsYear, statsMonth),
+      potty: monthAvgPerDay(allLogs, 'potty', statsYear, statsMonth),
     }),
     [allLogs, statsYear, statsMonth],
   )
@@ -188,10 +202,11 @@ export function useProfile() {
         milestoneRows,
         sicknessRows,
         injuryRows,
+        pediatricianRows,
         statsYear,
         statsMonth,
       ),
-    [growthRows, milestoneRows, sicknessRows, injuryRows, statsYear, statsMonth],
+    [growthRows, milestoneRows, sicknessRows, injuryRows, pediatricianRows, statsYear, statsMonth],
   )
 
   const saveLocation = useCallback(async () => {
@@ -254,20 +269,27 @@ export function useProfile() {
     }
   }, [setUser, user])
 
-  const removeAvatar = useCallback(async () => {
+  const removeAvatar = useCallback(() => {
     if (!user?.id || !isApiConfigured()) return
 
-    setDeletingAvatar(true)
-    setProfileError(null)
-    try {
-      const updated = await deleteUserAvatar(user.id)
-      setUser(updated)
-    } catch (e) {
-      setProfileError(e instanceof Error ? e.message : 'Could not remove photo')
-    } finally {
-      setDeletingAvatar(false)
-    }
-  }, [setUser, user])
+    confirm({
+      title: 'Remove profile photo?',
+      message: 'Your profile photo will be removed. You can upload a new one anytime.',
+      confirmLabel: 'Remove',
+      onConfirm: async () => {
+        setDeletingAvatar(true)
+        setProfileError(null)
+        try {
+          const updated = await deleteUserAvatar(user.id)
+          setUser(updated)
+        } catch (e) {
+          setProfileError(e instanceof Error ? e.message : 'Could not remove photo')
+        } finally {
+          setDeletingAvatar(false)
+        }
+      },
+    })
+  }, [confirm, setUser, user])
 
   const likePost = useCallback(async (postId: string) => {
     const result = await togglePostLike(postId)
@@ -353,6 +375,10 @@ export function useProfile() {
       setProfileError('Set EXPO_PUBLIC_API_URL in .env to export tracking data.')
       return
     }
+    if (!isProUser(user)) {
+      setProfileError('PDF export requires Pro. Upgrade to download pediatrician-ready reports.')
+      return
+    }
     if (ownBabies.length === 0) {
       setProfileError('Add a baby before downloading a report.')
       return
@@ -362,21 +388,25 @@ export function useProfile() {
     setProfileError(null)
     try {
       const babyRefs = ownBabies.map((b) => ({ id: b.id, fullName: b.fullName }))
-      const [diapers, sleep, feeding, growth, milestones, sickness, injuries] = await Promise.all([
+      const [diapers, sleep, feeding, potty, growth, milestones, sickness, injuries, pediatricianVisits] =
+        await Promise.all([
         loadDiaperLogsForBabies(babyRefs),
         loadSleepLogsForBabies(babyRefs),
         loadFeedingLogsForBabies(babyRefs),
+        loadPottyLogsForBabies(babyRefs),
         loadGrowthForBabies(babyRefs),
         loadMilestonesForBabies(babyRefs),
         loadSicknessForBabies(babyRefs),
         loadInjuryForBabies(babyRefs),
+        loadPediatricianVisitsForBabies(babyRefs),
       ])
-      const logs = [...diapers, ...sleep, ...feeding]
+      const logs = [...diapers, ...sleep, ...feeding, ...potty]
       setAllLogs(logs)
       setGrowthRows(growth)
       setMilestoneRows(milestones)
       setSicknessRows(sickness)
       setInjuryRows(injuries)
+      setPediatricianRows(pediatricianVisits)
 
       const parentName = user?.fullName?.trim() || user?.username?.trim() || 'Parent'
       const { downloadTrackingReportPdf } = await import('@/lib/trackingReportPdf')
@@ -386,6 +416,7 @@ export function useProfile() {
         milestones,
         sickness,
         injuries,
+        pediatricianVisits,
         babies: ownBabies,
         parentName,
       })
@@ -396,7 +427,10 @@ export function useProfile() {
     }
   }, [ownBabies, user])
 
+  const isPro = isProUser(user)
+
   return {
+    isPro,
     locationDraft,
     setLocationDraft,
     savingLocation,
@@ -434,5 +468,7 @@ export function useProfile() {
     downloadTrackingPdf,
     apiConfigured: isApiConfigured(),
     allLogs,
+    injuryRows,
+    pediatricianRows,
   }
 }

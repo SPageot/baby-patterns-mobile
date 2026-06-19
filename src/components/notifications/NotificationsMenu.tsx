@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { NavIcon } from '@/components/icons/NavIcon'
 import { useNotifications } from '@/hooks/useNotifications'
+import { useConfirmAction } from '@/context/ConfirmContext'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
@@ -143,8 +144,18 @@ export function NotificationsMenu({ enabled }: Props) {
   const insets = useSafeAreaInsets()
   const colors = useHomeTheme()
   const styles = useThemedStyles(createStyles)
+  const confirm = useConfirmAction()
   const { items, unreadCount, loading, clearing, open, setOpen, markRead, markAllRead, clearAll } =
     useNotifications(enabled)
+
+  const onClearAll = () => {
+    confirm({
+      title: 'Clear all notifications?',
+      message: 'Remove every notification from your list? This cannot be undone.',
+      confirmLabel: 'Clear all',
+      onConfirm: () => clearAll(),
+    })
+  }
 
   const onSelect = (item: AppNotification) => {
     void markRead(item.id)
@@ -194,7 +205,7 @@ export function NotificationsMenu({ enabled }: Props) {
                     <Pressable
                       accessibilityRole="button"
                       disabled={clearing}
-                      onPress={() => void clearAll()}
+                      onPress={onClearAll}
                       style={({ pressed }) => [styles.action, pressed && styles.pressed]}
                     >
                       <Text style={[styles.actionText, styles.actionDanger]}>

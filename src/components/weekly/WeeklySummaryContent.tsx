@@ -712,6 +712,25 @@ export function WeeklySummaryContent({
               </View>
             </View>
           ))}
+          {report.health.pediatricianVisits.map((row) => (
+            <View key={row.id} style={styles.milestoneItem}>
+              <Text style={styles.milestoneCheck}>🏥</Text>
+              <View>
+                <Text style={styles.milestoneTitle}>{row.pediatricianName}</Text>
+                <Text style={styles.milestoneMeta}>
+                  {new Date(row.visitedAt).toLocaleDateString(undefined, {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                  {row.hospital ? ` · ${row.hospital}` : ''}
+                  {row.immunizations.length > 0
+                    ? ` · ${row.immunizations.length} immunization${row.immunizations.length === 1 ? '' : 's'}`
+                    : ''}
+                </Text>
+              </View>
+            </View>
+          ))}
         </View>
       ) : null}
 

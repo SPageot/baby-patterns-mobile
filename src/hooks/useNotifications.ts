@@ -6,12 +6,17 @@ import {
   fetchUnreadNotificationCount,
   markAllNotificationsRead,
   markNotificationRead,
+  normalizeNotification,
 } from '@/api/notificationsApi'
 import { isApiConfigured } from '@/api/config'
+import { subscribeLiveEvent } from '@/lib/liveHub'
 import { useDeferredEffect } from '@/lib/scheduleEffect'
 import type { AppNotification } from '@/schemas/notification'
 
-const POLL_MS = 45_000
+type NotificationsUpdatedPayload = {
+  unreadCount?: number
+  notifications?: unknown[]
+}
 
 export function useNotifications(enabled: boolean) {
   const [items, setItems] = useState<AppNotification[]>([])
@@ -20,18 +25,17 @@ export function useNotifications(enabled: boolean) {
   const [clearing, setClearing] = useState(false)
   const [open, setOpen] = useState(false)
   const loadInFlight = useRef(false)
-  const pollInFlight = useRef(false)
+  const openRef = useRef(open)
+
+  openRef.current = open
 
   const refreshCount = useCallback(async () => {
-    if (!enabled || !isApiConfigured() || pollInFlight.current) return
-    pollInFlight.current = true
+    if (!enabled || !isApiConfigured()) return
     try {
       const count = await fetchUnreadNotificationCount()
       setUnreadCount(count)
     } catch {
-      /* ignore polling errors */
-    } finally {
-      pollInFlight.current = false
+      /* ignore refresh errors */
     }
   }, [enabled])
 
@@ -56,11 +60,28 @@ export function useNotifications(enabled: boolean) {
     if (!enabled) return
     void refreshCount()
 
-    const timer = setInterval(() => {
-      void refreshCount()
-    }, POLL_MS)
+    return subscribeLiveEvent('notificationsUpdated', (payload) => {
+      const data = payload as NotificationsUpdatedPayload
+      if (typeof data.unreadCount === 'number') {
+        setUnreadCount(data.unreadCount)
+      }
 
-    return () => clearInterval(timer)
+      if (!openRef.current || !Array.isArray(data.notifications) || data.notifications.length === 0) {
+        return
+      }
+
+      const incoming = data.notifications
+        .map(normalizeNotification)
+        .filter((item): item is AppNotification => item != null)
+
+      if (incoming.length === 0) return
+
+      setItems((prev) => {
+        const existing = new Set(prev.map((item) => item.id))
+        const fresh = incoming.filter((item) => !existing.has(item.id))
+        return fresh.length > 0 ? [...fresh, ...prev] : prev
+      })
+    })
   }, [enabled, refreshCount])
 
   useDeferredEffect(() => {

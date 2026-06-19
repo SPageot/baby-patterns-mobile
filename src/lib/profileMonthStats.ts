@@ -1,5 +1,6 @@
 import type { GrowthMeasurementDto, MilestoneDto } from '@/types/growth'
 import type { InjuryEventDto, SicknessEventDto } from '@/types/health'
+import type { PediatricianVisitDto } from '@/types/pediatrician'
 import { isoInLocalMonth } from '@/lib/trackUtils'
 
 function trimmedMeasurement(value: string | number | null | undefined): string {
@@ -11,6 +12,7 @@ export type ProfileExtendedMonthStats = {
   milestones: number
   sickness: number
   injuries: number
+  pediatricianVisits: number
   health: number
   growthDetail: string
   milestoneDetail: string
@@ -22,6 +24,7 @@ export function buildProfileExtendedMonthStats(
   milestoneRows: MilestoneDto[],
   sicknessRows: SicknessEventDto[],
   injuryRows: InjuryEventDto[],
+  pediatricianRows: PediatricianVisitDto[],
   year: number,
   month: number,
 ): ProfileExtendedMonthStats {
@@ -31,6 +34,7 @@ export function buildProfileExtendedMonthStats(
   )
   const sicknessInMonth = sicknessRows.filter((row) => isoInLocalMonth(row.startedAt, year, month))
   const injuriesInMonth = injuryRows.filter((row) => isoInLocalMonth(row.occurredAt, year, month))
+  const visitsInMonth = pediatricianRows.filter((row) => isoInLocalMonth(row.visitedAt, year, month))
 
   const growthSorted = [...growthInMonth].sort((a, b) => b.recordedAt.localeCompare(a.recordedAt))
   const latestWeightRow = growthSorted.find((row) => trimmedMeasurement(row.weightLbs))
@@ -56,11 +60,15 @@ export function buildProfileExtendedMonthStats(
 
   const sickness = sicknessInMonth.length
   const injuries = injuriesInMonth.length
+  const pediatricianVisits = visitsInMonth.length
   let healthDetail = '—'
-  if (sickness > 0 || injuries > 0) {
+  if (sickness > 0 || injuries > 0 || pediatricianVisits > 0) {
     const parts: string[] = []
     if (sickness > 0) parts.push(`${sickness} sickness`)
     if (injuries > 0) parts.push(`${injuries} injur${injuries === 1 ? 'y' : 'ies'}`)
+    if (pediatricianVisits > 0) {
+      parts.push(`${pediatricianVisits} visit${pediatricianVisits === 1 ? '' : 's'}`)
+    }
     healthDetail = parts.join(' · ')
   }
 
@@ -69,7 +77,8 @@ export function buildProfileExtendedMonthStats(
     milestones: milestonesInMonth.length,
     sickness,
     injuries,
-    health: sickness + injuries,
+    pediatricianVisits,
+    health: sickness + injuries + pediatricianVisits,
     growthDetail,
     milestoneDetail,
     healthDetail,

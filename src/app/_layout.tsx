@@ -2,12 +2,14 @@ import { Stack, useSegments } from 'expo-router'
 import { View } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 
+import { PushNotificationHandler } from '@/components/notifications/PushNotificationHandler'
 import { SplashController } from '@/components/SplashController'
 import { useAppFonts } from '@/hooks/useAppFonts'
 import { BillingReturnHandler } from '@/components/billing/BillingReturnHandler'
 import { Navbar } from '@/components/nav/Navbar'
 import { SideNav } from '@/components/nav/SideNav'
 import { AppProvider } from '@/context/AppContext'
+import { ConfirmProvider } from '@/context/ConfirmContext'
 import { NavMenuProvider } from '@/context/NavMenuContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
@@ -50,11 +52,14 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ThemeProvider>
         <AppProvider>
-          <SplashController fontsReady={fontsLoaded} />
-          <BillingReturnHandler />
-          <NavMenuProvider>
-            <AppShell />
-          </NavMenuProvider>
+          <ConfirmProvider>
+            <SplashController fontsReady={fontsLoaded} />
+            <BillingReturnHandler />
+            <PushNotificationHandler />
+            <NavMenuProvider>
+              <AppShell />
+            </NavMenuProvider>
+          </ConfirmProvider>
         </AppProvider>
       </ThemeProvider>
     </SafeAreaProvider>

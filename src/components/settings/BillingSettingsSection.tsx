@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Alert, Text, View } from 'react-native'
+import { Text, View } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import {
@@ -11,6 +11,7 @@ import { fetchCurrentUser } from '@/api/userApi'
 import { isApiConfigured } from '@/api/config'
 import { Button, ErrorText, SectionTitle, Subtitle } from '@/components/ui/primitives'
 import { isPaidProUser, isProUser, isSiteDeveloper } from '@/lib/subscription'
+import { useConfirmAction } from '@/context/ConfirmContext'
 import type { AppPalette } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
@@ -44,6 +45,7 @@ const createStyles = (t: AppPalette) => ({
 })
 
 export function BillingSettingsSection({ user, onUserUpdated }: Props) {
+  const confirm = useConfirmAction()
   const router = useRouter()
   const styles = useThemedStyles(createStyles)
   const [downgradeLoading, setDowngradeLoading] = useState(false)
@@ -85,17 +87,16 @@ export function BillingSettingsSection({ user, onUserUpdated }: Props) {
     }
 
     const message = periodEndLabel
-      ? `Downgrade to the Free plan? You will keep Pro until ${periodEndLabel}, then Stripe will stop charging you.`
-      : 'Downgrade to the Free plan? Your Pro access will continue until the end of the current billing period, then Stripe will stop charging you.'
+      ? `You will keep Pro until ${periodEndLabel}, then Stripe will stop charging you.`
+      : 'Your Pro access will continue until the end of the current billing period, then Stripe will stop charging you.'
 
-    Alert.alert('Downgrade to Free', message, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Downgrade',
-        style: 'destructive',
-        onPress: () => void runDowngrade(),
-      },
-    ])
+    confirm({
+      title: 'Downgrade to Free?',
+      message,
+      confirmLabel: 'Downgrade',
+      destructive: false,
+      onConfirm: () => runDowngrade(),
+    })
   }
 
   const runDowngrade = async () => {

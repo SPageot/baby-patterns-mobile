@@ -1,8 +1,5 @@
-import { formatDiaperContents, getDiaperLogMeta } from './diaperFeedUtils'
-import { isoLocalYmd } from './dateUtils'
-import { BABYLOG_STORAGE_KEY, type LogKind, type LogRecord } from '../types/babyLog'
-
-export { formatWhen, isoLocalYmd } from './dateUtils'
+import { formatDiaperContents, getDiaperLogMeta } from '@/lib/diaperFeedUtils'
+import { BABYLOG_STORAGE_KEY, type LogKind, type LogRecord } from '@/types/babyLog'
 
 /** Stable unique key for list rendering (avoids duplicate `id` from API). */
 export function logRecordKey(log: LogRecord, index: number): string {
@@ -46,6 +43,68 @@ export function nowUtcInputValue(): string {
 
 export function nowUtcDateValue(): string {
   return formatUtcDateFromDate(new Date())
+}
+
+function formatUtcTimeFromDate(d: Date) {
+  return `${utcPad(d.getUTCHours())}:${utcPad(d.getUTCMinutes())}`
+}
+
+export function nowUtcTimeValue(): string {
+  return formatUtcTimeFromDate(new Date())
+}
+
+/** ISO instant → UTC time `HH:mm`. */
+export function isoToUtcTimeValue(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return nowUtcTimeValue()
+  return formatUtcTimeFromDate(d)
+}
+
+/** Combine UTC date `YYYY-MM-DD` and time `HH:mm` → `YYYY-MM-DDTHH:mm`. */
+export function combineUtcDateAndTime(dateYmd: string, timeHm: string): string {
+  const date = dateYmd.trim().slice(0, 10)
+  const timeMatch = /^(\d{1,2}):(\d{2})/.exec(timeHm.trim())
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !timeMatch) return ''
+  return `${date}T${utcPad(Number(timeMatch[1]))}:${timeMatch[2]}`
+}
+
+/** Minutes between sleep start/end times on a given UTC date. End before start = next day. */
+export function minutesBetweenUtcSleepTimes(dateYmd: string, startTime: string, endTime: string) {
+  const startDt = combineUtcDateAndTime(dateYmd, startTime)
+  const endDt = combineUtcDateAndTime(dateYmd, endTime)
+  if (!startDt || !endDt) return null
+
+  const start = new Date(datetimeUtcInputToIso(startDt))
+  let end = new Date(datetimeUtcInputToIso(endDt))
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null
+
+  if (end.getTime() <= start.getTime()) {
+    end = new Date(end.getTime() + 24 * 60 * 60 * 1000)
+  }
+
+  return Math.max(0, Math.round((end.getTime() - start.getTime()) / 60000))
+}
+
+/** Sleep date + start/end times (UTC) → ISO instants for API. */
+export function sleepTimesToUtcIso(
+  dateYmd: string,
+  startTime: string,
+  endTime: string,
+): { startIso: string; endIso: string } | null {
+  const startDt = combineUtcDateAndTime(dateYmd, startTime)
+  const endDt = combineUtcDateAndTime(dateYmd, endTime)
+  if (!startDt || !endDt) return null
+
+  const startIso = datetimeUtcInputToIso(startDt)
+  let end = new Date(datetimeUtcInputToIso(endDt))
+  const start = new Date(startIso)
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null
+
+  if (end.getTime() <= start.getTime()) {
+    end = new Date(end.getTime() + 24 * 60 * 60 * 1000)
+  }
+
+  return { startIso, endIso: end.toISOString() }
 }
 
 /** ISO instant → `datetime-local` value using UTC wall clock (`YYYY-MM-DDTHH:mm`). */
@@ -106,6 +165,12 @@ export function dateYmdToLocalNoonIso(ymd: string) {
   return new Date(y, mo - 1, d, 12, 0, 0).toISOString()
 }
 
+export function formatWhen(iso: string) {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
+}
+
 function titleCase(s: string) {
   if (!s) return s
   return s[0].toUpperCase() + s.slice(1).toLowerCase()
@@ -116,6 +181,15 @@ const FEEDING_TYPE_LABELS: Record<string, string> = {
   bottle: 'Bottle',
   solids: 'Solids',
   snack: 'Snack',
+}
+
+export function isoLocalYmd(iso: string) {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 /** Local `YYYY-MM-DD` (date input) → UTC calendar `YYYY-MM-DD`. */
@@ -215,6 +289,7 @@ export function formatLogSummary(l: LogRecord): string {
       }
       if (d.sleepMood?.trim()) parts.push(d.sleepMood.trim())
       if (d.sleepEnvironment?.trim()) parts.push(d.sleepEnvironment.trim())
+      if (d.isNap === 'true') parts.push('Nap')
       if (d.isTeething === 'true') parts.push('Teething')
       if (d.isSick === 'true') parts.push('Sick')
       return parts.length ? parts.join(' · ') : 'Sleep'
@@ -395,36 +470,86 @@ export type DailyKindCounts = {
   sleep: number
   sleepMinutes: number
   feeding: number
+  naps: number
+  napMinutes: number
+  potty: number
+  injuries: number
+  pediatricianVisits: number
+}
+
+type DailyCountAccum = Omit<DailyKindCounts, 'date' | 'label'>
+
+function emptyDailyAccum(): DailyCountAccum {
+  return {
+    diapers: 0,
+    sleep: 0,
+    sleepMinutes: 0,
+    feeding: 0,
+    naps: 0,
+    napMinutes: 0,
+    potty: 0,
+    injuries: 0,
+    pediatricianVisits: 0,
+  }
 }
 
 export function emptyDailyCounts(date: string): DailyKindCounts {
-  return { date, label: formatDayLabel(date), diapers: 0, sleep: 0, sleepMinutes: 0, feeding: 0 }
+  return { date, label: formatDayLabel(date), ...emptyDailyAccum() }
 }
 
+export type InjuryDayInput = { occurredAt: string }
+export type PediatricianDayInput = { visitedAt: string }
+
 /** Map `YYYY-MM-DD` → combined daily counts (sleep minutes combined per day). */
-export function buildDailyCountsMap(logs: LogRecord[]): Map<string, DailyKindCounts> {
-  const byDate = new Map<
-    string,
-    { diapers: number; sleep: number; sleepMinutes: number; feeding: number }
-  >()
+export function buildDailyCountsMap(
+  logs: LogRecord[],
+  injuries: InjuryDayInput[] = [],
+  pediatricianVisits: PediatricianDayInput[] = [],
+): Map<string, DailyKindCounts> {
+  const byDate = new Map<string, DailyCountAccum>()
+
+  const getEntry = (day: string): DailyCountAccum => {
+    const entry = byDate.get(day) ?? emptyDailyAccum()
+    byDate.set(day, entry)
+    return entry
+  }
 
   for (const l of logs) {
     if (l.kind === 'sleep') {
       const day = sleepLogDayKey(l)
       if (!day) continue
-      const entry = byDate.get(day) ?? { diapers: 0, sleep: 0, sleepMinutes: 0, feeding: 0 }
+      const entry = getEntry(day)
+      const minutes = logSleepDurationMinutes(l)
       entry.sleep += 1
-      entry.sleepMinutes += logSleepDurationMinutes(l)
-      byDate.set(day, entry)
+      entry.sleepMinutes += minutes
+      if (l.details.isNap === 'true') {
+        entry.naps += 1
+        entry.napMinutes += minutes
+      }
       continue
     }
 
-    const day = l.kind === 'diaper' || l.kind === 'feeding' ? isoLocalYmd(l.atIso) : ''
+    const day =
+      l.kind === 'diaper' || l.kind === 'feeding' || l.kind === 'potty'
+        ? isoLocalYmd(l.atIso)
+        : ''
     if (!day) continue
-    const entry = byDate.get(day) ?? { diapers: 0, sleep: 0, sleepMinutes: 0, feeding: 0 }
+    const entry = getEntry(day)
     if (l.kind === 'diaper') entry.diapers += 1
     else if (l.kind === 'feeding') entry.feeding += 1
-    byDate.set(day, entry)
+    else if (l.kind === 'potty') entry.potty += 1
+  }
+
+  for (const injury of injuries) {
+    const day = isoLocalYmd(injury.occurredAt)
+    if (!day) continue
+    getEntry(day).injuries += 1
+  }
+
+  for (const visit of pediatricianVisits) {
+    const day = isoLocalYmd(visit.visitedAt)
+    if (!day) continue
+    getEntry(day).pediatricianVisits += 1
   }
 
   const result = new Map<string, DailyKindCounts>()
@@ -503,6 +628,46 @@ export function monthSleepMinutesAvgPerDay(
   return Math.round(total / days)
 }
 
+function isNapLog(log: LogRecord): boolean {
+  return log.kind === 'sleep' && log.details.isNap === 'true'
+}
+
+export function monthNapCount(logs: LogRecord[], year: number, month: number): number {
+  const prefix = monthPrefix(year, month)
+  let n = 0
+  for (const l of logs) {
+    if (!isNapLog(l)) continue
+    const day = sleepLogDayKey(l)
+    if (!day.startsWith(prefix)) continue
+    n += 1
+  }
+  return n
+}
+
+export function monthNapMinutesTotal(logs: LogRecord[], year: number, month: number): number {
+  const prefix = monthPrefix(year, month)
+  let total = 0
+  for (const l of logs) {
+    if (!isNapLog(l)) continue
+    const day = sleepLogDayKey(l)
+    if (!day.startsWith(prefix)) continue
+    total += logSleepDurationMinutes(l)
+  }
+  return total
+}
+
+export function monthNapMinutesAvgPerDay(
+  logs: LogRecord[],
+  year: number,
+  month: number,
+  now = new Date(),
+): number {
+  const total = monthNapMinutesTotal(logs, year, month)
+  const days = daysInMonthForAvg(year, month, now)
+  if (days <= 0) return 0
+  return Math.round(total / days)
+}
+
 export type PeriodSummary = {
   dayCount: number
   diapers: { total: number; avgPerDay: number }
@@ -551,5 +716,6 @@ export function currentMonthLabel() {
 export function kindLabel(kind: LogKind) {
   if (kind === 'diaper') return 'Diaper'
   if (kind === 'feeding') return 'Feed'
+  if (kind === 'potty') return 'Potty'
   return 'Sleep'
 }

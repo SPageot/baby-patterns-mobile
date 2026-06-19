@@ -6,11 +6,13 @@ import {
   deletePost,
   fetchPostComments,
   fetchPosts,
+  normalizePost,
   toggleCommentLike,
   togglePostLike,
   updatePost,
 } from '@/api/postsApi'
 import { isApiConfigured } from '@/api/config'
+import { subscribeLiveEvent } from '@/lib/liveHub'
 import type { Post, PostComment, PostSubmitInput } from '@/schemas/post'
 import { isOwnPost } from '@/lib/postUtils'
 import { useDeferredEffect } from '@/lib/scheduleEffect'
@@ -43,6 +45,21 @@ export function useParentsCorner(enabled: boolean, currentUserId?: string) {
   useDeferredEffect(() => {
     void loadPosts()
   }, [loadPosts])
+
+  useDeferredEffect(() => {
+    if (!enabled) return
+
+    return subscribeLiveEvent('feedPostCreated', (payload) => {
+      const post = normalizePost(payload)
+      if (!post) return
+
+      setPosts((prev) => {
+        if (prev.some((item) => item.id === post.id)) return prev
+        if (currentUserId && post.author.id === currentUserId) return prev
+        return [post, ...prev]
+      })
+    })
+  }, [enabled, currentUserId])
 
   const publishPost = useCallback(async (input: PostSubmitInput) => {
     setPosting(true)

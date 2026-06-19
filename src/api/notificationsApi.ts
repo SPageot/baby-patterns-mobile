@@ -22,7 +22,7 @@ function pickBool(obj: Record<string, unknown>, ...keys: string[]): boolean {
   return false
 }
 
-function normalizeNotification(raw: unknown): AppNotification | null {
+export function normalizeNotification(raw: unknown): AppNotification | null {
   if (!raw || typeof raw !== 'object') return null
   const o = raw as Record<string, unknown>
   const id = pickStr(o, 'id', 'Id')

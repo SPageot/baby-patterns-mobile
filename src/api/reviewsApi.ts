@@ -131,6 +131,16 @@ export async function createBrand(name: string): Promise<Brand> {
   return brand
 }
 
+export async function ensureBrand(name: string): Promise<Brand> {
+  const data = await apiFetch<unknown>('api/brands/ensure', {
+    method: 'POST',
+    body: JSON.stringify({ name }),
+  })
+  const brand = normalizeBrand(data)
+  if (!brand) throw new Error('Could not save brand')
+  return brand
+}
+
 export async function createProduct(
   brandId: string,
   name: string,

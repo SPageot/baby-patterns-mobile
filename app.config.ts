@@ -70,6 +70,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     'expo-sharing',
+    [
+      'expo-notifications',
+      {
+        icon: './assets/images/icon.png',
+        color: '#7c5cbf',
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,

@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from 'react'
-import { Alert } from 'react-native'
 import { useFocusEffect } from 'expo-router'
 
 import {
@@ -20,12 +19,14 @@ import {
 } from '@/api/milestoneApi'
 import { getBabyId, isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
+import { useConfirmAction } from '@/context/ConfirmContext'
 import type { GrowthMeasurementDto, MilestoneCategory, MilestoneDto, TrackingMediaType } from '@/types/growth'
 import type { TrackingMediaUploadPayload } from '@/lib/trackingMediaUpload'
 import { isoToDatetimeLocalValue, nowLocalInputValue } from '@/lib/trackUtils'
 
 export function useGrowthPage() {
   const { babies, selectedBabyId, selectBaby, user, loadBabiesForCurrentUser } = useApp()
+  const confirm = useConfirmAction()
 
   const [babiesLoading, setBabiesLoading] = useState(false)
   const [measurements, setMeasurements] = useState<(GrowthMeasurementDto & { babyName: string })[]>([])
@@ -290,10 +291,11 @@ export function useGrowthPage() {
 
   const onDeleteGrowth = (id: string) => {
     if (!id.trim()) return
-    Alert.alert('Delete measurement?', 'Delete this growth measurement?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => void deleteGrowth(id) },
-    ])
+    confirm({
+      title: 'Delete measurement?',
+      message: 'Delete this growth measurement? This cannot be undone.',
+      onConfirm: () => deleteGrowth(id),
+    })
   }
 
   const onSaveMilestone = async () => {
@@ -358,10 +360,11 @@ export function useGrowthPage() {
 
   const onDeleteMilestone = (id: string) => {
     if (!id.trim()) return
-    Alert.alert('Delete milestone?', 'Delete this milestone?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Delete', style: 'destructive', onPress: () => void deleteMilestoneRow(id) },
-    ])
+    confirm({
+      title: 'Delete milestone?',
+      message: 'Delete this milestone? This cannot be undone.',
+      onConfirm: () => deleteMilestoneRow(id),
+    })
   }
 
   return {

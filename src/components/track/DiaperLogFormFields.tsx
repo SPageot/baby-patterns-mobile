@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from 'react-native'
 
 import { Button, Input, Label } from '@/components/ui/primitives'
+import { BrandNameInput } from '@/components/track/BrandNameInput'
 import { DateTimeField } from '@/components/ui/DateTimeField'
 import { LogToggleRow } from '@/components/track/LogToggleRow'
 import type { DiaperLogCreate } from '@/types/babyLog'
@@ -125,7 +126,11 @@ export function DiaperLogFormFields({ state, setState, accent, stroke, disabled 
       <DateTimeField label="Time" value={state.diaperTime} onChange={(v) => set({ diaperTime: v })} />
 
       <Label>Diaper brand</Label>
-      <Input value={state.diaperBrand} onChangeText={(v) => set({ diaperBrand: v })} placeholder="e.g. brand name" editable={!disabled} />
+      <BrandNameInput
+        value={state.diaperBrand}
+        onChange={(diaperBrand) => set({ diaperBrand })}
+        disabled={disabled}
+      />
 
       <Label>Diaper size</Label>
       <Input value={state.diaperSize} onChangeText={(v) => set({ diaperSize: v })} placeholder="e.g. 2, NB, S" editable={!disabled} />

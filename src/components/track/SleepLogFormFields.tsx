@@ -10,10 +10,10 @@ import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import {
-  datetimeUtcInputToIso,
   formatMinutesHuman,
-  isoToDatetimeUtcValue,
-  minutesBetweenUtcDateTimeInputs,
+  isoToUtcTimeValue,
+  minutesBetweenUtcSleepTimes,
+  sleepTimesToUtcIso,
 } from '@/lib/trackUtils'
 import { Spacing } from '@/constants/theme'
 
@@ -29,17 +29,16 @@ export type SleepFormState = {
 }
 
 export function sleepFormStateToCreate(state: SleepFormState): SleepLogCreate | null {
-  const startIso = datetimeUtcInputToIso(state.sleepStart)
-  const endIso = datetimeUtcInputToIso(state.sleepEnd)
-  const durationMin = minutesBetweenUtcDateTimeInputs(state.sleepStart, state.sleepEnd)
-  if (durationMin == null) return null
+  const times = sleepTimesToUtcIso(state.sleepDate.trim(), state.sleepStart, state.sleepEnd)
+  const durationMin = minutesBetweenUtcSleepTimes(state.sleepDate.trim(), state.sleepStart, state.sleepEnd)
+  if (!times || durationMin == null) return null
 
   return sleepFieldsToUtc({
     sleepDate: state.sleepDate.trim(),
     sleepDuration: String(durationMin),
     sleepMood: state.sleepMood.trim(),
-    sleepStartTime: startIso,
-    sleepEndTime: endIso,
+    sleepStartTime: times.startIso,
+    sleepEndTime: times.endIso,
     sleepEnvironment: state.sleepEnvironment.trim(),
     isTeething: state.sleepTeething,
     isSick: state.sleepSick,
@@ -50,8 +49,8 @@ export function sleepFormStateToCreate(state: SleepFormState): SleepLogCreate | 
 export function sleepCreateToFormState(fields: SleepLogCreate): SleepFormState {
   return {
     sleepDate: fields.sleepDate,
-    sleepStart: isoToDatetimeUtcValue(fields.sleepStartTime),
-    sleepEnd: isoToDatetimeUtcValue(fields.sleepEndTime),
+    sleepStart: isoToUtcTimeValue(fields.sleepStartTime),
+    sleepEnd: isoToUtcTimeValue(fields.sleepEndTime),
     sleepMood: fields.sleepMood,
     sleepEnvironment: fields.sleepEnvironment,
     sleepTeething: Boolean(fields.isTeething),
@@ -137,9 +136,9 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
   const set = (patch: Partial<SleepFormState>) => setState(patch)
 
   const durationPreview = useMemo(() => {
-    const m = minutesBetweenUtcDateTimeInputs(state.sleepStart, state.sleepEnd)
+    const m = minutesBetweenUtcSleepTimes(state.sleepDate, state.sleepStart, state.sleepEnd)
     return m == null ? '—' : formatMinutesHuman(m)
-  }, [state.sleepStart, state.sleepEnd])
+  }, [state.sleepDate, state.sleepStart, state.sleepEnd])
 
   return (
     <>
@@ -163,6 +162,7 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
         label="Sleep start (UTC)"
         value={state.sleepStart}
         onChange={(v) => set({ sleepStart: v })}
+        mode="time"
         zone="utc"
       />
 
@@ -170,6 +170,7 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
         label="Sleep end (UTC)"
         value={state.sleepEnd}
         onChange={(v) => set({ sleepEnd: v })}
+        mode="time"
         zone="utc"
       />
 
@@ -210,7 +211,7 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
       />
 
       <Text style={styles.hint}>
-        Enter date and times in UTC. Duration is calculated from start and end.
+        Enter the sleep date, then start and end times in UTC. If end is earlier than start, it counts as the next day.
       </Text>
     </>
   )
