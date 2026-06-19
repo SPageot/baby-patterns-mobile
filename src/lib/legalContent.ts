@@ -1,7 +1,7 @@
 /** Bump when Terms or Privacy content changes materially. */
-export const LEGAL_POLICY_VERSION = '2025-06-10'
+export const LEGAL_POLICY_VERSION = '2026-06-10'
 
-export const LEGAL_LAST_UPDATED = 'June 10, 2025'
+export const LEGAL_LAST_UPDATED = 'June 10, 2026'
 
 export type LegalSection = {
   title: string
@@ -9,11 +9,16 @@ export type LegalSection = {
   bullets?: string[]
 }
 
+/** True when a signed-in user must accept the current Terms and Privacy Policy. */
+export function userNeedsLegalAcceptance(legalPolicyVersion: string | null | undefined): boolean {
+  return legalPolicyVersion !== LEGAL_POLICY_VERSION
+}
+
 export const TERMS_OF_USE: LegalSection[] = [
   {
     title: '1. Agreement',
     paragraphs: [
-      'These Terms of Use ("Terms") govern your access to and use of Baby Patterns (the "Service"), including our website, mobile experience, and related APIs.',
+      'These Terms of Use ("Terms") govern your access to and use of Baby Patterns (the "Service"), including our website, mobile apps, and related APIs.',
       'By creating an account or using the Service, you agree to these Terms and our Privacy Policy. If you do not agree, do not use the Service.',
     ],
   },
@@ -27,16 +32,17 @@ export const TERMS_OF_USE: LegalSection[] = [
   {
     title: '3. Not medical advice',
     paragraphs: [
-      'Baby Patterns helps you log and review diaper, feeding, and sleep information. Any insights, community posts, reviews, or future analysis features are for general informational purposes only.',
-      'The Service does not provide medical advice and is not a substitute for professional care. Always consult a qualified pediatrician or healthcare provider about your child\'s health.',
-      'Do not delay or disregard medical advice because of something you read or log in the Service.',
+      'Baby Patterns helps you log and review daily baby care and development information, including diapers, feeding, sleep, naps, potty training, growth measurements, milestones, sickness and injury events, and pediatrician visits (such as hospital, provider name, recommendations, and immunizations).',
+      'Reports, charts, weekly summaries, PDF exports, community posts, reviews, and other analysis features are for general informational purposes only. They are designed to help you organize caregiver-entered data and share summaries with your pediatrician or care team when you choose.',
+      'The Service does not provide medical advice, diagnosis, or treatment and is not a substitute for professional care. Always consult a qualified pediatrician or healthcare provider about your child\'s health.',
+      'Do not delay or disregard medical advice because of something you read, export, or log in the Service.',
     ],
   },
   {
     title: '4. Your account and content',
     paragraphs: [
       'You are responsible for maintaining the confidentiality of your login credentials and for activity under your account.',
-      'You may post in Parents Corner, submit product reviews, upload profile images, and share tracking access with family members you invite. You retain ownership of content you submit, but grant us a limited license to host, display, and process it solely to operate the Service.',
+      'You may post in Parents Corner, submit product reviews, upload profile images, log tracking data, export PDF reports, and share tracking access with family members you invite. You retain ownership of content you submit, but grant us a limited license to host, display, process, and transmit it solely to operate the Service (including notifications and email summaries you enable).',
     ],
     bullets: [
       'Do not upload unlawful, harmful, or misleading content.',
@@ -48,31 +54,38 @@ export const TERMS_OF_USE: LegalSection[] = [
   {
     title: '5. Family sharing',
     paragraphs: [
-      'When you add family members or friends, you choose who can view and log data for your babies. You are responsible for only inviting people you trust and for removing access when appropriate.',
+      'When you add family members or friends, you choose who can view and log data for your babies, including health and pediatrician visit information. You are responsible for only inviting people you trust and for removing access when appropriate.',
     ],
   },
   {
-    title: '6. Availability and changes',
+    title: '6. Subscriptions and billing',
     paragraphs: [
-      'We may modify, suspend, or discontinue features at any time. We may update these Terms from time to time. If changes are material, we will provide reasonable notice (for example, by posting an updated effective date). Continued use after changes take effect constitutes acceptance.',
+      'Baby Patterns offers free and Pro plans. Pro may include extended history, family sharing alerts, PDF export, weekly email summaries, and other features described on our pricing page.',
+      'Paid subscriptions are processed by Stripe or another payment provider we designate. Billing terms, renewals, and cancellations are shown at checkout and in your account settings. Payment card details are handled by the payment provider, not stored directly by us.',
     ],
   },
   {
-    title: '7. Disclaimer and limitation of liability',
+    title: '7. Availability and changes',
+    paragraphs: [
+      'We may modify, suspend, or discontinue features at any time. We may update these Terms from time to time. If changes are material, we will provide reasonable notice (for example, by posting an updated effective date and, where appropriate, asking you to accept the revised Terms). Continued use after changes take effect constitutes acceptance.',
+    ],
+  },
+  {
+    title: '8. Disclaimer and limitation of liability',
     paragraphs: [
       'THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.',
       'TO THE MAXIMUM EXTENT PERMITTED BY LAW, BABY PATTERNS AND ITS OPERATORS WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF DATA, PROFITS, OR GOODWILL, ARISING FROM YOUR USE OF THE SERVICE.',
     ],
   },
   {
-    title: '8. Termination',
+    title: '9. Termination',
     paragraphs: [
       'You may stop using the Service at any time and may delete your account through available account features where supported.',
       'We may suspend or terminate access if you violate these Terms or if necessary to protect the Service or other users.',
     ],
   },
   {
-    title: '9. Contact',
+    title: '10. Contact',
     paragraphs: [
       'Questions about these Terms may be sent to the contact address listed on the Baby Patterns website or app.',
     ],
@@ -93,87 +106,100 @@ export const PRIVACY_POLICY: LegalSection[] = [
     bullets: [
       'Account information: username, email, password (stored hashed), phone, birthdate, full name, and location.',
       'Baby profiles: name, birthdate, locations, and optional measurements.',
-      'Tracking logs: diaper, feeding, and sleep entries you or invited family members create.',
+      'Tracking logs: diaper, feeding, sleep, nap, potty, growth, milestone, sickness, injury, and pediatrician visit entries you or invited family members create (including dates, notes, symptoms, care details, hospital or clinic names, provider names, recommendations, and immunizations you enter).',
+      'Reports and exports: aggregated charts, weekly summaries, and PDF reports generated from your logs when you view or download them.',
       'Community content: Parents Corner posts, comments, likes, and product reviews.',
       'Profile media: avatar images you upload.',
-      'Technical data: authentication tokens, basic request metadata needed to secure and operate the API.',
+      'Notifications: in-app notification history; optional browser or device push subscription endpoints when you turn alerts on; notification preferences.',
+      'Email communications: account-related messages (such as welcome, password reset, and Pro trial reminders) and optional weekly summary emails when you enable them (Pro).',
+      'Subscription and billing: plan status, billing interval, and subscription identifiers from our payment provider (such as Stripe customer and subscription IDs). We do not store full payment card numbers.',
+      'Technical data: authentication tokens, basic request metadata, and security logs needed to operate and protect the API.',
     ],
   },
   {
     title: '3. How we use information',
     paragraphs: ['We use collected information to:'],
     bullets: [
-      'Create and manage your account.',
-      'Store and display your tracking data, charts, and reports.',
-      'Enable family sharing you configure.',
+      'Create and manage your account and baby profiles.',
+      'Store, display, and analyze your tracking data, charts, reports, and weekly summaries.',
+      'Enable family sharing and activity alerts you configure.',
       'Operate community features such as Parents Corner and reviews.',
-      'Send in-app notifications about activity you opt into (for example, mentions or likes).',
+      'Send service emails (such as password reset and account notices) and optional weekly summary emails you opt into.',
+      'Deliver push or in-app notifications about mentions, likes, family activity, and tracking updates when enabled.',
+      'Process subscriptions and Pro features through our payment provider.',
       'Maintain security, prevent abuse, and improve reliability.',
       'Comply with legal obligations.',
     ],
   },
   {
-    title: '4. How we share information',
+    title: '4. Health-related information',
+    paragraphs: [
+      'Sickness, injury, and pediatrician visit logs may contain sensitive health-related information that you choose to enter. We use this information only to provide the Service — for example, to display history, include it in reports you request, share it with family members you authorize, and summarize it in optional weekly emails.',
+      'We do not use health-related logs for advertising and we do not sell them.',
+    ],
+  },
+  {
+    title: '5. How we share information',
     paragraphs: [
       'We do not sell your personal information.',
       'We share information only in these situations:',
     ],
     bullets: [
-      'With people you invite: family members you add can access baby tracking data you authorize.',
-      'With service providers: hosting and infrastructure partners (for example, cloud database and deployment providers) that process data on our behalf under contractual safeguards.',
+      'With people you invite: family members you add can access baby tracking data you authorize, including health and pediatrician visit logs.',
+      'With service providers: hosting, email delivery, payment processing (such as Stripe), and infrastructure partners that process data on our behalf under contractual safeguards.',
       'For legal reasons: when required by law or to protect rights, safety, and security.',
-      'With your direction: when you choose to export or share information (for example, PDF reports).',
+      'With your direction: when you export PDF reports, copy weekly summaries, or otherwise choose to share information outside the Service.',
     ],
   },
   {
-    title: '5. Cookies and local storage',
+    title: '6. Cookies and local storage',
     paragraphs: [
-      'The Service uses browser local storage to keep you signed in (access and refresh tokens) and to remember preferences such as theme settings.',
+      'The Service uses browser local storage to keep you signed in (access and refresh tokens), remember preferences such as theme settings, and support optional web push notifications on devices where you enable them.',
       'We do not use third-party advertising cookies in the current version of the Service.',
     ],
   },
   {
-    title: '6. Data retention and deletion',
+    title: '7. Data retention and deletion',
     paragraphs: [
       'We retain account and tracking data while your account is active so the Service can function.',
       'You may delete your account where that feature is available; we will delete or de-identify associated personal data within a reasonable period, except where retention is required by law or for legitimate security purposes.',
     ],
   },
   {
-    title: '7. Security',
+    title: '8. Security',
     paragraphs: [
       'We use industry-standard measures such as hashed passwords, authenticated API access, and encrypted connections (HTTPS) in production.',
       'No method of transmission or storage is completely secure; please use a strong, unique password and protect your device.',
     ],
   },
   {
-    title: '8. Children\'s privacy',
+    title: '9. Children\'s privacy',
     paragraphs: [
       'Baby Patterns is not directed to children under 13 to use on their own. Parents and guardians enter information about their children.',
       'If you believe a child has created an account without appropriate consent, contact us so we can take appropriate action.',
     ],
   },
   {
-    title: '9. Your choices and rights',
+    title: '10. Your choices and rights',
     paragraphs: [
-      'Depending on where you live, you may have rights to access, correct, delete, or export personal information. You can update profile details in the app and remove family sharing connections from your profile settings.',
+      'Depending on where you live, you may have rights to access, correct, delete, or export personal information. You can update profile details in the app, manage notification and weekly email preferences in settings, and remove family sharing connections from your profile settings.',
       'To exercise privacy rights, contact us using the information on our website.',
     ],
   },
   {
-    title: '10. International users',
+    title: '11. International users',
     paragraphs: [
       'If you access the Service from outside the United States, your information may be processed in the United States or other countries where our service providers operate, which may have different data protection laws.',
     ],
   },
   {
-    title: '11. Changes to this policy',
+    title: '12. Changes to this policy',
     paragraphs: [
       'We may update this Privacy Policy from time to time. We will post the revised policy with an updated "Last updated" date. Material changes may require renewed acceptance at signup or login.',
     ],
   },
   {
-    title: '12. Contact',
+    title: '13. Contact',
     paragraphs: [
       'Privacy questions may be sent to the contact address listed on the Baby Patterns website or app.',
     ],

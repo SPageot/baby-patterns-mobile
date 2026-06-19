@@ -2,6 +2,7 @@ import { Stack, useSegments } from 'expo-router'
 import { View } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 
+import { LegalAcceptModal } from '@/components/auth/LegalAcceptModal'
 import { PushNotificationHandler } from '@/components/notifications/PushNotificationHandler'
 import { SplashController } from '@/components/SplashController'
 import { useAppFonts } from '@/hooks/useAppFonts'
@@ -56,6 +57,7 @@ export default function RootLayout() {
             <SplashController fontsReady={fontsLoaded} />
             <BillingReturnHandler />
             <PushNotificationHandler />
+            <LegalAcceptModal />
             <NavMenuProvider>
               <AppShell />
             </NavMenuProvider>

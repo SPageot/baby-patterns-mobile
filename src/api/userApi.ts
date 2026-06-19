@@ -180,6 +180,8 @@ function normalizeUser(raw: unknown, options?: NormalizeUserOptions): User | nul
       pickUserField(payload, envelope, 'proBillingInterval', 'ProBillingInterval') || null,
     proCurrentPeriodEnd:
       pickUserField(payload, envelope, 'proCurrentPeriodEnd', 'ProCurrentPeriodEnd') || null,
+    legalPolicyVersion:
+      pickUserField(payload, envelope, 'legalPolicyVersion', 'LegalPolicyVersion') || null,
   }
 }
 

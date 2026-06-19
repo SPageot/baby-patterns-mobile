@@ -22,6 +22,7 @@ export type User = UserAccountFields & {
   subscriptionStatus?: string
   proBillingInterval?: string | null
   proCurrentPeriodEnd?: string | null
+  legalPolicyVersion?: string | null
 }
 
 export type BabySignup = {
