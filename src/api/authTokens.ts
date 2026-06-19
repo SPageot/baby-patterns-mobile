@@ -54,6 +54,15 @@ function unwrapAuthPayload(data: unknown): Record<string, unknown> {
     : {}
 }
 
+export function extractMfaChallenge(data: unknown): { challengeToken: string } | null {
+  const payload = unwrapAuthPayload(data)
+  const mfaRequired = payload.mfaRequired === true || payload.MfaRequired === true
+  if (!mfaRequired) return null
+  const challengeToken = pickStr(payload, 'mfaChallengeToken', 'MfaChallengeToken')
+  if (!challengeToken) return null
+  return { challengeToken }
+}
+
 export function extractAuthTokens(data: unknown): AuthSession | null {
   const payload = unwrapAuthPayload(data)
   const accessToken = pickStr(

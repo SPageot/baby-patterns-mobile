@@ -20,6 +20,7 @@ import {
 import { loadSicknessForBabies } from '@/api/sicknessApi'
 import { loadSleepLogsForBabies } from '@/api/sleepApi'
 import { isApiConfigured } from '@/api/config'
+import { recordPdfExportAudit } from '@/api/auditApi'
 import { fetchCurrentUser, updateUser, uploadUserAvatar, deleteUserAvatar } from '@/api/userApi'
 import { prepareAvatarUpload } from '@/lib/avatarUpload'
 import { useDeferredEffect } from '@/lib/scheduleEffect'
@@ -409,6 +410,11 @@ export function useProfile() {
       setPediatricianRows(pediatricianVisits)
 
       const parentName = user?.fullName?.trim() || user?.username?.trim() || 'Parent'
+      await recordPdfExportAudit({
+        source: 'profile',
+        babyCount: ownBabies.length,
+        includeAnalysis: false,
+      })
       const { downloadTrackingReportPdf } = await import('@/lib/trackingReportPdf')
       await downloadTrackingReportPdf({
         logs,

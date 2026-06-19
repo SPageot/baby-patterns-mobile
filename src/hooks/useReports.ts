@@ -10,6 +10,7 @@ import { loadMilestonesForBabies } from '@/api/milestoneApi'
 import { loadSicknessForBabies } from '@/api/sicknessApi'
 import { loadSleepLogsForBabies } from '@/api/sleepApi'
 import { isApiConfigured } from '@/api/config'
+import { recordPdfExportAudit } from '@/api/auditApi'
 import { useApp } from '@/context/AppContext'
 import type { LogRecord } from '@/types/babyLog'
 import type { GrowthMeasurementDto, MilestoneDto } from '@/types/growth'
@@ -127,6 +128,12 @@ export function useReports() {
     setError(null)
     try {
       const parentName = user?.fullName?.trim() || user?.username?.trim() || 'Parent'
+      await recordPdfExportAudit({
+        source: 'reports',
+        rangeDays,
+        babyCount: ownBabies.length,
+        includeAnalysis: true,
+      })
       const { downloadTrackingReportPdf } = await import('@/lib/trackingReportPdf')
       await downloadTrackingReportPdf({
         logs,

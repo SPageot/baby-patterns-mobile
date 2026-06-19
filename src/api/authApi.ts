@@ -3,6 +3,7 @@ import { clearAuthSession, getAccessToken, getRefreshToken } from '@/lib/authSes
 
 export {
   extractAuthTokens,
+  extractMfaChallenge,
   extractUserIdFromAccessToken,
   persistAuthTokens,
   refreshAccessToken,

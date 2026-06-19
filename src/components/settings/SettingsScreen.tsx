@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { BillingSettingsSection } from '@/components/settings/BillingSettingsSection'
 import { DeleteAccountModal } from '@/components/settings/DeleteAccountModal'
 import { SettingsTabs, isSettingsTabId, type SettingsTabId } from '@/components/settings/SettingsTabs'
+import { MfaSettingsSection } from '@/components/settings/MfaSettingsSection'
 import { PushNotificationSettingsSection } from '@/components/settings/PushNotificationSettingsSection'
 import { WeeklySummarySettingsSection } from '@/components/settings/WeeklySummarySettingsSection'
 import { HomeButton } from '@/components/home/HomeButton'
@@ -170,7 +171,7 @@ export function SettingsScreen() {
     <Screen style={{ paddingTop: 0 }}>
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <SectionTitle>Account settings</SectionTitle>
-        <Subtitle>Manage your password, subscription, notifications, and account.</Subtitle>
+        <Subtitle>Manage your password, security, subscription, notifications, and account.</Subtitle>
 
         <SettingsTabs
           active={activeTab}
@@ -197,6 +198,12 @@ export function SettingsScreen() {
             <Input secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword} editable={!saving} />
 
             <Button title={saving ? 'Updating…' : 'Update password'} disabled={saving} onPress={() => void onSubmit()} />
+          </Card>
+        ) : null}
+
+        {activeTab === 'security' ? (
+          <Card>
+            <MfaSettingsSection />
           </Card>
         ) : null}
 

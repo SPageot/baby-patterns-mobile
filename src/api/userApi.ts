@@ -1,4 +1,4 @@
-import { persistAuthTokens, resolveAuthenticatedUserId } from '@/api/authApi'
+import { extractMfaChallenge, persistAuthTokens, resolveAuthenticatedUserId } from '@/api/authApi'
 import { apiFetch, RequestTimeoutError, UnauthorizedError } from '@/api/client'
 import { getApiBaseUrl, getMediaBaseUrl } from '@/api/config'
 import { bumpAvatarCache, readAvatarCacheBust, wasAvatarRecentlyUpdated } from '@/lib/avatarCache'
@@ -440,7 +440,17 @@ export async function searchUsers(query: string, limit = 8): Promise<UserSearchR
     .filter((u): u is UserSearchResult => u != null)
 }
 
-/** POST `api/auth/login` — stores tokens and loads the user profile. */
+/** POST `api/auth/login` — stores tokens and loads the user profile, or throws MfaRequiredError. */
+export class MfaRequiredError extends Error {
+  readonly challengeToken: string
+
+  constructor(challengeToken: string) {
+    super('Two-factor authentication required.')
+    this.name = 'MfaRequiredError'
+    this.challengeToken = challengeToken
+  }
+}
+
 export async function loginUser(credentials: LoginCredentials): Promise<User> {
   try {
     const data = await apiFetch<unknown>(
@@ -455,6 +465,11 @@ export async function loginUser(credentials: LoginCredentials): Promise<User> {
       { skipAuth: true, skipRefresh: true },
     )
 
+    const mfa = extractMfaChallenge(data)
+    if (mfa) {
+      throw new MfaRequiredError(mfa.challengeToken)
+    }
+
     const tokens = await persistAuthTokens(data)
     if (!tokens) {
       throw new UnauthorizedError(INVALID_LOGIN_CREDENTIALS_MESSAGE)
@@ -462,7 +477,7 @@ export async function loginUser(credentials: LoginCredentials): Promise<User> {
 
     return fetchCurrentUser(credentials.username)
   } catch (e) {
-    if (e instanceof RequestTimeoutError) throw e
+    if (e instanceof MfaRequiredError || e instanceof RequestTimeoutError) throw e
     throw new UnauthorizedError(resolveLoginErrorMessage(e))
   }
 }
