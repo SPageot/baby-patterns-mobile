@@ -2,6 +2,12 @@ import type { ExpoConfig, ConfigContext } from 'expo/config'
 
 const allowCleartext = process.env.EXPO_PUBLIC_ALLOW_CLEARTEXT === 'true'
 
+const splash = {
+  backgroundColor: '#000000',
+  image: './assets/images/splash-icon.png',
+  resizeMode: 'contain' as const,
+}
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Baby Patterns',
@@ -18,7 +24,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: 'com.babypatterns.app',
     adaptiveIcon: {
-      backgroundColor: '#EDE6FA',
+      backgroundColor: '#000000',
       foregroundImage: './assets/images/android-icon-foreground.png',
       backgroundImage: './assets/images/android-icon-background.png',
       monochromeImage: './assets/images/android-icon-monochrome.png',
@@ -35,30 +41,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-splash-screen',
       {
-        backgroundColor: '#F8F4FF',
-        image: './assets/images/splash.png',
-        resizeMode: 'cover',
-        dark: {
-          backgroundColor: '#0a0c10',
-          image: './assets/images/splash-dark.png',
-          resizeMode: 'cover',
-        },
-        android: {
-          image: './assets/images/splash.png',
-          resizeMode: 'cover',
-          dark: {
-            image: './assets/images/splash-dark.png',
-            resizeMode: 'cover',
-          },
-        },
-        ios: {
-          image: './assets/images/splash.png',
-          resizeMode: 'cover',
-          dark: {
-            image: './assets/images/splash-dark.png',
-            resizeMode: 'cover',
-          },
-        },
+        ...splash,
+        dark: splash,
+        android: splash,
+        ios: splash,
       },
     ],
     '@react-native-community/datetimepicker',
