@@ -78,6 +78,7 @@ export function AddBabyScreen() {
   const [fieldErrors, setFieldErrors] = useState<ValidationIssue[]>([])
   const [submitting, setSubmitting] = useState(false)
   const inFlight = useRef(false)
+  const agePreview = useMemo(() => formatBabyAge(babyBirthdate), [babyBirthdate])
 
   const resetForm = useCallback(() => {
     setBabyName('')
@@ -170,7 +171,6 @@ export function AddBabyScreen() {
   }
 
   const firstFieldError = fieldErrors[0]?.message
-  const agePreview = useMemo(() => formatBabyAge(babyBirthdate), [babyBirthdate])
 
   return (
     <Screen style={{ paddingTop: 0 }}>

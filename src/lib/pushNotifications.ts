@@ -1,25 +1,35 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import Constants from 'expo-constants'
 import * as Device from 'expo-device'
-import * as Notifications from 'expo-notifications'
 import { Platform } from 'react-native'
 
 import { registerExpoPushToken, unregisterExpoPushToken } from '@/api/pushApi'
+import { canUseExpoNotifications, loadExpoNotifications } from '@/lib/expoNotifications'
 
 const PUSH_ENABLED_KEY = 'bp.expoPushEnabled'
 const PUSH_TOKEN_KEY = 'bp.expoPushToken'
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-})
+let handlerInstalled = false
+
+async function ensureNotificationHandler(): Promise<void> {
+  if (handlerInstalled || !canUseExpoNotifications()) return
+
+  const Notifications = await loadExpoNotifications()
+  if (!Notifications) return
+
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+    }),
+  })
+  handlerInstalled = true
+}
 
 export function isExpoPushSupported(): boolean {
-  return Device.isDevice
+  return canUseExpoNotifications() && Device.isDevice
 }
 
 export async function getStoredExpoPushEnabled(): Promise<boolean> {
@@ -64,7 +74,9 @@ function getExpoProjectId(): string | undefined {
   return typeof projectId === 'string' && projectId.trim() ? projectId.trim() : undefined
 }
 
-async function ensureAndroidChannel(): Promise<void> {
+async function ensureAndroidChannel(
+  Notifications: NonNullable<Awaited<ReturnType<typeof loadExpoNotifications>>>,
+): Promise<void> {
   if (Platform.OS !== 'android') return
 
   await Notifications.setNotificationChannelAsync('default', {
@@ -77,8 +89,15 @@ async function ensureAndroidChannel(): Promise<void> {
 
 export async function subscribeToExpoPush(): Promise<string> {
   if (!isExpoPushSupported()) {
-    throw new Error('Push notifications require a physical device.')
+    throw new Error('Push notifications require a development build on a physical device.')
   }
+
+  const Notifications = await loadExpoNotifications()
+  if (!Notifications) {
+    throw new Error('Push notifications are not available in this environment.')
+  }
+
+  await ensureNotificationHandler()
 
   const permission = await Notifications.getPermissionsAsync()
   let finalStatus = permission.status
@@ -91,7 +110,7 @@ export async function subscribeToExpoPush(): Promise<string> {
     throw new Error('Notification permission was denied.')
   }
 
-  await ensureAndroidChannel()
+  await ensureAndroidChannel(Notifications)
 
   const projectId = getExpoProjectId()
   const tokenResponse = projectId
@@ -126,6 +145,9 @@ export async function unsubscribeFromExpoPush(): Promise<void> {
 export async function syncExpoPushSubscriptionIfEnabled(): Promise<void> {
   if (!isExpoPushSupported() || !(await getStoredExpoPushEnabled())) return
 
+  const Notifications = await loadExpoNotifications()
+  if (!Notifications) return
+
   const permission = await Notifications.getPermissionsAsync()
   if (permission.status !== 'granted') return
 
@@ -138,6 +160,9 @@ export async function syncExpoPushSubscriptionIfEnabled(): Promise<void> {
 
 export async function isExpoPushSubscribed(): Promise<boolean> {
   if (!isExpoPushSupported()) return false
+
+  const Notifications = await loadExpoNotifications()
+  if (!Notifications) return false
 
   const permission = await Notifications.getPermissionsAsync()
   if (permission.status !== 'granted') return false

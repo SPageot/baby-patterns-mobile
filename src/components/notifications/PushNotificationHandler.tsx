@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
-import * as Notifications from 'expo-notifications'
 import { useRouter } from 'expo-router'
+
+import { canUseExpoNotifications, loadExpoNotifications } from '@/lib/expoNotifications'
 
 function routeFromNotificationData(data: Record<string, unknown> | undefined): string | null {
   const url = data?.url
@@ -12,21 +13,30 @@ export function PushNotificationHandler() {
   const router = useRouter()
 
   useEffect(() => {
-    const navigateFromResponse = (response: Notifications.NotificationResponse | null) => {
-      const route = routeFromNotificationData(
-        response?.notification.request.content.data as Record<string, unknown> | undefined,
-      )
-      if (route) router.push(route as never)
-    }
+    if (!canUseExpoNotifications()) return
 
-    const last = Notifications.getLastNotificationResponse()
-    if (last) navigateFromResponse(last)
+    let sub: { remove: () => void } | undefined
 
-    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
-      navigateFromResponse(response)
-    })
+    void (async () => {
+      const Notifications = await loadExpoNotifications()
+      if (!Notifications) return
 
-    return () => sub.remove()
+      const navigateFromResponse = (response: Notifications.NotificationResponse | null) => {
+        const route = routeFromNotificationData(
+          response?.notification.request.content.data as Record<string, unknown> | undefined,
+        )
+        if (route) router.push(route as never)
+      }
+
+      const last = Notifications.getLastNotificationResponse()
+      if (last) navigateFromResponse(last)
+
+      sub = Notifications.addNotificationResponseReceivedListener((response) => {
+        navigateFromResponse(response)
+      })
+    })()
+
+    return () => sub?.remove()
   }, [router])
 
   return null
