@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { NavIcon } from '@/components/icons/NavIcon'
 import { AccountMenu } from '@/components/nav/AccountMenu'
+import { BrandMark } from '@/components/nav/BrandMark'
 import { NotificationsMenu } from '@/components/notifications/NotificationsMenu'
 import { HomeButton } from '@/components/home/HomeButton'
 import { UserAvatar } from '@/components/ui/UserAvatar'
@@ -134,6 +135,7 @@ export function Navbar() {
             onPress={() => router.push(user ? '/profile' : '/')}
             style={({ pressed }) => [styles.brand, pressed && styles.pressed]}
           >
+            <BrandMark size={32} />
             <Text style={styles.brandName}>Baby Patterns</Text>
           </Pressable>
         </View>

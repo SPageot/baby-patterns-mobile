@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { getBabyId, isApiConfigured } from '@/api/config'
 import {
@@ -78,6 +78,21 @@ export function useSleepLogs() {
     if (patch.sleepNap !== undefined) setSleepNap(patch.sleepNap)
   }, [])
 
+  const seedSleepTimesToNow = useCallback(() => {
+    setSleepDate(nowUtcDateValue())
+    setSleepStart(nowUtcTimeValue())
+    setSleepEnd(nowUtcTimeValue())
+  }, [])
+
+  const prevFormOpen = useRef(false)
+  useEffect(() => {
+    const justOpened = formOpen && !prevFormOpen.current
+    prevFormOpen.current = formOpen
+    if (justOpened && !editingLogId.trim()) {
+      seedSleepTimesToNow()
+    }
+  }, [formOpen, editingLogId, seedSleepTimesToNow])
+
   const todaySleep = useMemo(() => todayCount(sleepLogs, 'sleep'), [sleepLogs])
   const busyLogId = deletingLogId
 
@@ -148,9 +163,7 @@ export function useSleepLogs() {
     setSleepTeething(false)
     setSleepSick(false)
     setSleepNap(false)
-    setSleepDate(nowUtcDateValue())
-    setSleepStart(nowUtcTimeValue())
-    setSleepEnd(nowUtcTimeValue())
+    seedSleepTimesToNow()
     multi.resetMultiBabyFlow('')
   }
 
@@ -180,13 +193,13 @@ export function useSleepLogs() {
       ''
 
     const startIso = d.sleepStartTime || d.start || log.atIso
-    const endIso = d.sleepEndTime || d.end || log.atIso
+    const endIso = d.sleepEndTime || d.end || ''
 
     setEditingLogId(log.id)
     setFormBabyId(babyId || selectedBabyId || getBabyId() || '')
     setSleepDate(d.sleepDate?.trim() || isoToUtcDateValue(startIso) || nowUtcDateValue())
     setSleepStart(isoToUtcTimeValue(startIso))
-    setSleepEnd(isoToUtcTimeValue(endIso))
+    setSleepEnd(endIso ? isoToUtcTimeValue(endIso) : nowUtcTimeValue())
     setSleepMood(d.sleepMood?.trim() ?? '')
     setSleepEnvironment(d.sleepEnvironment?.trim() ?? '')
     setSleepTeething(d.isTeething === 'true')
@@ -200,6 +213,11 @@ export function useSleepLogs() {
     setFormOpen(false)
     resetForm()
   }
+
+  const backToEntry = useCallback(() => {
+    multi.backToEntry()
+    if (!editingLogId.trim()) seedSleepTimesToNow()
+  }, [multi, editingLogId, seedSleepTimesToNow])
 
   const onDeleteSleep = (log: LogRecord) => {
     const logId = log.id?.trim()
@@ -267,7 +285,7 @@ export function useSleepLogs() {
         setError('Enter a sleep environment.')
         return
       }
-      setError('Enter valid start and end times.')
+      setError('Enter a valid sleep start time.')
       return
     }
 
@@ -328,7 +346,7 @@ export function useSleepLogs() {
     isMultiCreate: multi.isMultiCreate,
     reviewDrafts: multi.reviewDrafts as MultiBabyDraft<SleepLogCreate>[],
     updateReviewDraft: multi.updateReviewDraftFields,
-    backToEntry: multi.backToEntry,
+    backToEntry,
     formState,
     setFormState,
     editingLogId,

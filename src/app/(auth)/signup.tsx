@@ -19,6 +19,7 @@ import {
   Subtitle,
   Title,
 } from '@/components/ui/primitives'
+import { AuthBrandMark } from '@/components/auth/AuthBrandMark'
 import { useApp } from '@/context/AppContext'
 import type { AppPalette } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
@@ -118,6 +119,7 @@ export default function SignupScreen() {
     <Screen>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
         <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <AuthBrandMark />
           <Eyebrow>Get started</Eyebrow>
           <Title>Create </Title>
           <AccentTitle>account</AccentTitle>

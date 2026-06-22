@@ -4,6 +4,7 @@ import { Link, useRouter } from 'expo-router'
 import { Image } from 'expo-image'
 
 import { HomeButton } from '@/components/home/HomeButton'
+import { BrandMark } from '@/components/nav/BrandMark'
 import {
   HOME_HERO,
   homeAbout,
@@ -62,7 +63,7 @@ export function HomeSections() {
         <View style={styles.heroInner}>
           <View style={styles.heroBadge}>
             <View style={styles.heroBadgeIcon}>
-              <Text style={styles.heroBadgeEmoji}>👶</Text>
+              <BrandMark size={22} />
             </View>
             <Text style={styles.heroBadgeText}>{HOME_HERO.badge}</Text>
           </View>
@@ -274,12 +275,9 @@ const createStyles = (t: AppPalette) => ({
     width: 22,
     height: 22,
     borderRadius: 6,
+    overflow: 'hidden' as const,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
-    backgroundColor: t.heroBadgeIconBg,
-  },
-  heroBadgeEmoji: {
-    fontSize: 12,
   },
   heroBadgeText: {
     color: t.heroBadgeText,

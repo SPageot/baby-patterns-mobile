@@ -1,38 +1,29 @@
-import { Text, View } from 'react-native'
+import { Image } from 'expo-image'
+import { View } from 'react-native'
 
-import type { AppPalette } from '@/constants/homeTheme'
-import { useHomeTheme } from '@/hooks/useHomeTheme'
-import { useThemedStyles } from '@/hooks/useThemedStyles'
+type Props = {
+  size?: number
+}
 
-const createStyles = (t: AppPalette) => ({
-  mark: {
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    borderWidth: 1,
-    borderColor: t.accentLavender,
-  },
-  emoji: {
-    lineHeight: 18,
-  },
-})
-
-export function BrandMark({ size = 32 }: { size?: number }) {
-  const palette = useHomeTheme()
-  const styles = useThemedStyles(createStyles)
+export function BrandMark({ size = 32 }: Props) {
+  const radius = size * 0.14
 
   return (
     <View
-      style={[
-        styles.mark,
-        {
-          width: size,
-          height: size,
-          borderRadius: size * 0.28,
-          backgroundColor: palette.accentSoft,
-        },
-      ]}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: radius,
+        overflow: 'hidden',
+        backgroundColor: '#000000',
+      }}
     >
-      <Text style={[styles.emoji, { fontSize: size * 0.44 }]}>👶</Text>
+      <Image
+        source={require('@/assets/images/icon.png')}
+        style={{ width: size, height: size }}
+        contentFit="contain"
+        accessibilityIgnoresInvertColors
+      />
     </View>
   )
 }

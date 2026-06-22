@@ -132,9 +132,9 @@ export type SleepLogCreate = {
 /** Build a SleepLogCreate from stored `LogRecord` details + `atIso` (legacy `start` / `end` supported). */
 export function sleepLogFromDetails(details: Record<string, string>, atIso: string): SleepLogCreate {
   const startIso = details.sleepStartTime || details.start || ''
-  const endIso = details.sleepEndTime || details.end || atIso
+  const endIso = details.sleepEndTime || details.end || ''
   const startD = startIso ? new Date(startIso) : null
-  const endD = endIso ? new Date(endIso) : new Date(atIso)
+  const endD = endIso ? new Date(endIso) : null
   let durationMin = 0
   if (details.sleepDuration != null && details.sleepDuration !== '') {
     const n = Number(details.sleepDuration)

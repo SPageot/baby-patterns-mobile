@@ -17,6 +17,7 @@ import {
   Subtitle,
   Title,
 } from '@/components/ui/primitives'
+import { AuthBrandMark } from '@/components/auth/AuthBrandMark'
 import type { AppPalette } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 
@@ -116,6 +117,7 @@ export default function ResetPasswordScreen() {
     <Screen>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
         <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <AuthBrandMark />
           <Eyebrow>Account help</Eyebrow>
           <Title>Reset </Title>
           <AccentTitle>password</AccentTitle>

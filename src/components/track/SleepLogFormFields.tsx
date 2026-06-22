@@ -13,6 +13,7 @@ import {
   formatMinutesHuman,
   isoToUtcTimeValue,
   minutesBetweenUtcSleepTimes,
+  nowUtcTimeValue,
   sleepTimesToUtcIso,
 } from '@/lib/trackUtils'
 import { Spacing } from '@/constants/theme'
@@ -29,13 +30,20 @@ export type SleepFormState = {
 }
 
 export function sleepFormStateToCreate(state: SleepFormState): SleepLogCreate | null {
-  const times = sleepTimesToUtcIso(state.sleepDate.trim(), state.sleepStart, state.sleepEnd)
-  const durationMin = minutesBetweenUtcSleepTimes(state.sleepDate.trim(), state.sleepStart, state.sleepEnd)
-  if (!times || durationMin == null) return null
+  const date = state.sleepDate.trim()
+  const start = state.sleepStart.trim()
+  if (!date || !start) return null
+
+  const hasEnd = Boolean(state.sleepEnd.trim())
+  const times = sleepTimesToUtcIso(date, start, state.sleepEnd)
+  if (!times) return null
+
+  const durationMin = hasEnd ? minutesBetweenUtcSleepTimes(date, start, state.sleepEnd) : 0
+  if (hasEnd && durationMin == null) return null
 
   return sleepFieldsToUtc({
-    sleepDate: state.sleepDate.trim(),
-    sleepDuration: String(durationMin),
+    sleepDate: date,
+    sleepDuration: String(durationMin ?? 0),
     sleepMood: state.sleepMood.trim(),
     sleepStartTime: times.startIso,
     sleepEndTime: times.endIso,
@@ -50,7 +58,7 @@ export function sleepCreateToFormState(fields: SleepLogCreate): SleepFormState {
   return {
     sleepDate: fields.sleepDate,
     sleepStart: isoToUtcTimeValue(fields.sleepStartTime),
-    sleepEnd: isoToUtcTimeValue(fields.sleepEndTime),
+    sleepEnd: fields.sleepEndTime?.trim() ? isoToUtcTimeValue(fields.sleepEndTime) : nowUtcTimeValue(),
     sleepMood: fields.sleepMood,
     sleepEnvironment: fields.sleepEnvironment,
     sleepTeething: Boolean(fields.isTeething),
@@ -69,7 +77,9 @@ export function sleepDraftSummary(fields: SleepLogCreate): string {
   }
   if (fields.sleepDuration) {
     const min = Number(fields.sleepDuration)
-    if (Number.isFinite(min)) parts.push(formatMinutesHuman(min))
+    if (Number.isFinite(min) && min > 0) parts.push(formatMinutesHuman(min))
+  } else if (!fields.sleepEndTime?.trim()) {
+    parts.push('In progress')
   }
   return parts.join(' · ') || 'Tap to edit'
 }
@@ -111,6 +121,20 @@ const createStyles = (t: AppPalette) => ({
     fontWeight: '600' as const,
     color: t.textMuted,
   },
+  endLabelRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    gap: 8,
+  },
+  clearEndBtn: {
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+  },
+  clearEndText: {
+    fontSize: 13,
+    fontWeight: '700' as const,
+  },
   durationValue: {
     fontSize: 16,
     fontWeight: '800' as const,
@@ -136,6 +160,7 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
   const set = (patch: Partial<SleepFormState>) => setState(patch)
 
   const durationPreview = useMemo(() => {
+    if (!state.sleepEnd.trim()) return state.sleepStart.trim() ? 'In progress' : '—'
     const m = minutesBetweenUtcSleepTimes(state.sleepDate, state.sleepStart, state.sleepEnd)
     return m == null ? '—' : formatMinutesHuman(m)
   }, [state.sleepDate, state.sleepStart, state.sleepEnd])
@@ -166,12 +191,28 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
         zone="utc"
       />
 
+      <View style={styles.endLabelRow}>
+        <Label>Sleep end (UTC, optional)</Label>
+        {state.sleepEnd ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Clear sleep end time"
+            onPress={() => set({ sleepEnd: '' })}
+            disabled={disabled}
+            style={styles.clearEndBtn}
+          >
+            <Text style={[styles.clearEndText, { color: accent }]}>Clear</Text>
+          </Pressable>
+        ) : null}
+      </View>
       <DateTimeField
-        label="Sleep end (UTC)"
+        label="Sleep end (UTC, optional)"
+        hideLabel
         value={state.sleepEnd}
         onChange={(v) => set({ sleepEnd: v })}
         mode="time"
         zone="utc"
+        placeholder="Optional — leave blank if still sleeping"
       />
 
       <View style={styles.durationRow}>
@@ -211,7 +252,7 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
       />
 
       <Text style={styles.hint}>
-        Enter the sleep date, then start and end times in UTC. If end is earlier than start, it counts as the next day.
+        Enter the sleep date and start time in UTC. End time is optional — leave blank for sleep in progress. If end is earlier than start, it counts as the next day.
       </Text>
     </>
   )

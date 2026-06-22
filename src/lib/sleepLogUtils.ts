@@ -45,6 +45,7 @@ export function formatSleepDurationDisplay(log: LogRecord): string {
     const min = Math.round((new Date(end).getTime() - new Date(start).getTime()) / 60000)
     if (Number.isFinite(min) && min > 0) return formatMinutesHuman(min)
   }
+  if (start && !end) return 'In progress'
   return '—'
 }
 

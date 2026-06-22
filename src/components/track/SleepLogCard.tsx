@@ -102,9 +102,9 @@ export function SleepLogCard({ log, onEditLog, onDeleteLog, busy = false }: Prop
   const theme = getTrackThemeFromPalette('sleep', palette)
   const styles = useThemedStyles(createStyles)
   const startIso = log.details.sleepStartTime || log.details.start || log.atIso
-  const endIso = log.details.sleepEndTime || log.details.end || log.atIso
+  const endIso = log.details.sleepEndTime || log.details.end || ''
   const { date, time: startTime } = formatSleepUtcStamp(startIso)
-  const { time: endTime } = formatSleepUtcStamp(endIso)
+  const endTime = endIso ? formatSleepUtcStamp(endIso).time : ''
   const babyName = log.details.babyName?.trim()
 
   return (
@@ -131,7 +131,8 @@ export function SleepLogCard({ log, onEditLog, onDeleteLog, busy = false }: Prop
         <View style={styles.aside}>
           <Text style={styles.date}>{date}</Text>
           <Text style={styles.time}>
-            {startTime} – {endTime}
+            {startTime}
+            {endIso ? ` – ${endTime}` : ' · In progress'}
           </Text>
           <Text style={styles.utc}>UTC</Text>
         </View>

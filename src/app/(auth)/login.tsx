@@ -18,6 +18,7 @@ import {
   Subtitle,
   Title,
 } from '@/components/ui/primitives'
+import { AuthBrandMark } from '@/components/auth/AuthBrandMark'
 import { useApp } from '@/context/AppContext'
 import { LegalFooterLinks } from '@/components/legal/LegalFooterLinks'
 import type { AppPalette } from '@/constants/homeTheme'
@@ -143,6 +144,7 @@ export default function LoginScreen() {
     <Screen>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.flex}>
         <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <AuthBrandMark />
           <Eyebrow>Welcome back</Eyebrow>
           <Title>Baby </Title>
           <AccentTitle>Patterns</AccentTitle>

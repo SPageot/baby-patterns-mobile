@@ -70,6 +70,8 @@ export function combineUtcDateAndTime(dateYmd: string, timeHm: string): string {
 
 /** Minutes between sleep start/end times on a given UTC date. End before start = next day. */
 export function minutesBetweenUtcSleepTimes(dateYmd: string, startTime: string, endTime: string) {
+  if (!endTime.trim()) return null
+
   const startDt = combineUtcDateAndTime(dateYmd, startTime)
   const endDt = combineUtcDateAndTime(dateYmd, endTime)
   if (!startDt || !endDt) return null
@@ -92,13 +94,21 @@ export function sleepTimesToUtcIso(
   endTime: string,
 ): { startIso: string; endIso: string } | null {
   const startDt = combineUtcDateAndTime(dateYmd, startTime)
-  const endDt = combineUtcDateAndTime(dateYmd, endTime)
-  if (!startDt || !endDt) return null
+  if (!startDt) return null
 
   const startIso = datetimeUtcInputToIso(startDt)
-  let end = new Date(datetimeUtcInputToIso(endDt))
   const start = new Date(startIso)
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return null
+  if (Number.isNaN(start.getTime())) return null
+
+  if (!endTime.trim()) {
+    return { startIso, endIso: '' }
+  }
+
+  const endDt = combineUtcDateAndTime(dateYmd, endTime)
+  if (!endDt) return null
+
+  let end = new Date(datetimeUtcInputToIso(endDt))
+  if (Number.isNaN(end.getTime())) return null
 
   if (end.getTime() <= start.getTime()) {
     end = new Date(end.getTime() + 24 * 60 * 60 * 1000)

@@ -20,7 +20,8 @@ function sleepTimeToUtcIso(value: string): string {
 /** Normalize sleep form fields for API (times as ISO `…Z`, date as UTC `YYYY-MM-DD`, duration as `HH:MM:SS`). */
 export function sleepFieldsToUtc(fields: SleepLogCreate): SleepLogCreate {
   const sleepStartTime = sleepTimeToUtcIso(fields.sleepStartTime)
-  const sleepEndTime = sleepTimeToUtcIso(fields.sleepEndTime)
+  const sleepEndRaw = fields.sleepEndTime?.trim()
+  const sleepEndTime = sleepEndRaw ? sleepTimeToUtcIso(sleepEndRaw) : ''
   const sleepDateRaw = fields.sleepDate.trim()
   const sleepDate = sleepDateRaw || sleepStartTime.slice(0, 10)
   const sleepDuration = minutesToTimeSpanHms(parseSleepDurationMinutes(fields.sleepDuration))
@@ -174,13 +175,14 @@ function normalizeSleepList(data: unknown): SleepLogDto[] {
 
 function toApiBody(payload: SleepLogWrite): Record<string, unknown> {
   const utc = sleepFieldsToUtc(payload)
+  const endRaw = utc.sleepEndTime?.trim()
   const body: Record<string, unknown> = {
     babyId: payload.babyId.trim(),
     sleepDate: utc.sleepDate,
     sleepDuration: utc.sleepDuration,
     sleepMood: utc.sleepMood,
     sleepStartTime: utc.sleepStartTime,
-    sleepEndTime: utc.sleepEndTime,
+    sleepEndTime: endRaw ? endRaw : null,
     sleepEnvironment: utc.sleepEnvironment,
     isTeething: Boolean(payload.isTeething),
     isSick: Boolean(payload.isSick),

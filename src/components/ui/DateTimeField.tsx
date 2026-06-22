@@ -24,6 +24,7 @@ type Props = {
   mode?: 'date' | 'datetime' | 'time'
   zone?: 'local' | 'utc'
   placeholder?: string
+  hideLabel?: boolean
 }
 
 const createStyles = (t: AppPalette) => ({
@@ -83,6 +84,7 @@ export function DateTimeField({
   mode = 'datetime',
   zone = 'local',
   placeholder = mode === 'date' ? 'Select date' : mode === 'time' ? 'Select time' : 'Select date and time',
+  hideLabel = false,
 }: Props) {
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
@@ -113,7 +115,7 @@ export function DateTimeField({
 
   return (
     <View>
-      <Label>{label}</Label>
+      {hideLabel ? null : <Label>{label}</Label>}
       <View style={styles.row}>
         <Pressable
           accessibilityRole="button"
