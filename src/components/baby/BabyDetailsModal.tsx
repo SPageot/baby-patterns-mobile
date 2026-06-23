@@ -16,7 +16,7 @@ import {
   type BabySignup,
   type ValidationIssue,
 } from '@/schemas/user'
-import { formatBabyAge } from '@/lib/babyAge'
+import { formatBabyAge, formatBabyAgeParts } from '@/lib/babyAge'
 import type { AppPalette } from '@/constants/homeTheme'
 
 type Props = {
@@ -241,7 +241,7 @@ export function BabyDetailsModal({
               {baby.birthdate?.trim()
                 ? formatBabyAge(baby.birthdate) || '—'
                 : baby.age != null && Number.isFinite(baby.age)
-                  ? `${baby.age} year${baby.age === 1 ? '' : 's'}`
+                  ? formatBabyAgeParts({ years: baby.age, months: 0 })
                   : '—'}
             </Text>
           </View>
