@@ -3,7 +3,7 @@ import type { ExpoConfig, ConfigContext } from 'expo/config'
 const allowCleartext = process.env.EXPO_PUBLIC_ALLOW_CLEARTEXT === 'true'
 
 const splash = {
-  backgroundColor: '#000000',
+  backgroundColor: '#ffffff',
   image: './assets/images/splash-icon.png',
   resizeMode: 'contain' as const,
 }
@@ -24,7 +24,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     package: 'com.babypatterns.app',
     adaptiveIcon: {
-      backgroundColor: '#000000',
+      backgroundColor: '#ffffff',
       foregroundImage: './assets/images/android-icon-foreground.png',
       backgroundImage: './assets/images/android-icon-background.png',
       monochromeImage: './assets/images/android-icon-monochrome.png',
@@ -60,7 +60,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-notifications',
       {
         icon: './assets/images/icon.png',
-        color: '#7c5cbf',
+        color: '#8B3FA8',
       },
     ],
   ],

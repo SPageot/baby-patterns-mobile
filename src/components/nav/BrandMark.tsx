@@ -15,7 +15,7 @@ export function BrandMark({ size = 32 }: Props) {
         height: size,
         borderRadius: radius,
         overflow: 'hidden',
-        backgroundColor: '#000000',
+        backgroundColor: '#ffffff',
       }}
     >
       <Image

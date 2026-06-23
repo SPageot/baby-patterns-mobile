@@ -21,7 +21,7 @@ const sourcePath = path.join(
 )
 const outDir = path.join(root, 'assets', 'images')
 
-const BLACK = { r: 0, g: 0, b: 0, alpha: 1 }
+const WHITE = { r: 255, g: 255, b: 255, alpha: 1 }
 
 async function writePng(buffer, name) {
   const file = path.join(outDir, name)
@@ -32,7 +32,7 @@ async function writePng(buffer, name) {
 function squareFromSource(size) {
   return sharp(sourcePath).resize(size, size, {
     fit: 'contain',
-    background: BLACK,
+    background: WHITE,
     position: 'centre',
   })
 }
@@ -50,7 +50,7 @@ async function main() {
   const foreground = await squareFromSource(fgSize).png().toBuffer()
   await writePng(
     await sharp({
-      create: { width: 1024, height: 1024, channels: 4, background: BLACK },
+      create: { width: 1024, height: 1024, channels: 4, background: WHITE },
     })
       .composite([{ input: foreground, top: pad, left: pad }])
       .png()
@@ -60,7 +60,7 @@ async function main() {
 
   await writePng(
     await sharp({
-      create: { width: 1024, height: 1024, channels: 3, background: '#000000' },
+      create: { width: 1024, height: 1024, channels: 3, background: '#ffffff' },
     })
       .png()
       .toBuffer(),
@@ -77,14 +77,14 @@ async function main() {
         bottom: pad,
         left: pad,
         right: pad,
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
+        background: { r: 255, g: 255, b: 255, alpha: 0 },
       })
       .png()
       .toBuffer(),
     'android-icon-monochrome.png',
   )
 
-  // Centered logo for native splash — solid black fills the rest via backgroundColor in app.config.
+  // Centered logo for native splash — white fills the rest via backgroundColor in app.config.
   await writePng(await squareFromSource(512).png().toBuffer(), 'splash-icon.png')
   await writePng(await squareFromSource(48).png().toBuffer(), 'favicon.png')
 }
