@@ -1,3 +1,4 @@
+import { Link, type Href } from 'expo-router'
 import { useState } from 'react'
 import { Image } from 'expo-image'
 import { Linking, Pressable, Text, TextInput, View } from 'react-native'
@@ -208,6 +209,16 @@ const createStyles = (t: AppPalette) => ({
     color: t.text,
     backgroundColor: t.card2,
   },
+  commentGuest: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: t.textMuted,
+    marginTop: 4,
+  },
+  commentGuestLink: {
+    fontWeight: '800' as const,
+    color: t.accentDeep,
+  },
   editInput: {
     minHeight: 100,
     borderWidth: 1,
@@ -276,6 +287,8 @@ type Props = {
   onSaveEdit?: (input: PostSubmitInput) => Promise<void>
   onDelete: () => void
   isSiteDeveloper?: boolean
+  readOnly?: boolean
+  requireAuthHref?: Href
 }
 
 export function PostCard({
@@ -296,6 +309,8 @@ export function PostCard({
   onSaveEdit,
   onDelete,
   isSiteDeveloper: viewerIsSiteDeveloper = false,
+  readOnly = false,
+  requireAuthHref = '/signup',
 }: Props) {
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
@@ -304,6 +319,7 @@ export function PostCard({
   const displayName = post.author.fullName?.trim() || post.author.username || 'Parent'
 
   const handleComment = async () => {
+    if (readOnly) return
     const text = commentText.trim()
     if (!text) return
     setSubmitting(true)
@@ -403,11 +419,19 @@ export function PostCard({
       ) : null}
 
       <View style={styles.actions}>
-        <Pressable onPress={() => void onLike()} style={styles.actionBtn}>
-          <Text style={[styles.actionText, post.likedByMe && styles.actionTextActive]}>
-            ♥ {post.likeCount}
-          </Text>
-        </Pressable>
+        {readOnly ? (
+          <Link href={requireAuthHref} asChild>
+            <Pressable style={styles.actionBtn}>
+              <Text style={styles.actionText}>♥ {post.likeCount}</Text>
+            </Pressable>
+          </Link>
+        ) : (
+          <Pressable onPress={() => void onLike()} style={styles.actionBtn}>
+            <Text style={[styles.actionText, post.likedByMe && styles.actionTextActive]}>
+              ♥ {post.likeCount}
+            </Text>
+          </Pressable>
+        )}
         <Pressable onPress={onToggleComments} style={styles.actionBtn}>
           <Text style={styles.actionText}>💬 {post.commentCount}</Text>
         </Pressable>
@@ -428,33 +452,50 @@ export function PostCard({
                     <AuthorAvatar author={comment.author} />
                     <Text style={styles.commentAuthor}>{commentName}</Text>
                   </View>
-                  <Pressable onPress={() => onLikeComment(comment.id)}>
-                    <Text style={[styles.commentLike, comment.likedByMe && styles.actionTextActive]}>
-                      ♥ {comment.likeCount}
-                    </Text>
-                  </Pressable>
+                  {readOnly ? (
+                    <Link href={requireAuthHref} asChild>
+                      <Pressable>
+                        <Text style={styles.commentLike}>♥ {comment.likeCount}</Text>
+                      </Pressable>
+                    </Link>
+                  ) : (
+                    <Pressable onPress={() => onLikeComment(comment.id)}>
+                      <Text style={[styles.commentLike, comment.likedByMe && styles.actionTextActive]}>
+                        ♥ {comment.likeCount}
+                      </Text>
+                    </Pressable>
+                  )}
                 </View>
                 <Text style={styles.commentBody}>{comment.content}</Text>
               </View>
             )
           })}
-          <View style={styles.commentForm}>
-            <TextInput
-              value={commentText}
-              onChangeText={setCommentText}
-              placeholder="Write a comment…"
-              placeholderTextColor={palette.textMuted}
-              style={styles.commentInput}
-              maxLength={500}
-            />
-            <Button
-              title="Reply"
-              variant="secondary"
-              disabled={submitting || !commentText.trim()}
-              loading={submitting}
-              onPress={() => void handleComment()}
-            />
-          </View>
+          {readOnly ? (
+            <Text style={styles.commentGuest}>
+              <Link href={requireAuthHref}>
+                <Text style={styles.commentGuestLink}>Sign up</Text>
+              </Link>
+              {' '}to reply and join the conversation.
+            </Text>
+          ) : (
+            <View style={styles.commentForm}>
+              <TextInput
+                value={commentText}
+                onChangeText={setCommentText}
+                placeholder="Write a comment…"
+                placeholderTextColor={palette.textMuted}
+                style={styles.commentInput}
+                maxLength={500}
+              />
+              <Button
+                title="Reply"
+                variant="secondary"
+                disabled={submitting || !commentText.trim()}
+                loading={submitting}
+                onPress={() => void handleComment()}
+              />
+            </View>
+          )}
         </View>
       ) : null}
     </View>

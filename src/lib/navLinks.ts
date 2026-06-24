@@ -46,7 +46,13 @@ export function getVisibleNavLinks(options: {
   const { user } = options
 
   if (!user) {
-    return NAV_LINKS.filter((link) => link.href === '/' || link.href === '/pricing')
+    return NAV_LINKS.filter(
+      (link) =>
+        link.href === '/' ||
+        link.href === '/pricing' ||
+        link.href === '/parents-corner' ||
+        link.href === '/reviews',
+    )
   }
 
   return NAV_LINKS.filter((link) => {

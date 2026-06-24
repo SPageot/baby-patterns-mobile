@@ -3,7 +3,7 @@ import { Link } from 'expo-router'
 
 import { PostCard } from '@/components/parentsCorner/PostCard'
 import { PostComposer } from '@/components/parentsCorner/PostComposer'
-import { Eyebrow, ErrorText } from '@/components/ui/primitives'
+import { Button, Eyebrow, ErrorText } from '@/components/ui/primitives'
 import { NavIcon } from '@/components/icons/NavIcon'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
@@ -26,13 +26,6 @@ const createStyles = (t: AppPalette) => ({
     paddingHorizontal: Spacing.three,
     paddingBottom: Spacing.five,
     paddingTop: Spacing.two,
-  },
-  guestContent: {
-    flexGrow: 1,
-    paddingHorizontal: Spacing.three,
-    paddingTop: Spacing.two,
-    paddingBottom: Spacing.five,
-    justifyContent: 'center' as const,
   },
   hero: {
     marginBottom: Spacing.three,
@@ -58,20 +51,24 @@ const createStyles = (t: AppPalette) => ({
     lineHeight: 22,
     color: t.textMuted,
   },
-  guestActions: {
-    flexDirection: 'row' as const,
-    gap: 16,
-    marginTop: Spacing.three,
+  joinBar: {
+    borderRadius: HomeRadius.xl,
+    borderWidth: 1,
+    borderColor: t.strokeSubtle,
+    backgroundColor: t.accentSoft,
+    padding: Spacing.three,
+    marginBottom: Spacing.three,
+    gap: Spacing.two,
   },
-  loginLink: {
-    fontSize: 15,
-    fontWeight: '800' as const,
-    color: t.accentDeep,
-  },
-  signupLink: {
-    fontSize: 15,
-    fontWeight: '700' as const,
+  joinText: {
+    fontSize: 14,
+    lineHeight: 22,
     color: t.textMuted,
+  },
+  joinActions: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    gap: 10,
   },
   status: {
     color: t.textMuted,
@@ -105,35 +102,11 @@ export function ParentsCornerScreen() {
   const styles = useThemedStyles(createStyles)
   const { user, authReady } = useApp()
   const confirm = useConfirmAction()
-  const corner = useParentsCorner(Boolean(user?.id), user?.id)
+  const isLoggedIn = Boolean(user?.id)
+  const corner = useParentsCorner(authReady && isApiConfigured(), user?.id)
 
   if (!authReady) {
     return <Text style={styles.status}>Loading…</Text>
-  }
-
-  if (!user) {
-    return (
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.guestContent}>
-        <View style={styles.hero}>
-          <View style={styles.iconWrap}>
-            <NavIcon name="users" size={22} color={palette.accentDeep} />
-          </View>
-          <Eyebrow>Community</Eyebrow>
-          <Text style={styles.title}>Parents Corner</Text>
-          <Text style={styles.subtitle}>
-            Share photos, ask questions, and learn from parents on the same journey.
-          </Text>
-          <View style={styles.guestActions}>
-            <Link href="/login" style={styles.loginLink}>
-              Log in to join
-            </Link>
-            <Link href="/signup" style={styles.signupLink}>
-              Create account
-            </Link>
-          </View>
-        </View>
-      </ScrollView>
-    )
   }
 
   if (!isApiConfigured()) {
@@ -154,18 +127,36 @@ export function ParentsCornerScreen() {
         <View style={styles.iconWrap}>
           <NavIcon name="users" size={22} color={palette.accentDeep} />
         </View>
-        <Eyebrow>Live feed</Eyebrow>
+        <Eyebrow>{isLoggedIn ? 'Live feed' : 'Community'}</Eyebrow>
         <Text style={styles.title}>Parents Corner</Text>
         <Text style={styles.subtitle}>
-          Your community timeline — post updates, react, and join the conversation.
+          {isLoggedIn
+            ? 'Your community timeline — post updates, react, and join the conversation.'
+            : 'Browse posts from other parents. Sign up to share photos, ask questions, and join the conversation.'}
         </Text>
       </View>
 
-      <PostComposer
-        posting={corner.posting}
-        isSiteDeveloper={isSiteDeveloper(user)}
-        onPublish={corner.publishPost}
-      />
+      {isLoggedIn ? (
+        <PostComposer
+          posting={corner.posting}
+          isSiteDeveloper={isSiteDeveloper(user)}
+          onPublish={corner.publishPost}
+        />
+      ) : (
+        <View style={styles.joinBar}>
+          <Text style={styles.joinText}>
+            Create a free account to post, comment, and react in Parents Corner.
+          </Text>
+          <View style={styles.joinActions}>
+            <Link href="/signup" asChild>
+              <Button title="Sign up to post" />
+            </Link>
+            <Link href="/login" asChild>
+              <Button title="Log in" variant="secondary" />
+            </Link>
+          </View>
+        </View>
+      )}
 
       {corner.error ? <ErrorText>{corner.error}</ErrorText> : null}
       {corner.loading ? <Text style={styles.status}>Loading posts…</Text> : null}
@@ -173,7 +164,11 @@ export function ParentsCornerScreen() {
       {!corner.loading && corner.posts.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyTitle}>No posts yet</Text>
-          <Text style={styles.emptyBody}>Be the first to share a moment or ask the community a question.</Text>
+          <Text style={styles.emptyBody}>
+            {isLoggedIn
+              ? 'Be the first to share a moment or ask the community a question.'
+              : 'Check back soon — or sign up and be the first to post.'}
+          </Text>
         </View>
       ) : null}
 
@@ -188,6 +183,8 @@ export function ParentsCornerScreen() {
           canDelete={corner.canManagePost(post)}
           editing={corner.editingPostId === post.id}
           saving={corner.savingPostId === post.id}
+          readOnly={!isLoggedIn}
+          requireAuthHref="/signup"
           onLike={() => void corner.likePost(post.id)}
           onToggleComments={() => void corner.toggleComments(post.id)}
           onComment={(content) => corner.submitComment(post.id, content)}
