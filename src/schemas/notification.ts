@@ -19,6 +19,8 @@ export type TrackingNotificationType =
   | 'sickness_updated'
   | 'injury_logged'
   | 'injury_updated'
+  | 'daily_memory_logged'
+  | 'daily_memory_updated'
 
 export type NotificationType = SocialNotificationType | TrackingNotificationType
 
@@ -41,6 +43,8 @@ const NOTIFICATION_TYPES = new Set<string>([
   'sickness_updated',
   'injury_logged',
   'injury_updated',
+  'daily_memory_logged',
+  'daily_memory_updated',
 ])
 
 export function isNotificationType(value: string): value is NotificationType {
@@ -54,6 +58,7 @@ export function notificationRoute(type: NotificationType): string {
   if (type.startsWith('sleep_')) return '/sleep'
   if (type.startsWith('growth_') || type.startsWith('milestone_')) return '/growth'
   if (type.startsWith('sickness_') || type.startsWith('injury_')) return '/health'
+  if (type.startsWith('daily_memory_')) return '/daily-memories'
   return '/parents-corner'
 }
 

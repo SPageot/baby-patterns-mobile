@@ -37,6 +37,7 @@ export const NAV_LINKS: NavLink[] = [
   { label: 'Pediatrician', href: '/pediatrician', requiresBaby: true, icon: 'hospital' },
   { label: 'Reports', href: '/reports', requiresBaby: true, icon: 'chart' },
   { label: 'Weekly summary', href: '/weekly-summary', requiresBaby: true, icon: 'calendar' },
+  { label: 'Daily memories', href: '/daily-memories', requiresBaby: true, icon: 'heart' },
 ]
 
 export function getVisibleNavLinks(options: {

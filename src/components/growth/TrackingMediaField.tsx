@@ -25,6 +25,8 @@ type Props = {
   accentColor: string
   accentBorder: string
   accentSoft: string
+  label?: string
+  imagesOnly?: boolean
 }
 
 function MediaPickIcon({ color }: { color: string }) {
@@ -133,6 +135,8 @@ export function TrackingMediaField({
   accentColor,
   accentBorder,
   accentSoft,
+  label = 'Photo or video (optional)',
+  imagesOnly = false,
 }: Props) {
   const styles = useThemedStyles(createStyles)
 
@@ -149,7 +153,7 @@ export function TrackingMediaField({
     if (!permission.granted) return
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images', 'videos'],
+      mediaTypes: imagesOnly ? ['images'] : ['images', 'videos'],
       quality: 0.92,
       videoMaxDuration: 120,
     })
@@ -162,7 +166,7 @@ export function TrackingMediaField({
 
   return (
     <View>
-      <Label>Photo or video (optional)</Label>
+      <Label>{label}</Label>
       {displayUrl ? (
         <View style={styles.preview}>
           <View style={styles.frame}>
@@ -201,14 +205,16 @@ export function TrackingMediaField({
             { borderColor: accentBorder, backgroundColor: accentSoft },
           ]}
           accessibilityRole="button"
-          accessibilityLabel="Choose photo or video"
+          accessibilityLabel={imagesOnly ? 'Choose photo' : 'Choose photo or video'}
         >
           <View style={styles.iconWrap}>
             <MediaPickIcon color={accentColor} />
           </View>
-          <Text style={styles.pickTitle}>Choose photo or video</Text>
+          <Text style={styles.pickTitle}>{imagesOnly ? 'Choose photo' : 'Choose photo or video'}</Text>
           <Text style={styles.pickHint}>Tap to open your library</Text>
-          <Text style={styles.pickMeta}>JPG, PNG, GIF, WEBP, MP4 · up to 50 MB</Text>
+          <Text style={styles.pickMeta}>
+            {imagesOnly ? 'JPG, PNG, GIF, WEBP · up to 50 MB' : 'JPG, PNG, GIF, WEBP, MP4 · up to 50 MB'}
+          </Text>
         </Pressable>
       )}
     </View>
