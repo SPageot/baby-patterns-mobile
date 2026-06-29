@@ -5,6 +5,7 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native'
 import { AddBrandProductPanel } from '@/components/reviews/AddBrandProductPanel'
 import { BrandCard } from '@/components/reviews/BrandCard'
 import { Button, ErrorText, Eyebrow } from '@/components/ui/primitives'
+import { PageLoadingScreen } from '@/components/ui/Loading'
 import { NavIcon } from '@/components/icons/NavIcon'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
@@ -128,8 +129,8 @@ export function ReviewsScreen() {
     [reviews.brands, searchQuery],
   )
 
-  if (!authReady) {
-    return <Text style={styles.status}>Loading…</Text>
+  if (!authReady || reviews.loading) {
+    return <PageLoadingScreen label="Loading brands…" />
   }
 
   return (
@@ -145,8 +146,6 @@ export function ReviewsScreen() {
 
       {!isApiConfigured() ? (
         <ErrorText>Set EXPO_PUBLIC_API_URL in .env to browse and post reviews.</ErrorText>
-      ) : reviews.loading ? (
-        <Text style={styles.status}>Loading brands…</Text>
       ) : reviews.error ? (
         <View style={styles.gate}>
           <ErrorText>{reviews.error}</ErrorText>

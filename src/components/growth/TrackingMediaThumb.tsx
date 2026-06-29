@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react'
 import { Image } from 'expo-image'
 import { Linking, Pressable, Text, View } from 'react-native'
 
+import { trackingMediaUrlCandidates } from '@/api/resolveMediaUrl'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
@@ -42,12 +44,24 @@ const createStyles = (t: AppPalette) => ({
 
 export function TrackingMediaThumb({ url, mediaType }: Props) {
   const styles = useThemedStyles(createStyles)
-  if (!url?.trim()) return null
+  const candidates = trackingMediaUrlCandidates(url)
+  const [candidateIndex, setCandidateIndex] = useState(0)
+  const displayUrl = candidates[candidateIndex]
+
+  useEffect(() => {
+    setCandidateIndex(0)
+  }, [url])
+
+  if (!displayUrl) return null
+
+  const tryNext = () => {
+    setCandidateIndex((index) => (index + 1 < candidates.length ? index + 1 : candidates.length))
+  }
 
   if (mediaType === 'video') {
     return (
       <View style={styles.wrap}>
-        <Pressable style={styles.videoBtn} onPress={() => void Linking.openURL(url)}>
+        <Pressable style={styles.videoBtn} onPress={() => void Linking.openURL(displayUrl)}>
           <Text style={styles.videoText}>▶ View video</Text>
         </Pressable>
       </View>
@@ -56,7 +70,7 @@ export function TrackingMediaThumb({ url, mediaType }: Props) {
 
   return (
     <View style={styles.wrap}>
-      <Image source={{ uri: url }} style={styles.image} contentFit="cover" />
+      <Image source={{ uri: displayUrl }} style={styles.image} contentFit="cover" onError={tryNext} />
     </View>
   )
 }

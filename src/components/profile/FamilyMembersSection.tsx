@@ -3,6 +3,7 @@ import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback } from 'react'
 
 import { Button, ErrorText, Input, Label } from '@/components/ui/primitives'
+import { LoadingState } from '@/components/ui/Loading'
 import { useFamilyMembers } from '@/hooks/useFamilyMembers'
 import { useConfirmAction } from '@/context/ConfirmContext'
 import { isProUser } from '@/lib/subscription'
@@ -371,7 +372,7 @@ export function FamilyMembersSection({ enabled, user }: Props) {
       ) : null}
 
       {family.loading ? (
-        <Text style={styles.status}>Loading family members…</Text>
+        <LoadingState label="Loading family members…" compact />
       ) : family.members.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyText}>

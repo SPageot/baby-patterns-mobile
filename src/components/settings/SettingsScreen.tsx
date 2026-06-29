@@ -9,6 +9,7 @@ import { MfaSettingsSection } from '@/components/settings/MfaSettingsSection'
 import { PushNotificationSettingsSection } from '@/components/settings/PushNotificationSettingsSection'
 import { WeeklySummarySettingsSection } from '@/components/settings/WeeklySummarySettingsSection'
 import { HomeButton } from '@/components/home/HomeButton'
+import { PageLoadingScreen } from '@/components/ui/Loading'
 import {
   Button,
   Card,
@@ -145,11 +146,7 @@ export function SettingsScreen() {
   }
 
   if (!authReady) {
-    return (
-      <Screen>
-        <Subtitle>Loading settings…</Subtitle>
-      </Screen>
-    )
+    return <PageLoadingScreen label="Loading settings…" />
   }
 
   if (!user) {

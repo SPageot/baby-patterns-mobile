@@ -4,6 +4,7 @@ import { Image } from 'expo-image'
 import { Linking, Pressable, Text, TextInput, View } from 'react-native'
 
 import { Button } from '@/components/ui/primitives'
+import { LoadingState } from '@/components/ui/Loading'
 import { UserAvatar } from '@/components/ui/UserAvatar'
 import type { Post, PostComment, PostSubmitInput } from '@/schemas/post'
 import type { AppPalette } from '@/constants/homeTheme'
@@ -439,7 +440,9 @@ export function PostCard({
 
       {commentsOpen ? (
         <View style={styles.comments}>
-          {commentsLoading ? <Text style={styles.commentsHint}>Loading comments…</Text> : null}
+          {commentsLoading ? (
+            <LoadingState label="Loading comments…" size="sm" inline compact />
+          ) : null}
           {!commentsLoading && comments.length === 0 ? (
             <Text style={styles.commentsHint}>No comments yet. Start the conversation.</Text>
           ) : null}

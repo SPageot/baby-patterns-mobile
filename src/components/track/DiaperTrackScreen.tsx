@@ -8,6 +8,7 @@ import { DiaperLogSection } from '@/components/track/DiaperLogSection'
 import { DiaperLogsHistory } from '@/components/track/DiaperLogsHistory'
 import { DiaperLogsList } from '@/components/track/DiaperLogsList'
 import { ErrorText } from '@/components/ui/primitives'
+import { PageLoadingScreen } from '@/components/ui/Loading'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
 import { useDiaperLogs } from '@/hooks/useDiaperLogs'
@@ -37,16 +38,10 @@ export function DiaperTrackScreen() {
   const diaper = useDiaperLogs()
   const styles = useThemedStyles(createStyles)
 
-  const alerts =
-    diaper.error || diaper.loading ? (
-      <>
-        {diaper.error ? <ErrorText>{diaper.error}</ErrorText> : null}
-        {diaper.loading ? <Text style={styles.hint}>Loading diaper logs…</Text> : null}
-      </>
-    ) : undefined
+  const alerts = diaper.error ? <ErrorText>{diaper.error}</ErrorText> : undefined
 
   if (!authReady) {
-    return <Text style={styles.hint}>Loading…</Text>
+    return <PageLoadingScreen label="Loading…" />
   }
 
   if (!isApiConfigured()) {
@@ -78,10 +73,13 @@ export function DiaperTrackScreen() {
     )
   }
 
+  if (diaper.loading || diaper.babiesLoading) {
+    return <PageLoadingScreen label="Loading diaper logs…" />
+  }
+
   return (
     <DiaperLogSection
       todayCount={diaper.todayDiapers}
-      countLoading={diaper.loading || diaper.babiesLoading}
       onLogClick={diaper.openForm}
       logFormOpen={diaper.formOpen}
       alerts={alerts}

@@ -17,6 +17,7 @@ import {
   Subtitle,
   Title,
 } from '@/components/ui/primitives'
+import { PageLoadingScreen } from '@/components/ui/Loading'
 import { useApp } from '@/context/AppContext'
 import {
   normalizeBabySignup,
@@ -151,11 +152,7 @@ export function AddBabyScreen() {
   }
 
   if (!authReady) {
-    return (
-      <Screen>
-        <Subtitle>Loading…</Subtitle>
-      </Screen>
-    )
+    return <PageLoadingScreen label="Loading…" />
   }
 
   if (!user) {

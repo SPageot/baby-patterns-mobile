@@ -8,6 +8,7 @@ import { FeedingLogsHistory } from '@/components/track/FeedingLogsHistory'
 import { FeedingLogsList } from '@/components/track/FeedingLogsList'
 import { TrackLogSection } from '@/components/track/TrackLogSection'
 import { ErrorText } from '@/components/ui/primitives'
+import { PageLoadingScreen } from '@/components/ui/Loading'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
 import { useFeedingLogs } from '@/hooks/useFeedingLogs'
@@ -37,16 +38,10 @@ export function FeedingTrackScreen() {
   const feeding = useFeedingLogs()
   const styles = useThemedStyles(createStyles)
 
-  const alerts =
-    feeding.error || feeding.loading ? (
-      <>
-        {feeding.error ? <ErrorText>{feeding.error}</ErrorText> : null}
-        {feeding.loading ? <Text style={styles.hint}>Loading feeding logs…</Text> : null}
-      </>
-    ) : undefined
+  const alerts = feeding.error ? <ErrorText>{feeding.error}</ErrorText> : undefined
 
   if (!authReady) {
-    return <Text style={styles.hint}>Loading…</Text>
+    return <PageLoadingScreen label="Loading…" />
   }
 
   if (!isApiConfigured()) {
@@ -80,11 +75,14 @@ export function FeedingTrackScreen() {
     )
   }
 
+  if (feeding.loading || feeding.babiesLoading) {
+    return <PageLoadingScreen label="Loading feeding logs…" />
+  }
+
   return (
     <TrackLogSection
       kind="feeding"
       todayCount={feeding.todayFeeds}
-      countLoading={feeding.loading || feeding.babiesLoading}
       onLogClick={feeding.openForm}
       logFormOpen={feeding.formOpen}
       alerts={alerts}

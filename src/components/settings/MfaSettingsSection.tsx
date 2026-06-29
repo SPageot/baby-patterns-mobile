@@ -10,6 +10,7 @@ import {
 } from '@/api/mfaApi'
 import { isApiConfigured } from '@/api/config'
 import { Button, Card, ErrorText, Input, Label, SectionTitle, Subtitle } from '@/components/ui/primitives'
+import { LoadingState } from '@/components/ui/Loading'
 import type { AppPalette } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
@@ -106,7 +107,7 @@ export function MfaSettingsSection() {
   if (loading) {
     return (
       <View style={styles.section}>
-        <Subtitle>Loading security settings…</Subtitle>
+        <LoadingState label="Loading security settings…" size="sm" inline compact />
       </View>
     )
   }

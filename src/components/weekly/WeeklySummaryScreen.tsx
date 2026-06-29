@@ -4,6 +4,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native'
 import { NavIcon } from '@/components/icons/NavIcon'
 import { WeeklySummaryContent } from '@/components/weekly/WeeklySummaryContent'
 import { Button, ErrorText, Eyebrow } from '@/components/ui/primitives'
+import { PageLoadingScreen } from '@/components/ui/Loading'
 import { useApp } from '@/context/AppContext'
 import { useWeeklySummary } from '@/hooks/useWeeklySummary'
 import { isProUser } from '@/lib/subscription'
@@ -165,7 +166,7 @@ export function WeeklySummaryScreen() {
   const userIsPro = isProUser(user)
 
   if (!authReady) {
-    return <Text style={styles.status}>Loading weekly summary…</Text>
+    return <PageLoadingScreen label="Loading weekly summary…" />
   }
 
   if (!user) {
@@ -220,6 +221,10 @@ export function WeeklySummaryScreen() {
         </View>
       </ScrollView>
     )
+  }
+
+  if (summary.loading) {
+    return <PageLoadingScreen label="Loading tracking data…" />
   }
 
   return (
@@ -284,18 +289,14 @@ export function WeeklySummaryScreen() {
 
       {summary.error ? <ErrorText>{summary.error}</ErrorText> : null}
 
-      {summary.loading ? (
-        <Text style={styles.status}>Loading tracking data…</Text>
-      ) : (
-        <WeeklySummaryContent
-          report={summary.report}
-          bounds={summary.bounds}
-          narrativeOutline={summary.narrativeOutline}
-          highlights={summary.highlights}
-          babyName={summary.selectedBaby?.fullName ?? ''}
-          onCopy={summary.copySummary}
-        />
-      )}
+      <WeeklySummaryContent
+        report={summary.report}
+        bounds={summary.bounds}
+        narrativeOutline={summary.narrativeOutline}
+        highlights={summary.highlights}
+        babyName={summary.selectedBaby?.fullName ?? ''}
+        onCopy={summary.copySummary}
+      />
     </ScrollView>
   )
 }

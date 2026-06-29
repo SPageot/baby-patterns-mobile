@@ -9,6 +9,7 @@ import { ReportsOverview } from '@/components/reports/ReportsOverview'
 import { ReportsTabPanel, ReportsTabs, type ReportsTabId } from '@/components/reports/ReportsTabs'
 import { NavIcon } from '@/components/icons/NavIcon'
 import { Button, ErrorText, Eyebrow } from '@/components/ui/primitives'
+import { PageLoadingScreen } from '@/components/ui/Loading'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
 import { useReports } from '@/hooks/useReports'
@@ -129,7 +130,7 @@ export function ReportsScreen() {
   const rangeOptions = reportRangeOptionsForUser(user)
 
   if (!authReady) {
-    return <Text style={styles.status}>Loading reports…</Text>
+    return <PageLoadingScreen label="Loading reports…" />
   }
 
   if (!user) {
@@ -180,6 +181,10 @@ export function ReportsScreen() {
     )
   }
 
+  if (reports.loading) {
+    return <PageLoadingScreen label="Loading tracking data…" />
+  }
+
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={styles.hero}>
@@ -224,11 +229,7 @@ export function ReportsScreen() {
 
       {reports.error ? <ErrorText>{reports.error}</ErrorText> : null}
 
-      {reports.loading ? (
-        <Text style={styles.status}>Loading tracking data…</Text>
-      ) : (
-        <>
-          <Text style={styles.rangeNote}>
+      <Text style={styles.rangeNote}>
             Showing {reportRangeLabel(reports.rangeDays).toLowerCase()}.
             {!reports.isPro ? ' Upgrade to Pro for 30/90-day history and weekly summaries.' : ''}
           </Text>
@@ -258,8 +259,6 @@ export function ReportsScreen() {
           <ReportsTabPanel tab="health" active={activeTab}>
             <HealthReportPanel report={reports.report.health} />
           </ReportsTabPanel>
-        </>
-      )}
     </ScrollView>
   )
 }

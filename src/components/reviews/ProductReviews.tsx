@@ -3,6 +3,7 @@ import { Pressable, Text, TextInput, View } from 'react-native'
 
 import { StarRating } from '@/components/reviews/StarRating'
 import { Button } from '@/components/ui/primitives'
+import { LoadingState } from '@/components/ui/Loading'
 import { useConfirmAction } from '@/context/ConfirmContext'
 import {
   deleteProductReview,
@@ -271,7 +272,7 @@ export function ProductReviews({ product, brandName, isLoggedIn, onReviewChange 
       {expanded ? (
         <View style={styles.panel}>
           {loading ? (
-            <Text style={styles.status}>Loading reviews…</Text>
+            <LoadingState label="Loading reviews…" compact />
           ) : (
             <>
               {reviews.map((review) => (

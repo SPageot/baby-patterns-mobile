@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { NavIcon } from '@/components/icons/NavIcon'
+import { LoadingState } from '@/components/ui/Loading'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useConfirmAction } from '@/context/ConfirmContext'
 import type { AppPalette } from '@/constants/homeTheme'
@@ -217,7 +218,7 @@ export function NotificationsMenu({ enabled }: Props) {
               )}
             </View>
 
-            {loading ? <Text style={styles.status}>Loading…</Text> : null}
+            {loading ? <LoadingState label="Loading…" size="sm" inline compact /> : null}
             {!loading && items.length === 0 ? (
               <Text style={styles.status}>No notifications yet.</Text>
             ) : null}

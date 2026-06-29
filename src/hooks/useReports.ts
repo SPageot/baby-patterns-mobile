@@ -31,7 +31,7 @@ export function useReports() {
   const [sicknessRows, setSicknessRows] = useState<SicknessEventDto[]>([])
   const [injuryRows, setInjuryRows] = useState<InjuryEventDto[]>([])
   const [pediatricianRows, setPediatricianRows] = useState<PediatricianVisitDto[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(() => isApiConfigured())
   const [error, setError] = useState<string | null>(null)
   const [rangeDays, setRangeDaysState] = useState<ReportRange>(defaultRange)
   const [exportingPdf, setExportingPdf] = useState(false)
@@ -56,6 +56,7 @@ export function useReports() {
       setSicknessRows([])
       setInjuryRows([])
       setPediatricianRows([])
+      setLoading(false)
       return
     }
 

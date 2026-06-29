@@ -6,6 +6,7 @@ import { NavIcon } from '@/components/icons/NavIcon'
 import { SicknessLogModal } from '@/components/health/SicknessLogModal'
 import { InjuryLogModal } from '@/components/health/InjuryLogModal'
 import { Button, Card, ErrorText } from '@/components/ui/primitives'
+import { PageLoadingScreen } from '@/components/ui/Loading'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
 import { useHealthEventsPage } from '@/hooks/useHealthEventsPage'
@@ -113,7 +114,7 @@ export function HealthEventsTrackScreen() {
   const health = useHealthEventsPage()
 
   if (!authReady) {
-    return <Text style={styles.status}>Loading…</Text>
+    return <PageLoadingScreen label="Loading…" />
   }
 
   if (!isApiConfigured()) {
@@ -143,6 +144,10 @@ export function HealthEventsTrackScreen() {
     )
   }
 
+  if (health.loading || health.babiesLoading) {
+    return <PageLoadingScreen label="Loading health events…" />
+  }
+
   return (
     <>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -160,11 +165,11 @@ export function HealthEventsTrackScreen() {
           </View>
           <View style={styles.statsRow}>
             <View style={styles.stat}>
-              <Text style={styles.statN}>{health.loading ? '…' : health.sicknessCount}</Text>
+              <Text style={styles.statN}>{health.sicknessCount}</Text>
               <Text style={styles.statLabel}>sickness</Text>
             </View>
             <View style={styles.stat}>
-              <Text style={styles.statN}>{health.loading ? '…' : health.injuryCount}</Text>
+              <Text style={styles.statN}>{health.injuryCount}</Text>
               <Text style={styles.statLabel}>injuries</Text>
             </View>
           </View>
@@ -173,7 +178,6 @@ export function HealthEventsTrackScreen() {
         <BabyChipBar />
 
         {health.error ? <ErrorText>{health.error}</ErrorText> : null}
-        {health.loading ? <Text style={styles.status}>Loading health events…</Text> : null}
 
         <View style={styles.tabs}>
           {TABS.map((tab) => {

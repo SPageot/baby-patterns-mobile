@@ -35,7 +35,7 @@ export function useWeeklySummary() {
   const [sicknessRows, setSicknessRows] = useState<SicknessEventDto[]>([])
   const [injuryRows, setInjuryRows] = useState<InjuryEventDto[]>([])
   const [pediatricianRows, setPediatricianRows] = useState<PediatricianVisitDto[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(() => isApiConfigured())
   const [error, setError] = useState<string | null>(null)
   const [weekSelection, setWeekSelection] = useState<WeekSelection>('last')
   const [selectedBabyId, setSelectedBabyId] = useState('')
@@ -54,6 +54,7 @@ export function useWeeklySummary() {
       setSicknessRows([])
       setInjuryRows([])
       setPediatricianRows([])
+      setLoading(false)
       return
     }
 

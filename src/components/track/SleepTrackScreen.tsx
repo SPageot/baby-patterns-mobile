@@ -8,6 +8,7 @@ import { SleepLogsHistory } from '@/components/track/SleepLogsHistory'
 import { SleepLogsList } from '@/components/track/SleepLogsList'
 import { TrackLogSection } from '@/components/track/TrackLogSection'
 import { ErrorText } from '@/components/ui/primitives'
+import { PageLoadingScreen } from '@/components/ui/Loading'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
 import { useSleepLogs } from '@/hooks/useSleepLogs'
@@ -37,16 +38,10 @@ export function SleepTrackScreen() {
   const sleep = useSleepLogs()
   const styles = useThemedStyles(createStyles)
 
-  const alerts =
-    sleep.error || sleep.loading ? (
-      <>
-        {sleep.error ? <ErrorText>{sleep.error}</ErrorText> : null}
-        {sleep.loading ? <Text style={styles.hint}>Loading sleep logs…</Text> : null}
-      </>
-    ) : undefined
+  const alerts = sleep.error ? <ErrorText>{sleep.error}</ErrorText> : undefined
 
   if (!authReady) {
-    return <Text style={styles.hint}>Loading…</Text>
+    return <PageLoadingScreen label="Loading…" />
   }
 
   if (!isApiConfigured()) {
@@ -80,11 +75,14 @@ export function SleepTrackScreen() {
     )
   }
 
+  if (sleep.loading || sleep.babiesLoading) {
+    return <PageLoadingScreen label="Loading sleep logs…" />
+  }
+
   return (
     <TrackLogSection
       kind="sleep"
       todayCount={sleep.todaySleep}
-      countLoading={sleep.loading || sleep.babiesLoading}
       onLogClick={sleep.openForm}
       logFormOpen={sleep.formOpen}
       alerts={alerts}

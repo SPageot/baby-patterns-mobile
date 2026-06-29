@@ -156,6 +156,8 @@ export function TrackingMediaField({
       mediaTypes: imagesOnly ? ['images'] : ['images', 'videos'],
       quality: 0.92,
       videoMaxDuration: 120,
+      preferredAssetRepresentationMode:
+        ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
     })
 
     if (result.canceled || !result.assets[0]) return

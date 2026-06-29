@@ -6,6 +6,7 @@ import { DailyMemoryCalendar } from '@/components/dailyMemories/DailyMemoryCalen
 import { DailyMemoryFormModal } from '@/components/dailyMemories/DailyMemoryFormModal'
 import { NavIcon } from '@/components/icons/NavIcon'
 import { Button, ErrorText } from '@/components/ui/primitives'
+import { PageLoadingScreen } from '@/components/ui/Loading'
 import { isApiConfigured } from '@/api/config'
 import { DAILY_MEMORY_THEME } from '@/constants/dailyMemoryTheme'
 import type { AppPalette } from '@/constants/homeTheme'
@@ -75,7 +76,7 @@ export function DailyMemoriesScreen() {
   const page = useDailyMemories()
 
   if (!authReady) {
-    return <Text style={styles.status}>Loading daily memories…</Text>
+    return <PageLoadingScreen label="Loading daily memories…" />
   }
 
   if (!user) {
@@ -129,6 +130,10 @@ export function DailyMemoriesScreen() {
     )
   }
 
+  if (page.loading || page.babiesLoading) {
+    return <PageLoadingScreen label="Loading memories…" />
+  }
+
   return (
     <>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
@@ -146,7 +151,7 @@ export function DailyMemoriesScreen() {
           </View>
           <View style={styles.statsRow}>
             <View style={styles.stat}>
-              <Text style={styles.statN}>{page.loading ? '…' : page.visibleMemories.length}</Text>
+              <Text style={styles.statN}>{page.visibleMemories.length}</Text>
               <Text style={styles.statLabel}>memories saved</Text>
             </View>
           </View>
@@ -156,10 +161,7 @@ export function DailyMemoriesScreen() {
 
         {page.error ? <ErrorText>{page.error}</ErrorText> : null}
 
-        {page.loading ? (
-          <Text style={styles.status}>Loading memories…</Text>
-        ) : (
-          <DailyMemoryCalendar
+        <DailyMemoryCalendar
             memoriesByDate={page.memoriesByDate}
             selectedYmd={page.selectedYmd}
             onSelectDay={page.setSelectedYmd}
@@ -170,7 +172,6 @@ export function DailyMemoriesScreen() {
             onDeleteMemory={page.removeMemory}
             deleting={page.saving}
           />
-        )}
       </ScrollView>
 
       <DailyMemoryFormModal

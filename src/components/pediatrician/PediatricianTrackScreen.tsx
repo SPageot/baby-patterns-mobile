@@ -6,6 +6,7 @@ import { NavIcon } from '@/components/icons/NavIcon'
 import { PediatricianVisitModal } from '@/components/pediatrician/PediatricianVisitModal'
 import { TrackingHistoryBanner } from '@/components/track/TrackingHistoryBanner'
 import { Button, Card, ErrorText } from '@/components/ui/primitives'
+import { PageLoadingScreen } from '@/components/ui/Loading'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
 import { usePediatricianVisitsPage } from '@/hooks/usePediatricianVisitsPage'
@@ -90,7 +91,7 @@ export function PediatricianTrackScreen() {
   const page = usePediatricianVisitsPage()
 
   if (!authReady) {
-    return <Text style={styles.status}>Loading…</Text>
+    return <PageLoadingScreen label="Loading…" />
   }
 
   if (!isApiConfigured()) {
@@ -120,6 +121,10 @@ export function PediatricianTrackScreen() {
     )
   }
 
+  if (page.loading || page.babiesLoading) {
+    return <PageLoadingScreen label="Loading pediatrician visits…" />
+  }
+
   return (
     <>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -137,7 +142,7 @@ export function PediatricianTrackScreen() {
           </View>
           <View style={styles.statsRow}>
             <View style={styles.stat}>
-              <Text style={styles.statN}>{page.loading ? '…' : page.visitCount}</Text>
+              <Text style={styles.statN}>{page.visitCount}</Text>
               <Text style={styles.statLabel}>visits logged</Text>
             </View>
           </View>
@@ -148,7 +153,6 @@ export function PediatricianTrackScreen() {
         <BabyChipBar />
 
         {page.error ? <ErrorText>{page.error}</ErrorText> : null}
-        {page.loading ? <Text style={styles.status}>Loading pediatrician visits…</Text> : null}
 
         <Card>
           <View style={styles.sectionHead}>

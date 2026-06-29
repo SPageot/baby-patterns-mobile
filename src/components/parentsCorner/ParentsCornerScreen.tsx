@@ -4,6 +4,7 @@ import { Link } from 'expo-router'
 import { PostCard } from '@/components/parentsCorner/PostCard'
 import { PostComposer } from '@/components/parentsCorner/PostComposer'
 import { Button, Eyebrow, ErrorText } from '@/components/ui/primitives'
+import { PageLoadingScreen } from '@/components/ui/Loading'
 import { NavIcon } from '@/components/icons/NavIcon'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
@@ -106,7 +107,7 @@ export function ParentsCornerScreen() {
   const corner = useParentsCorner(authReady && isApiConfigured(), user?.id)
 
   if (!authReady) {
-    return <Text style={styles.status}>Loading…</Text>
+    return <PageLoadingScreen label="Loading…" />
   }
 
   if (!isApiConfigured()) {
@@ -119,6 +120,10 @@ export function ParentsCornerScreen() {
         <ErrorText>Set EXPO_PUBLIC_API_URL in .env to use Parents Corner.</ErrorText>
       </ScrollView>
     )
+  }
+
+  if (corner.loading) {
+    return <PageLoadingScreen label="Loading posts…" />
   }
 
   return (
@@ -159,9 +164,8 @@ export function ParentsCornerScreen() {
       )}
 
       {corner.error ? <ErrorText>{corner.error}</ErrorText> : null}
-      {corner.loading ? <Text style={styles.status}>Loading posts…</Text> : null}
 
-      {!corner.loading && corner.posts.length === 0 ? (
+      {corner.posts.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyTitle}>No posts yet</Text>
           <Text style={styles.emptyBody}>

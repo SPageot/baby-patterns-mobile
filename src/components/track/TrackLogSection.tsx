@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 
 import { NavIcon } from '@/components/icons/NavIcon'
+import { LoadingSpinner } from '@/components/ui/Loading'
 import { getTrackThemeFromPalette } from '@/constants/trackTheme'
 import { LOG_SECTION } from '@/lib/logSectionConfig'
 import type { AppPalette } from '@/constants/homeTheme'
@@ -178,7 +179,7 @@ export function TrackLogSection({
         </View>
 
         <View style={[styles.stat, { backgroundColor: theme.accentSoft, borderColor: theme.accentBorder }]}>
-          <Text style={[styles.statN, { color: theme.accent }]}>{countLoading ? '…' : todayCount}</Text>
+          {countLoading ? <LoadingSpinner size="sm" label="Loading count" /> : <Text style={[styles.statN, { color: theme.accent }]}>{todayCount}</Text>}
           <Text style={styles.statLabel}>{meta.todayUnit}</Text>
         </View>
       </View>

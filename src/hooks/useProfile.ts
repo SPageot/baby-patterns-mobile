@@ -62,7 +62,7 @@ export function useProfile() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [deletingAvatar, setDeletingAvatar] = useState(false)
   const [profileError, setProfileError] = useState<string | null>(null)
-  const [statsLoading, setStatsLoading] = useState(false)
+  const [statsLoading, setStatsLoading] = useState(() => isApiConfigured())
   const [exportingPdf, setExportingPdf] = useState(false)
   const [allLogs, setAllLogs] = useState<LogRecord[]>([])
   const [growthRows, setGrowthRows] = useState<GrowthMeasurementDto[]>([])
@@ -71,7 +71,7 @@ export function useProfile() {
   const [injuryRows, setInjuryRows] = useState<InjuryEventDto[]>([])
   const [pediatricianRows, setPediatricianRows] = useState<PediatricianVisitDto[]>([])
   const [posts, setPosts] = useState<Post[]>([])
-  const [postsLoading, setPostsLoading] = useState(false)
+  const [postsLoading, setPostsLoading] = useState(() => isApiConfigured())
   const [commentsByPost, setCommentsByPost] = useState<Record<string, PostComment[]>>({})
   const [commentsOpen, setCommentsOpen] = useState<Record<string, boolean>>({})
   const [commentsLoading, setCommentsLoading] = useState<Record<string, boolean>>({})
@@ -100,13 +100,25 @@ export function useProfile() {
   }, [authReady, user?.id, setUser])
 
   const loadStats = useCallback(async () => {
-    if (!isApiConfigured() || ownBabies.length === 0) {
+    if (!isApiConfigured()) {
       setAllLogs([])
       setGrowthRows([])
       setMilestoneRows([])
       setSicknessRows([])
       setInjuryRows([])
       setPediatricianRows([])
+      setStatsLoading(false)
+      return
+    }
+
+    if (ownBabies.length === 0) {
+      setAllLogs([])
+      setGrowthRows([])
+      setMilestoneRows([])
+      setSicknessRows([])
+      setInjuryRows([])
+      setPediatricianRows([])
+      setStatsLoading(false)
       return
     }
 
@@ -145,6 +157,7 @@ export function useProfile() {
   const loadPosts = useCallback(async () => {
     if (!user?.id || !isApiConfigured()) {
       setPosts([])
+      setPostsLoading(false)
       return
     }
 
@@ -444,6 +457,7 @@ export function useProfile() {
     deletingAvatar,
     profileError,
     statsLoading,
+    pageLoading: statsLoading || postsLoading,
     exportingPdf,
     babies,
     ownBabies,

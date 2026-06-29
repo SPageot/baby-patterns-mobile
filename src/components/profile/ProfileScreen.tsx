@@ -19,6 +19,7 @@ import {
   SectionTitle,
   Subtitle,
 } from '@/components/ui/primitives'
+import { PageLoadingScreen } from '@/components/ui/Loading'
 import { useApp } from '@/context/AppContext'
 import { useConfirmAction } from '@/context/ConfirmContext'
 import { useProfile } from '@/hooks/useProfile'
@@ -238,12 +239,8 @@ export function ProfileScreen() {
     }, [authReady, setUser, user]),
   )
 
-  if (!authReady) {
-    return (
-      <Screen>
-        <Subtitle>Loading profile…</Subtitle>
-      </Screen>
-    )
+  if (!authReady || (user && profile.pageLoading)) {
+    return <PageLoadingScreen label="Loading profile…" />
   }
 
   if (!user) {
@@ -354,9 +351,7 @@ export function ProfileScreen() {
             ) : null}
           </View>
 
-          {profile.statsLoading ? (
-            <Subtitle>Loading activity…</Subtitle>
-          ) : profile.babies.length === 0 ? (
+          {profile.babies.length === 0 ? (
             <>
               <Subtitle>Add a baby to start tracking diapers, sleep, feeding, growth, milestones, and health.</Subtitle>
               <Button title="Add a baby" onPress={() => router.push('/add-baby')} />
@@ -412,7 +407,7 @@ export function ProfileScreen() {
             </View>
           )}
 
-          {profile.babies.length > 0 && !profile.statsLoading ? (
+          {profile.babies.length > 0 ? (
             <ProfileActivityCalendar
               logs={profile.allLogs}
               injuries={profile.injuryRows}
@@ -458,8 +453,6 @@ export function ProfileScreen() {
           </View>
           {!profile.apiConfigured ? (
             <Subtitle>Connect the API to view your posts.</Subtitle>
-          ) : profile.postsLoading ? (
-            <Subtitle>Loading posts…</Subtitle>
           ) : profile.posts.length === 0 ? (
             <>
               <Subtitle>You haven&apos;t shared anything in Parents Corner yet.</Subtitle>

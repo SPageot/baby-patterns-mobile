@@ -8,6 +8,7 @@ import { PottyLogSection } from '@/components/track/PottyLogSection'
 import { PottyLogsHistory } from '@/components/track/PottyLogsHistory'
 import { PottyLogsList } from '@/components/track/PottyLogsList'
 import { ErrorText } from '@/components/ui/primitives'
+import { PageLoadingScreen } from '@/components/ui/Loading'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
 import { usePottyLogs } from '@/hooks/usePottyLogs'
@@ -37,16 +38,10 @@ export function PottyTrackScreen() {
   const potty = usePottyLogs()
   const styles = useThemedStyles(createStyles)
 
-  const alerts =
-    potty.error || potty.loading ? (
-      <>
-        {potty.error ? <ErrorText>{potty.error}</ErrorText> : null}
-        {potty.loading ? <Text style={styles.hint}>Loading potty logs…</Text> : null}
-      </>
-    ) : undefined
+  const alerts = potty.error ? <ErrorText>{potty.error}</ErrorText> : undefined
 
   if (!authReady) {
-    return <Text style={styles.hint}>Loading…</Text>
+    return <PageLoadingScreen label="Loading…" />
   }
 
   if (!isApiConfigured()) {
@@ -78,10 +73,13 @@ export function PottyTrackScreen() {
     )
   }
 
+  if (potty.loading || potty.babiesLoading) {
+    return <PageLoadingScreen label="Loading potty logs…" />
+  }
+
   return (
     <PottyLogSection
       todayCount={potty.todayPotty}
-      countLoading={potty.loading || potty.babiesLoading}
       onLogClick={potty.openForm}
       logFormOpen={potty.formOpen}
       alerts={alerts}

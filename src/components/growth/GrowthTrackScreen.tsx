@@ -9,6 +9,7 @@ import { GrowthTrendChart } from '@/components/growth/GrowthTrendChart'
 import { TrackingMediaThumb } from '@/components/growth/TrackingMediaThumb'
 import { NavIcon } from '@/components/icons/NavIcon'
 import { Button, Card, ErrorText } from '@/components/ui/primitives'
+import { PageLoadingScreen } from '@/components/ui/Loading'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
 import { useGrowthPage } from '@/hooks/useGrowthPage'
@@ -325,7 +326,7 @@ export function GrowthTrackScreen() {
   ).slice(0, 8)
 
   if (!authReady) {
-    return <Text style={styles.status}>Loading…</Text>
+    return <PageLoadingScreen label="Loading…" />
   }
 
   if (!isApiConfigured()) {
@@ -355,6 +356,10 @@ export function GrowthTrackScreen() {
     )
   }
 
+  if (growth.loading || growth.babiesLoading) {
+    return <PageLoadingScreen label="Loading growth data…" />
+  }
+
   return (
     <>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -373,11 +378,11 @@ export function GrowthTrackScreen() {
 
           <View style={styles.statsRow}>
             <View style={styles.stat}>
-              <Text style={styles.statN}>{growth.loading ? '…' : growth.measurementCount}</Text>
+              <Text style={styles.statN}>{growth.measurementCount}</Text>
               <Text style={styles.statLabel}>measurements</Text>
             </View>
             <View style={styles.stat}>
-              <Text style={styles.statN}>{growth.loading ? '…' : growth.milestoneCount}</Text>
+              <Text style={styles.statN}>{growth.milestoneCount}</Text>
               <Text style={styles.statLabel}>milestones</Text>
             </View>
           </View>
@@ -386,7 +391,6 @@ export function GrowthTrackScreen() {
         <BabyChipBar />
 
         {growth.error ? <ErrorText>{growth.error}</ErrorText> : null}
-        {growth.loading ? <Text style={styles.status}>Loading growth data…</Text> : null}
 
         <Card>
           <View style={styles.sectionHead}>
