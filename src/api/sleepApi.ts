@@ -1,23 +1,23 @@
-import { toUtcIsoTime } from './diaperApi'
-import { apiFetch } from './client'
-import { extractUserId } from './userApi'
-import { getBabyId } from './config'
+import { toUtcIsoTime } from '@/api/diaperApi'
+import { apiFetch } from '@/api/client'
+import { extractUserId } from '@/api/userApi'
+import { getBabyId } from '@/api/config'
 import {
-  datetimeUtcInputToIso,
+  datetimeLocalInputToIso,
   minutesToTimeSpanHms,
   parseSleepDurationMinutes,
-} from '../lib/trackUtils'
-import type { LogRecord, SleepLogCreate } from '../types/babyLog'
+} from '@/lib/trackUtils'
+import type { LogRecord, SleepLogCreate, SleepWakeUp } from '@/types/babyLog'
 
 function sleepTimeToUtcIso(value: string): string {
   const v = value.trim()
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(v) && !/[zZ]$|[+-]\d{2}:?\d{2}$/.test(v)) {
-    return datetimeUtcInputToIso(v)
+    return datetimeLocalInputToIso(v)
   }
   return toUtcIsoTime(v)
 }
 
-/** Normalize sleep form fields for API (times as ISO `…Z`, date as UTC `YYYY-MM-DD`, duration as `HH:MM:SS`). */
+/** Normalize sleep form fields for API (times as ISO `…Z`, date as local `YYYY-MM-DD`, duration as `HH:MM:SS`). */
 export function sleepFieldsToUtc(fields: SleepLogCreate): SleepLogCreate {
   const sleepStartTime = sleepTimeToUtcIso(fields.sleepStartTime)
   const sleepEndRaw = fields.sleepEndTime?.trim()
@@ -26,27 +26,26 @@ export function sleepFieldsToUtc(fields: SleepLogCreate): SleepLogCreate {
   const sleepDate = sleepDateRaw || sleepStartTime.slice(0, 10)
   const sleepDuration = minutesToTimeSpanHms(parseSleepDurationMinutes(fields.sleepDuration))
 
+  const wakeUps = fields.wakeUps?.map((row) => ({
+    ...row,
+    time: sleepTimeToUtcIso(row.time),
+  }))
+
   return {
     ...fields,
     sleepDate,
     sleepDuration,
     sleepStartTime,
     sleepEndTime,
+    wakeUps,
   }
 }
 
-export type SleepLogDto = {
+export type SleepLogDto = SleepLogCreate & {
   id: string
   babyId?: string
-  sleepDate: string
-  sleepDuration: string
-  sleepMood: string
-  sleepStartTime: string
-  sleepEndTime: string
-  sleepEnvironment: string
-  isTeething: boolean
-  isSick: boolean
-  isNap: boolean
+  createdAt?: string
+  updatedAt?: string
 }
 
 export type SleepLogWrite = SleepLogCreate & {
@@ -88,6 +87,54 @@ function normalizeSleepDuration(raw: unknown): string {
   return minutesToTimeSpanHms(mins)
 }
 
+function normalizeWakeUps(raw: unknown): SleepWakeUp[] | undefined {
+  if (!Array.isArray(raw)) return undefined
+  const rows: SleepWakeUp[] = []
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') continue
+    const row = item as Record<string, unknown>
+    const time = pickStr(row, 'time', 'Time')
+    if (!time) continue
+    const durationRaw = row.durationMinutes ?? row.DurationMinutes
+    const durationMinutes =
+      typeof durationRaw === 'number' && Number.isFinite(durationRaw)
+        ? Math.round(durationRaw)
+        : Number(durationRaw)
+    rows.push({
+      time,
+      durationMinutes: Number.isFinite(durationMinutes) && durationMinutes >= 0 ? durationMinutes : 0,
+      reason: pickStr(row, 'reason', 'Reason') || undefined,
+    })
+  }
+  return rows.length ? rows : undefined
+}
+
+function normalizeStringList(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined
+  const values = raw.map((v) => String(v).trim()).filter(Boolean)
+  return values.length ? values : undefined
+}
+
+function pickLegacySleepEnvironment(raw: unknown): string {
+  if (typeof raw === 'string') return raw.trim()
+  return ''
+}
+
+function buildTagsFromPayload(payload: SleepLogCreate): string[] | undefined {
+  const tags = [...(payload.tags ?? [])]
+  if (payload.isTeething && !tags.includes('teething')) tags.push('teething')
+  if (payload.isSick && !tags.includes('sick')) tags.push('sick')
+  if (!payload.isTeething) {
+    const i = tags.indexOf('teething')
+    if (i >= 0) tags.splice(i, 1)
+  }
+  if (!payload.isSick) {
+    const i = tags.indexOf('sick')
+    if (i >= 0) tags.splice(i, 1)
+  }
+  return tags.length ? [...new Set(tags)] : undefined
+}
+
 function hasSleepShape(o: Record<string, unknown>): boolean {
   return Boolean(
     pickStr(o, 'sleepDate', 'SleepDate') ||
@@ -95,7 +142,8 @@ function hasSleepShape(o: Record<string, unknown>): boolean {
       pickStr(o, 'sleepEndTime', 'SleepEndTime') ||
       pickStr(o, 'sleepDuration', 'SleepDuration') ||
       pickStr(o, 'sleepMood', 'SleepMood') ||
-      pickStr(o, 'sleepEnvironment', 'SleepEnvironment'),
+      pickStr(o, 'sleepEnvironment', 'SleepEnvironment') ||
+      pickStr(o, 'sleepType', 'SleepType'),
   )
 }
 
@@ -105,6 +153,18 @@ function normalizeSleep(raw: unknown): SleepLogDto | null {
   if (!hasSleepShape(o)) return null
   const id = pickStr(o, 'id', 'Id')
   if (!id) return null
+
+  const tags = normalizeStringList(o.tags ?? o.Tags) ?? []
+  const isTeething = pickBool(o, 'isTeething', 'IsTeething') || tags.includes('teething')
+  const isSick = pickBool(o, 'isSick', 'IsSick') || tags.includes('sick')
+  const sleepType =
+    pickStr(o, 'sleepType', 'SleepType') ||
+    (pickBool(o, 'isNap', 'IsNap') ? 'nap' : 'night')
+
+  const legacyEnv =
+    pickLegacySleepEnvironment(o.sleepEnvironment) ||
+    pickLegacySleepEnvironment(o.SleepEnvironment)
+
   return {
     id,
     babyId: pickStr(o, 'babyId', 'BabyId') || undefined,
@@ -113,10 +173,20 @@ function normalizeSleep(raw: unknown): SleepLogDto | null {
     sleepMood: pickStr(o, 'sleepMood', 'SleepMood'),
     sleepStartTime: pickStr(o, 'sleepStartTime', 'SleepStartTime'),
     sleepEndTime: pickStr(o, 'sleepEndTime', 'SleepEndTime'),
-    sleepEnvironment: pickStr(o, 'sleepEnvironment', 'SleepEnvironment'),
-    isTeething: pickBool(o, 'isTeething', 'IsTeething'),
-    isSick: pickBool(o, 'isSick', 'IsSick'),
-    isNap: pickBool(o, 'isNap', 'IsNap'),
+    sleepEnvironment: legacyEnv,
+    isTeething,
+    isSick,
+    isNap: pickBool(o, 'isNap', 'IsNap') || sleepType === 'nap',
+    sleepType,
+    quality: pickStr(o, 'quality', 'Quality') || undefined,
+    howFellAsleep: pickStr(o, 'howFellAsleep', 'HowFellAsleep') || undefined,
+    wakeUps: normalizeWakeUps(o.wakeUps ?? o.WakeUps),
+    preSleepActivity: normalizeStringList(o.preSleepActivity ?? o.PreSleepActivity),
+    notes: pickStr(o, 'notes', 'Notes') || undefined,
+    tags: tags.length ? tags : undefined,
+    isNightSleepFragmented: pickBool(o, 'isNightSleepFragmented', 'IsNightSleepFragmented'),
+    createdAt: pickStr(o, 'createdAt', 'CreatedAt') || undefined,
+    updatedAt: pickStr(o, 'updatedAt', 'UpdatedAt') || undefined,
   }
 }
 
@@ -176,6 +246,8 @@ function normalizeSleepList(data: unknown): SleepLogDto[] {
 function toApiBody(payload: SleepLogWrite): Record<string, unknown> {
   const utc = sleepFieldsToUtc(payload)
   const endRaw = utc.sleepEndTime?.trim()
+  const isNap = Boolean(payload.isNap)
+  const tags = buildTagsFromPayload(payload)
   const body: Record<string, unknown> = {
     babyId: payload.babyId.trim(),
     sleepDate: utc.sleepDate,
@@ -184,10 +256,18 @@ function toApiBody(payload: SleepLogWrite): Record<string, unknown> {
     sleepStartTime: utc.sleepStartTime,
     sleepEndTime: endRaw ? endRaw : null,
     sleepEnvironment: utc.sleepEnvironment,
-    isTeething: Boolean(payload.isTeething),
-    isSick: Boolean(payload.isSick),
-    isNap: Boolean(payload.isNap),
+    sleepType: utc.sleepType || (isNap ? 'nap' : 'night'),
+    isNap,
+    isNightSleepFragmented: Boolean(payload.isNightSleepFragmented),
   }
+
+  if (utc.quality) body.quality = utc.quality
+  if (utc.howFellAsleep) body.howFellAsleep = utc.howFellAsleep
+  if (utc.wakeUps?.length) body.wakeUps = utc.wakeUps
+  if (utc.preSleepActivity?.length) body.preSleepActivity = utc.preSleepActivity
+  if (utc.notes) body.notes = utc.notes
+  if (tags?.length) body.tags = tags
+
   const id = payload.id?.trim()
   if (id) body.id = id
   return body
@@ -226,19 +306,7 @@ function sleepFromCreateResponse(payload: SleepLogWrite, data: unknown): SleepLo
   if (!id) throw new Error('Create sleep: invalid response from server')
 
   const utc = sleepFieldsToUtc(payload)
-  return {
-    id,
-    babyId: payload.babyId,
-    sleepDate: utc.sleepDate,
-    sleepDuration: utc.sleepDuration,
-    sleepMood: utc.sleepMood,
-    sleepStartTime: utc.sleepStartTime,
-    sleepEndTime: utc.sleepEndTime,
-    sleepEnvironment: utc.sleepEnvironment,
-    isTeething: Boolean(payload.isTeething),
-    isSick: Boolean(payload.isSick),
-    isNap: Boolean(payload.isNap),
-  }
+  return { id, babyId: payload.babyId, ...utc }
 }
 
 /** POST `api/sleep` — `babyId` in JSON body only */
@@ -272,6 +340,7 @@ export async function deleteSleepLog(sleepId: string): Promise<void> {
 }
 
 export function sleepDtoToLogRecord(dto: SleepLogDto): LogRecord {
+  const tags = dto.tags ?? []
   return {
     id: dto.id,
     kind: 'sleep',
@@ -279,12 +348,20 @@ export function sleepDtoToLogRecord(dto: SleepLogDto): LogRecord {
     details: {
       sleepDate: dto.sleepDate,
       sleepDuration: dto.sleepDuration,
-      sleepMood: dto.sleepMood,
+      sleepMood: dto.sleepMood ?? '',
       sleepStartTime: dto.sleepStartTime,
       sleepEndTime: dto.sleepEndTime,
-      sleepEnvironment: dto.sleepEnvironment,
-      isTeething: String(dto.isTeething),
-      isSick: String(dto.isSick),
+      sleepEnvironment: dto.sleepEnvironment ?? '',
+      sleepType: dto.sleepType ?? '',
+      quality: dto.quality ?? '',
+      howFellAsleep: dto.howFellAsleep ?? '',
+      wakeUps: dto.wakeUps?.length ? JSON.stringify(dto.wakeUps) : '',
+      preSleepActivity: dto.preSleepActivity?.length ? JSON.stringify(dto.preSleepActivity) : '',
+      notes: dto.notes ?? '',
+      tags: tags.length ? JSON.stringify(tags) : '',
+      isNightSleepFragmented: String(dto.isNightSleepFragmented ?? false),
+      isTeething: String(dto.isTeething ?? tags.includes('teething')),
+      isSick: String(dto.isSick ?? tags.includes('sick')),
       isNap: String(dto.isNap),
       ...(dto.babyId ? { babyId: dto.babyId } : {}),
     },

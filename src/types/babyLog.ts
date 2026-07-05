@@ -114,11 +114,16 @@ export function diaperLogFromDetails(
   }
 }
 
+/** Wake-up during a sleep session. */
+export type SleepWakeUp = {
+  time: string
+  durationMinutes: number
+  reason?: string
+}
+
 /** Sleep log create payload. `sleepDuration` is sent as `HH:MM:SS` (e.g. `"08:30:00"`) for .NET `TimeSpan`. */
 export type SleepLogCreate = {
-  /** Local calendar date, `YYYY-MM-DD` (maps to C# `SleepDate` date component). */
   sleepDate: string
-  /** Minutes while editing; converted to `HH:MM:SS` before POST/PUT. */
   sleepDuration: string
   sleepMood: string
   sleepStartTime: string
@@ -127,6 +132,14 @@ export type SleepLogCreate = {
   isTeething?: boolean
   isSick?: boolean
   isNap?: boolean
+  sleepType?: string
+  quality?: string
+  howFellAsleep?: string
+  wakeUps?: SleepWakeUp[]
+  preSleepActivity?: string[]
+  notes?: string
+  tags?: string[]
+  isNightSleepFragmented?: boolean
 }
 
 /** Build a SleepLogCreate from stored `LogRecord` details + `atIso` (legacy `start` / `end` supported). */
@@ -150,16 +163,67 @@ export function sleepLogFromDetails(details: Record<string, string>, atIso: stri
         ? isoToLocalYmd(startIso)
         : isoToLocalYmd(atIso)) ||
     ''
+
+  let wakeUps: SleepWakeUp[] | undefined
+  if (details.wakeUps?.trim()) {
+    try {
+      const parsed = JSON.parse(details.wakeUps) as SleepWakeUp[]
+      if (Array.isArray(parsed)) wakeUps = parsed
+    } catch {
+      /* ignore */
+    }
+  }
+
+  let preSleepActivity: string[] | undefined
+  if (details.preSleepActivity?.trim()) {
+    try {
+      const parsed = JSON.parse(details.preSleepActivity) as string[]
+      if (Array.isArray(parsed)) preSleepActivity = parsed
+    } catch {
+      /* ignore */
+    }
+  }
+
+  let tags: string[] | undefined
+  if (details.tags?.trim()) {
+    try {
+      const parsed = JSON.parse(details.tags) as string[]
+      if (Array.isArray(parsed)) tags = parsed
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const isNap = BOOL(details.isNap)
+  const sleepType = details.sleepType?.trim() || (isNap ? 'nap' : 'night')
+
+  const mergedTags = [...(tags ?? [])]
+  if (BOOL(details.isTeething) && !mergedTags.includes('teething')) mergedTags.push('teething')
+  if (BOOL(details.isSick) && !mergedTags.includes('sick')) mergedTags.push('sick')
+
+  const sleepMood =
+    details.sleepMood?.trim() ||
+    details.moodBeforeSleep?.trim() ||
+    ''
+
   return {
     sleepDate,
     sleepDuration: String(durationMin),
-    sleepMood: details.sleepMood?.trim() ?? '',
+    sleepMood,
     sleepStartTime: startIso || atIso,
     sleepEndTime: endIso,
     sleepEnvironment: details.sleepEnvironment?.trim() ?? '',
-    isTeething: BOOL(details.isTeething),
-    isSick: BOOL(details.isSick),
-    isNap: BOOL(details.isNap),
+    isTeething: BOOL(details.isTeething) || mergedTags.includes('teething'),
+    isSick: BOOL(details.isSick) || mergedTags.includes('sick'),
+    isNap: isNap || sleepType === 'nap',
+    sleepType,
+    quality: details.quality?.trim() || undefined,
+    howFellAsleep: details.howFellAsleep?.trim() || undefined,
+    wakeUps,
+    preSleepActivity,
+    notes: details.notes?.trim() || undefined,
+    tags: mergedTags.length ? mergedTags : undefined,
+    isNightSleepFragmented: BOOL(details.isNightSleepFragmented),
   }
 }
 

@@ -60,6 +60,14 @@ async function executeFetch<T>(
 
   const headers = new Headers(init?.headers)
   if (!headers.has('Accept')) headers.set('Accept', 'application/json')
+  if (!headers.has('X-BP-Timezone')) {
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+      if (tz) headers.set('X-BP-Timezone', tz)
+    } catch {
+      /* ignore */
+    }
+  }
   if (init?.body != null && !headers.has('Content-Type') && !(init.body instanceof FormData)) {
     headers.set('Content-Type', 'application/json')
   }

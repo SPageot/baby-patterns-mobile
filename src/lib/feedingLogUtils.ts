@@ -15,6 +15,16 @@ export function feedingTypeLabel(type: string): string {
   return FEEDING_TYPE_LABELS[key] ?? (key ? key.charAt(0).toUpperCase() + key.slice(1) : 'Feed')
 }
 
+export function feedingLogDateYmd(log: LogRecord): string {
+  const at = log.details.feedingAt || log.atIso
+  const d = new Date(at)
+  if (Number.isNaN(d.getTime())) return ''
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 export function formatFeedingStamp(iso: string): { date: string; time: string } {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return { date: iso, time: '' }

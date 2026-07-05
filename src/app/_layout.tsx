@@ -7,12 +7,13 @@ import { PushNotificationHandler } from '@/components/notifications/PushNotifica
 import { SplashController } from '@/components/SplashController'
 import { useAppFonts } from '@/hooks/useAppFonts'
 import { BillingReturnHandler } from '@/components/billing/BillingReturnHandler'
+import { BottomTabNav } from '@/components/nav/BottomTabNav'
 import { Navbar } from '@/components/nav/Navbar'
-import { SideNav } from '@/components/nav/SideNav'
-import { AppProvider } from '@/context/AppContext'
+import { AppProvider, useApp } from '@/context/AppContext'
 import { ConfirmProvider } from '@/context/ConfirmContext'
-import { NavMenuProvider } from '@/context/NavMenuContext'
+import { TabNavProvider, useTabNav } from '@/context/TabNavContext'
 import { ThemeProvider } from '@/context/ThemeContext'
+import { useGuestRouteGuard } from '@/hooks/useGuestRouteGuard'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
 
 function AppShell() {
@@ -21,24 +22,40 @@ function AppShell() {
   const isAuth = root === '(auth)'
   const isLegal = root === 'terms' || root === 'privacy'
   const showShellNav = !isAuth && !isLegal
+  const { user } = useApp()
   const colors = useHomeTheme()
+  const { bottomInset } = useTabNav()
+  const showTabNav = showShellNav && Boolean(user)
+
+  useGuestRouteGuard()
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {showShellNav ? <Navbar /> : null}
       <SafeAreaView
         style={{ flex: 1, backgroundColor: colors.background }}
-        edges={isAuth ? ['top', 'bottom'] : ['bottom']}
+        edges={isAuth ? ['top', 'bottom'] : ['top']}
       >
         <Stack
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: colors.background },
+            contentStyle: {
+              backgroundColor: colors.background,
+              paddingBottom: showTabNav ? bottomInset : 0,
+            },
           }}
         />
       </SafeAreaView>
-      {showShellNav ? <SideNav /> : null}
+      {showTabNav ? <BottomTabNav /> : null}
     </View>
+  )
+}
+
+function AppShellWithTabs() {
+  return (
+    <TabNavProvider>
+      <AppShell />
+    </TabNavProvider>
   )
 }
 
@@ -58,9 +75,7 @@ export default function RootLayout() {
             <BillingReturnHandler />
             <PushNotificationHandler />
             <LegalAcceptModal />
-            <NavMenuProvider>
-              <AppShell />
-            </NavMenuProvider>
+            <AppShellWithTabs />
           </ConfirmProvider>
         </AppProvider>
       </ThemeProvider>

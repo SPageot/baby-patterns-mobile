@@ -5,6 +5,7 @@ import { BabyChipBar } from '@/components/BabyChipBar'
 import { TrackInsights } from '@/components/charts/TrackInsights'
 import { PottyLogModal } from '@/components/track/PottyLogModal'
 import { PottyLogSection } from '@/components/track/PottyLogSection'
+import { TrackPdfDownloadButton } from '@/components/track/TrackPdfDownloadButton'
 import { PottyLogsHistory } from '@/components/track/PottyLogsHistory'
 import { PottyLogsList } from '@/components/track/PottyLogsList'
 import { ErrorText } from '@/components/ui/primitives'
@@ -83,7 +84,16 @@ export function PottyTrackScreen() {
       onLogClick={potty.openForm}
       logFormOpen={potty.formOpen}
       alerts={alerts}
-      panelToolbar={<BabyChipBar />}
+      panelToolbar={
+        <>
+          <BabyChipBar />
+          <TrackPdfDownloadButton
+            loading={potty.exportingPdf}
+            disabled={!potty.pottyLogs.length}
+            onPress={() => void potty.downloadPottyPdf()}
+          />
+        </>
+      }
       insights={<TrackInsights logs={potty.pottyLogs} kind="potty" />}
       recent={
         <View>

@@ -87,6 +87,43 @@ export function minutesBetweenUtcSleepTimes(dateYmd: string, startTime: string, 
   return Math.max(0, Math.round((end.getTime() - start.getTime()) / 60000))
 }
 
+/** True when sleep starts after 11:00 and before 20:00 and lasts under 4 hours. */
+export function inferIsNapFromSleepStart(startTimeHm: string, durationMinutes: number | null): boolean {
+  if (durationMinutes == null || durationMinutes <= 0) return false
+  if (durationMinutes >= 4 * 60) return false
+
+  const match = /^(\d{1,2}):(\d{2})/.exec(startTimeHm.trim())
+  if (!match) return false
+
+  const hour = Number(match[1])
+  const minute = Number(match[2])
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return false
+
+  const startMinutes = hour * 60 + minute
+  return startMinutes > 11 * 60 && startMinutes < 20 * 60
+}
+
+export function inferIsNapFromUtcSleep(options: {
+  dateYmd: string
+  startTime: string
+  endTime: string
+}): boolean {
+  const durationMin = minutesBetweenUtcSleepTimes(
+    options.dateYmd,
+    options.startTime,
+    options.endTime,
+  )
+  return inferIsNapFromSleepStart(options.startTime, durationMin)
+}
+
+export function inferSleepTypeFromUtcSleep(options: {
+  dateYmd: string
+  startTime: string
+  endTime: string
+}): 'nap' | 'night' {
+  return inferIsNapFromUtcSleep(options) ? 'nap' : 'night'
+}
+
 /** Sleep date + start/end times (UTC) → ISO instants for API. */
 export function sleepTimesToUtcIso(
   dateYmd: string,
@@ -243,6 +280,22 @@ export function utcDateYmdToLocalYmd(utcYmd: string): string {
   return isoLocalYmd(utc.toISOString())
 }
 
+function sleepTagLabels(details: Record<string, string>): string[] {
+  const labels: string[] = []
+  let tags: string[] = []
+  if (details.tags?.trim()) {
+    try {
+      const parsed = JSON.parse(details.tags) as unknown
+      if (Array.isArray(parsed)) tags = parsed.map((t) => String(t))
+    } catch {
+      /* ignore */
+    }
+  }
+  if (tags.includes('teething') || details.isTeething === 'true') labels.push('Teething')
+  if (tags.includes('sick') || details.isSick === 'true') labels.push('Sick')
+  return labels
+}
+
 export function formatLogSummary(l: LogRecord): string {
   if (l.kind === 'feeding') {
     const d = l.details
@@ -297,11 +350,11 @@ export function formatLogSummary(l: LogRecord): string {
           }
         }
       }
-      if (d.sleepMood?.trim()) parts.push(d.sleepMood.trim())
-      if (d.sleepEnvironment?.trim()) parts.push(d.sleepEnvironment.trim())
-      if (d.isNap === 'true') parts.push('Nap')
-      if (d.isTeething === 'true') parts.push('Teething')
-      if (d.isSick === 'true') parts.push('Sick')
+      if (d.quality?.trim()) parts.push(d.quality.trim())
+      if (d.sleepLocation?.trim()) parts.push(d.sleepLocation.trim())
+      if (d.sleepType?.trim()) parts.push(d.sleepType.trim())
+      else if (d.isNap === 'true') parts.push('Nap')
+      for (const label of sleepTagLabels(d)) parts.push(label)
       return parts.length ? parts.join(' · ') : 'Sleep'
     }
   }

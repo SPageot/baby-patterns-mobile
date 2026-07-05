@@ -5,10 +5,19 @@ import { Input, Label } from '@/components/ui/primitives'
 import { DateTimeField } from '@/components/ui/DateTimeField'
 import { LogToggleRow } from '@/components/track/LogToggleRow'
 import { sleepFieldsToUtc } from '@/api/sleepApi'
-import type { SleepLogCreate } from '@/types/babyLog'
+import type { SleepLogCreate, SleepWakeUp } from '@/types/babyLog'
+import { sleepLogFromDetails } from '@/types/babyLog'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
+import {
+  HOW_FELL_ASLEEP,
+  PRE_SLEEP_ACTIVITIES,
+  SLEEP_EXTRA_TAGS,
+  SLEEP_QUALITY,
+  WAKE_UP_REASONS,
+  type SleepOption,
+} from '@/lib/sleepLogOptions'
 import {
   formatMinutesHuman,
   isoToUtcTimeValue,
@@ -17,6 +26,12 @@ import {
   sleepTimesToUtcIso,
 } from '@/lib/trackUtils'
 import { Spacing } from '@/constants/theme'
+
+export type SleepWakeUpForm = {
+  time: string
+  durationMinutes: string
+  reason: string
+}
 
 export type SleepFormState = {
   sleepDate: string
@@ -27,6 +42,72 @@ export type SleepFormState = {
   sleepTeething: boolean
   sleepSick: boolean
   sleepNap: boolean
+  quality: string
+  howFellAsleep: string
+  wakeUps: SleepWakeUpForm[]
+  preSleepActivity: string[]
+  notes: string
+  extraTags: string[]
+  isNightSleepFragmented: boolean
+}
+
+export function defaultSleepFormState(): SleepFormState {
+  return {
+    sleepDate: '',
+    sleepStart: '',
+    sleepEnd: '',
+    sleepMood: '',
+    sleepEnvironment: '',
+    sleepTeething: false,
+    sleepSick: false,
+    sleepNap: false,
+    quality: '',
+    howFellAsleep: '',
+    wakeUps: [],
+    preSleepActivity: [],
+    notes: '',
+    extraTags: [],
+    isNightSleepFragmented: false,
+  }
+}
+
+function toggleListValue(list: string[], value: string, checked: boolean): string[] {
+  if (checked) return list.includes(value) ? list : [...list, value]
+  return list.filter((v) => v !== value)
+}
+
+function buildTags(state: SleepFormState): string[] | undefined {
+  const tags = [...state.extraTags]
+  if (state.sleepTeething) tags.push('teething')
+  if (state.sleepSick) tags.push('sick')
+  const unique = [...new Set(tags)]
+  return unique.length ? unique : undefined
+}
+
+function wakeUpsToApi(dateYmd: string, rows: SleepWakeUpForm[]): SleepWakeUp[] {
+  const result: SleepWakeUp[] = []
+  for (const row of rows) {
+    const time = row.time.trim()
+    if (!time) continue
+    const times = sleepTimesToUtcIso(dateYmd, time, time)
+    if (!times) continue
+    const durationMinutes = Number(row.durationMinutes)
+    result.push({
+      time: times.startIso,
+      durationMinutes: Number.isFinite(durationMinutes) && durationMinutes >= 0 ? Math.round(durationMinutes) : 0,
+      reason: row.reason.trim() || undefined,
+    })
+  }
+  return result
+}
+
+function wakeUpsFromApi(rows: SleepWakeUp[] | undefined): SleepWakeUpForm[] {
+  if (!rows?.length) return []
+  return rows.map((row) => ({
+    time: isoToUtcTimeValue(row.time),
+    durationMinutes: String(row.durationMinutes ?? 0),
+    reason: row.reason?.trim() ?? '',
+  }))
 }
 
 export function sleepFormStateToCreate(state: SleepFormState): SleepLogCreate | null {
@@ -41,6 +122,9 @@ export function sleepFormStateToCreate(state: SleepFormState): SleepLogCreate | 
   const durationMin = hasEnd ? minutesBetweenUtcSleepTimes(date, start, state.sleepEnd) : 0
   if (hasEnd && durationMin == null) return null
 
+  const isNap = state.sleepNap
+  const tags = buildTags(state)
+
   return sleepFieldsToUtc({
     sleepDate: date,
     sleepDuration: String(durationMin ?? 0),
@@ -50,27 +134,48 @@ export function sleepFormStateToCreate(state: SleepFormState): SleepLogCreate | 
     sleepEnvironment: state.sleepEnvironment.trim(),
     isTeething: state.sleepTeething,
     isSick: state.sleepSick,
-    isNap: state.sleepNap,
+    isNap,
+    sleepType: isNap ? 'nap' : 'night',
+    quality: state.quality.trim() || undefined,
+    howFellAsleep: state.howFellAsleep.trim() || undefined,
+    wakeUps: wakeUpsToApi(date, state.wakeUps),
+    preSleepActivity: state.preSleepActivity.length ? state.preSleepActivity : undefined,
+    notes: state.notes.trim() || undefined,
+    tags,
+    isNightSleepFragmented: state.isNightSleepFragmented,
   })
 }
 
 export function sleepCreateToFormState(fields: SleepLogCreate): SleepFormState {
+  const allTags = fields.tags ?? []
   return {
     sleepDate: fields.sleepDate,
     sleepStart: isoToUtcTimeValue(fields.sleepStartTime),
     sleepEnd: fields.sleepEndTime?.trim() ? isoToUtcTimeValue(fields.sleepEndTime) : nowUtcTimeValue(),
-    sleepMood: fields.sleepMood,
-    sleepEnvironment: fields.sleepEnvironment,
-    sleepTeething: Boolean(fields.isTeething),
-    sleepSick: Boolean(fields.isSick),
+    sleepMood: fields.sleepMood?.trim() ?? '',
+    sleepEnvironment: fields.sleepEnvironment?.trim() ?? '',
+    sleepTeething: Boolean(fields.isTeething) || allTags.includes('teething'),
+    sleepSick: Boolean(fields.isSick) || allTags.includes('sick'),
     sleepNap: Boolean(fields.isNap),
+    quality: fields.quality?.trim() ?? '',
+    howFellAsleep: fields.howFellAsleep?.trim() ?? '',
+    wakeUps: wakeUpsFromApi(fields.wakeUps),
+    preSleepActivity: fields.preSleepActivity ?? [],
+    notes: fields.notes?.trim() ?? '',
+    extraTags: allTags.filter((tag) => tag !== 'teething' && tag !== 'sick'),
+    isNightSleepFragmented: Boolean(fields.isNightSleepFragmented),
   }
+}
+
+export function sleepDetailsToFormState(details: Record<string, string>, atIso: string): SleepFormState {
+  return sleepCreateToFormState(sleepLogFromDetails(details, atIso))
 }
 
 export function sleepDraftSummary(fields: SleepLogCreate): string {
   const parts: string[] = []
   if (fields.isNap) parts.push('Nap')
   if (fields.sleepMood) parts.push(fields.sleepMood)
+  if (fields.quality) parts.push(fields.quality)
   const start = new Date(fields.sleepStartTime)
   if (!Number.isNaN(start.getTime())) {
     parts.push(start.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }))
@@ -85,22 +190,22 @@ export function sleepDraftSummary(fields: SleepLogCreate): string {
 }
 
 const createStyles = (t: AppPalette) => ({
-  babyRow: {
+  chipRow: {
     flexDirection: 'row' as const,
     flexWrap: 'wrap' as const,
     gap: 8,
     marginBottom: Spacing.two,
   },
-  babyChip: {
+  chip: {
     borderWidth: 1,
     borderColor: t.strokeSubtle,
     borderRadius: HomeRadius.pill,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     paddingVertical: 8,
     backgroundColor: t.card2,
   },
-  babyChipText: {
-    fontSize: 14,
+  chipText: {
+    fontSize: 13,
     fontWeight: '600' as const,
     color: t.text,
   },
@@ -121,6 +226,10 @@ const createStyles = (t: AppPalette) => ({
     fontWeight: '600' as const,
     color: t.textMuted,
   },
+  durationValue: {
+    fontSize: 16,
+    fontWeight: '800' as const,
+  },
   endLabelRow: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
@@ -135,17 +244,101 @@ const createStyles = (t: AppPalette) => ({
     fontSize: 13,
     fontWeight: '700' as const,
   },
-  durationValue: {
-    fontSize: 16,
-    fontWeight: '800' as const,
-  },
   hint: {
     fontSize: 12,
     lineHeight: 18,
     color: t.textMuted,
     marginBottom: Spacing.two,
   },
+  linkBtn: {
+    alignSelf: 'flex-start' as const,
+  },
+  linkBtnRemove: {
+    marginTop: 4,
+  },
+  linkBtnAdd: {
+    marginTop: 8,
+    marginBottom: 0,
+  },
+  wakeSection: {
+    flexDirection: 'column' as const,
+    gap: 12,
+    marginBottom: Spacing.two,
+  },
+  wakeSectionLabel: {
+    marginBottom: 10,
+  },
+  linkText: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+  },
+  wakeBlock: {
+    marginBottom: Spacing.two,
+    padding: 12,
+    borderRadius: HomeRadius.md,
+    borderWidth: 1,
+    borderColor: t.strokeSubtle,
+    backgroundColor: t.card2,
+    gap: 8,
+  },
 })
+
+function OptionChips({
+  label,
+  options,
+  value,
+  multi,
+  selected,
+  onSelect,
+  onToggle,
+  accent,
+  accentSoft,
+  accentBorder,
+}: {
+  label: string
+  options: SleepOption[]
+  value?: string
+  multi?: boolean
+  selected?: string[]
+  onSelect?: (value: string) => void
+  onToggle?: (value: string, checked: boolean) => void
+  accent: string
+  accentSoft: string
+  accentBorder: string
+}) {
+  const styles = useThemedStyles(createStyles)
+
+  return (
+    <>
+      <Label>{label}</Label>
+      <View style={styles.chipRow}>
+        {options.map((option) => {
+          const active = multi
+            ? Boolean(selected?.includes(option.value))
+            : value === option.value
+          return (
+            <Pressable
+              key={option.value}
+              onPress={() => {
+                if (multi) {
+                  onToggle?.(option.value, !active)
+                } else {
+                  onSelect?.(active ? '' : option.value)
+                }
+              }}
+              style={[
+                styles.chip,
+                active && { borderColor: accentBorder, backgroundColor: accentSoft },
+              ]}
+            >
+              <Text style={[styles.chipText, active && { color: accent }]}>{option.label}</Text>
+            </Pressable>
+          )
+        })}
+      </View>
+    </>
+  )
+}
 
 type Props = {
   state: SleepFormState
@@ -157,6 +350,8 @@ type Props = {
 
 export function SleepLogFormFields({ state, setState, accent, stroke, disabled }: Props) {
   const styles = useThemedStyles(createStyles)
+  const accentSoft = `${accent}22`
+  const accentBorder = accent
   const set = (patch: Partial<SleepFormState>) => setState(patch)
 
   const durationPreview = useMemo(() => {
@@ -164,6 +359,11 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
     const m = minutesBetweenUtcSleepTimes(state.sleepDate, state.sleepStart, state.sleepEnd)
     return m == null ? '—' : formatMinutesHuman(m)
   }, [state.sleepDate, state.sleepStart, state.sleepEnd])
+
+  const setWakeUp = (index: number, patch: Partial<SleepWakeUpForm>) => {
+    const wakeUps = state.wakeUps.map((row, i) => (i === index ? { ...row, ...patch } : row))
+    setState({ wakeUps })
+  }
 
   return (
     <>
@@ -236,6 +436,115 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
         editable={!disabled}
       />
 
+      <OptionChips
+        label="Sleep quality"
+        options={SLEEP_QUALITY}
+        value={state.quality}
+        onSelect={(quality) => set({ quality })}
+        accent={accent}
+        accentSoft={accentSoft}
+        accentBorder={accentBorder}
+      />
+
+      <OptionChips
+        label="How fell asleep"
+        options={HOW_FELL_ASLEEP}
+        value={state.howFellAsleep}
+        onSelect={(howFellAsleep) => set({ howFellAsleep })}
+        accent={accent}
+        accentSoft={accentSoft}
+        accentBorder={accentBorder}
+      />
+
+      <OptionChips
+        label="Pre-sleep activity"
+        options={PRE_SLEEP_ACTIVITIES}
+        multi
+        selected={state.preSleepActivity}
+        onToggle={(value, checked) =>
+          set({ preSleepActivity: toggleListValue(state.preSleepActivity, value, checked) })
+        }
+        accent={accent}
+        accentSoft={accentSoft}
+        accentBorder={accentBorder}
+      />
+
+      <OptionChips
+        label="Tags"
+        options={SLEEP_EXTRA_TAGS}
+        multi
+        selected={state.extraTags}
+        onToggle={(value, checked) =>
+          set({ extraTags: toggleListValue(state.extraTags, value, checked) })
+        }
+        accent={accent}
+        accentSoft={accentSoft}
+        accentBorder={accentBorder}
+      />
+
+      <View style={styles.wakeSection}>
+        <View style={styles.wakeSectionLabel}>
+          <Label>Wake-ups during sleep</Label>
+        </View>
+        {state.wakeUps.map((row, index) => (
+          <View key={`wake-${index}`} style={styles.wakeBlock}>
+            <DateTimeField
+              label="Wake time (UTC)"
+              value={row.time}
+              onChange={(time) => setWakeUp(index, { time })}
+              mode="time"
+              zone="utc"
+            />
+            <Label>Duration (minutes)</Label>
+            <Input
+              value={row.durationMinutes}
+              onChangeText={(durationMinutes) => setWakeUp(index, { durationMinutes })}
+              keyboardType="number-pad"
+              editable={!disabled}
+            />
+            <OptionChips
+              label="Reason"
+              options={WAKE_UP_REASONS}
+              value={row.reason}
+              onSelect={(reason) => setWakeUp(index, { reason })}
+              accent={accent}
+              accentSoft={accentSoft}
+              accentBorder={accentBorder}
+            />
+            <Pressable
+              onPress={() => setState({ wakeUps: state.wakeUps.filter((_, i) => i !== index) })}
+              style={[styles.linkBtn, styles.linkBtnRemove]}
+            >
+              <Text style={[styles.linkText, { color: accent }]}>Remove</Text>
+            </Pressable>
+          </View>
+        ))}
+        <Pressable
+          onPress={() =>
+            setState({ wakeUps: [...state.wakeUps, { time: '', durationMinutes: '', reason: '' }] })
+          }
+          style={[styles.linkBtn, styles.linkBtnAdd]}
+        >
+          <Text style={[styles.linkText, { color: accent }]}>Add</Text>
+        </Pressable>
+      </View>
+
+      <Label>Notes</Label>
+      <Input
+        value={state.notes}
+        onChangeText={(notes) => set({ notes })}
+        placeholder="Anything else to remember"
+        editable={!disabled}
+      />
+
+      <LogToggleRow
+        label="Night sleep was fragmented"
+        value={state.isNightSleepFragmented}
+        onChange={(isNightSleepFragmented) => set({ isNightSleepFragmented })}
+        accent={accent}
+        stroke={stroke}
+      />
+
       <LogToggleRow
         label="Teething"
         value={state.sleepTeething}
@@ -276,7 +585,7 @@ export function SleepBabyPicker({
   return (
     <>
       <Label>Baby</Label>
-      <View style={styles.babyRow}>
+      <View style={styles.chipRow}>
         {babies.map((baby) => {
           const active = baby.id === formBabyId
           return (
@@ -284,11 +593,11 @@ export function SleepBabyPicker({
               key={baby.id}
               onPress={() => setFormBabyId(baby.id)}
               style={[
-                styles.babyChip,
+                styles.chip,
                 active && { borderColor: accentBorder, backgroundColor: accentSoft },
               ]}
             >
-              <Text style={styles.babyChipText}>{baby.fullName?.trim() || 'Baby'}</Text>
+              <Text style={styles.chipText}>{baby.fullName?.trim() || 'Baby'}</Text>
             </Pressable>
           )
         })}

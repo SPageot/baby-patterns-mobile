@@ -33,6 +33,7 @@ export function useFeedingLogs() {
   const [saving, setSaving] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
   const [deletingLogId, setDeletingLogId] = useState('')
+  const [exportingPdf, setExportingPdf] = useState(false)
 
   const [feedingType, setFeedingType] = useState<string>('breast')
   const [feedingWhen, setFeedingWhen] = useState(nowLocalInputValue)
@@ -282,6 +283,29 @@ export function useFeedingLogs() {
     }
   }
 
+  const downloadFeedingPdf = useCallback(async () => {
+    if (!feedingLogs.length) {
+      setError('Log at least one feeding before exporting a PDF.')
+      return
+    }
+    setExportingPdf(true)
+    setError(null)
+    try {
+      const caregiverName = user?.fullName?.trim() || user?.username?.trim() || 'Caregiver'
+      const { downloadFeedingReportPdf } = await import('@/lib/feedingReportPdf')
+      await downloadFeedingReportPdf({
+        logs: feedingLogs,
+        babies,
+        selectedBabyId: selectedBabyId ?? '',
+        caregiverName,
+      })
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not create feeding PDF')
+    } finally {
+      setExportingPdf(false)
+    }
+  }, [feedingLogs, babies, selectedBabyId, user])
+
   return {
     babies,
     selectedBabyId,
@@ -311,5 +335,7 @@ export function useFeedingLogs() {
     formState,
     setFormState,
     editingLogId,
+    exportingPdf,
+    downloadFeedingPdf,
   }
 }

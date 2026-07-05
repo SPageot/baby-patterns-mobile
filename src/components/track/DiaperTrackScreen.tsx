@@ -5,6 +5,7 @@ import { BabyChipBar } from '@/components/BabyChipBar'
 import { TrackInsights } from '@/components/charts/TrackInsights'
 import { DiaperLogModal } from '@/components/track/DiaperLogModal'
 import { DiaperLogSection } from '@/components/track/DiaperLogSection'
+import { TrackPdfDownloadButton } from '@/components/track/TrackPdfDownloadButton'
 import { DiaperLogsHistory } from '@/components/track/DiaperLogsHistory'
 import { DiaperLogsList } from '@/components/track/DiaperLogsList'
 import { ErrorText } from '@/components/ui/primitives'
@@ -83,7 +84,16 @@ export function DiaperTrackScreen() {
       onLogClick={diaper.openForm}
       logFormOpen={diaper.formOpen}
       alerts={alerts}
-      panelToolbar={<BabyChipBar />}
+      panelToolbar={
+        <>
+          <BabyChipBar />
+          <TrackPdfDownloadButton
+            loading={diaper.exportingPdf}
+            disabled={!diaper.diaperLogs.length}
+            onPress={() => void diaper.downloadDiaperPdf()}
+          />
+        </>
+      }
       insights={<TrackInsights logs={diaper.diaperLogs} kind="diaper" />}
       recent={
         <View>

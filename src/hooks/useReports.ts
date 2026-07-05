@@ -6,6 +6,7 @@ import { loadFeedingLogsForBabies } from '@/api/feedingApi'
 import { loadGrowthForBabies } from '@/api/growthApi'
 import { loadInjuryForBabies } from '@/api/injuryApi'
 import { loadPediatricianVisitsForBabies } from '@/api/pediatricianApi'
+import { loadPottyLogsForBabies } from '@/api/pottyApi'
 import { loadMilestonesForBabies } from '@/api/milestoneApi'
 import { loadSicknessForBabies } from '@/api/sicknessApi'
 import { loadSleepLogsForBabies } from '@/api/sleepApi'
@@ -64,18 +65,19 @@ export function useReports() {
     setError(null)
     try {
       const babyRefs = ownBabies.map((baby) => ({ id: baby.id, fullName: baby.fullName }))
-      const [diapers, sleep, feeding, growthRows, milestoneRows, sickness, injuries, pediatricianVisits] =
+      const [diapers, sleep, feeding, potty, growthRows, milestoneRows, sickness, injuries, pediatricianVisits] =
         await Promise.all([
         loadDiaperLogsForBabies(babyRefs),
         loadSleepLogsForBabies(babyRefs),
         loadFeedingLogsForBabies(babyRefs),
+        loadPottyLogsForBabies(babyRefs),
         loadGrowthForBabies(babyRefs),
         loadMilestonesForBabies(babyRefs),
         loadSicknessForBabies(babyRefs),
         loadInjuryForBabies(babyRefs),
         loadPediatricianVisitsForBabies(babyRefs),
       ])
-      setLogs([...diapers, ...sleep, ...feeding])
+      setLogs([...diapers, ...sleep, ...feeding, ...potty])
       setMeasurements(growthRows)
       setMilestones(milestoneRows)
       setSicknessRows(sickness)

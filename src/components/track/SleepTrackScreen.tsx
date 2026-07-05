@@ -7,6 +7,7 @@ import { SleepLogModal } from '@/components/track/SleepLogModal'
 import { SleepLogsHistory } from '@/components/track/SleepLogsHistory'
 import { SleepLogsList } from '@/components/track/SleepLogsList'
 import { TrackLogSection } from '@/components/track/TrackLogSection'
+import { TrackPdfDownloadButton } from '@/components/track/TrackPdfDownloadButton'
 import { ErrorText } from '@/components/ui/primitives'
 import { PageLoadingScreen } from '@/components/ui/Loading'
 import { isApiConfigured } from '@/api/config'
@@ -86,7 +87,16 @@ export function SleepTrackScreen() {
       onLogClick={sleep.openForm}
       logFormOpen={sleep.formOpen}
       alerts={alerts}
-      panelToolbar={<BabyChipBar />}
+      panelToolbar={
+        <>
+          <BabyChipBar />
+          <TrackPdfDownloadButton
+            loading={sleep.exportingPdf}
+            disabled={!sleep.sleepLogs.length}
+            onPress={() => void sleep.downloadSleepPdf()}
+          />
+        </>
+      }
       insights={<TrackInsights logs={sleep.sleepLogs} kind="sleep" />}
       recent={
         <View>

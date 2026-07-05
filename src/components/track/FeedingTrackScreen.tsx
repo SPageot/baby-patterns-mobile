@@ -7,6 +7,7 @@ import { FeedingLogModal } from '@/components/track/FeedingLogModal'
 import { FeedingLogsHistory } from '@/components/track/FeedingLogsHistory'
 import { FeedingLogsList } from '@/components/track/FeedingLogsList'
 import { TrackLogSection } from '@/components/track/TrackLogSection'
+import { TrackPdfDownloadButton } from '@/components/track/TrackPdfDownloadButton'
 import { ErrorText } from '@/components/ui/primitives'
 import { PageLoadingScreen } from '@/components/ui/Loading'
 import { isApiConfigured } from '@/api/config'
@@ -86,7 +87,16 @@ export function FeedingTrackScreen() {
       onLogClick={feeding.openForm}
       logFormOpen={feeding.formOpen}
       alerts={alerts}
-      panelToolbar={<BabyChipBar />}
+      panelToolbar={
+        <>
+          <BabyChipBar />
+          <TrackPdfDownloadButton
+            loading={feeding.exportingPdf}
+            disabled={!feeding.feedingLogs.length}
+            onPress={() => void feeding.downloadFeedingPdf()}
+          />
+        </>
+      }
       insights={<TrackInsights logs={feeding.feedingLogs} kind="feeding" />}
       recent={
         <View>

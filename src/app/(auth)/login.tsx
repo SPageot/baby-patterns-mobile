@@ -246,6 +246,10 @@ export default function LoginScreen() {
               <Link href="/signup" asChild>
                 <Text style={styles.link}>Create an account</Text>
               </Link>
+
+              <Pressable onPress={() => router.push('/pricing' as never)}>
+                <Text style={styles.link}>View pricing</Text>
+              </Pressable>
             </>
           ) : null}
           <LegalFooterLinks />

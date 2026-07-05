@@ -216,7 +216,7 @@ export function ReportsScreen() {
       </View>
 
       <Button
-        title={reports.exportingPdf ? 'Preparing PDF…' : 'Download PDF report'}
+        title={reports.exportingPdf ? 'Preparing PDF…' : 'Download PDF'}
         variant="secondary"
         onPress={() => void reports.downloadPdf()}
         disabled={!reports.isPro || reports.exportingPdf}

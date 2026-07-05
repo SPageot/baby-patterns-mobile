@@ -12,8 +12,6 @@ import { useApp } from '@/context/AppContext'
 import { useConfirmAction } from '@/context/ConfirmContext'
 import type { Baby } from '@/schemas/user'
 import {
-  isoToUtcDateValue,
-  isoToUtcTimeValue,
   nowUtcDateValue,
   nowUtcTimeValue,
   todayCount,
@@ -21,7 +19,11 @@ import {
 import { useDeferredEffect } from '@/lib/scheduleEffect'
 import type { LogRecord, SleepLogCreate } from '@/types/babyLog'
 import { useMultiBabyLogFlow } from '@/hooks/useMultiBabyLogFlow'
+import { sleepLogFromDetails } from '@/types/babyLog'
 import {
+  defaultSleepFormState,
+  sleepCreateToFormState,
+  sleepDetailsToFormState,
   sleepFormStateToCreate,
   type SleepFormState,
 } from '@/components/track/SleepLogFormFields'
@@ -38,50 +40,31 @@ export function useSleepLogs() {
   const [saving, setSaving] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
   const [deletingLogId, setDeletingLogId] = useState('')
+  const [exportingPdf, setExportingPdf] = useState(false)
 
   const [formBabyId, setFormBabyId] = useState('')
   const [editingLogId, setEditingLogId] = useState('')
-  const [sleepDate, setSleepDate] = useState(nowUtcDateValue)
-  const [sleepStart, setSleepStart] = useState(nowUtcTimeValue)
-  const [sleepEnd, setSleepEnd] = useState(nowUtcTimeValue)
-  const [sleepMood, setSleepMood] = useState('')
-  const [sleepEnvironment, setSleepEnvironment] = useState('')
-  const [sleepTeething, setSleepTeething] = useState(false)
-  const [sleepSick, setSleepSick] = useState(false)
-  const [sleepNap, setSleepNap] = useState(false)
+  const [formState, setFormStateInternal] = useState<SleepFormState>(() => ({
+    ...defaultSleepFormState(),
+    sleepDate: nowUtcDateValue(),
+    sleepStart: nowUtcTimeValue(),
+    sleepEnd: nowUtcTimeValue(),
+  }))
 
   const isEdit = Boolean(editingLogId.trim())
   const multi = useMultiBabyLogFlow(isEdit)
 
-  const formState: SleepFormState = useMemo(
-    () => ({
-      sleepDate,
-      sleepStart,
-      sleepEnd,
-      sleepMood,
-      sleepEnvironment,
-      sleepTeething,
-      sleepSick,
-      sleepNap,
-    }),
-    [sleepDate, sleepStart, sleepEnd, sleepMood, sleepEnvironment, sleepTeething, sleepSick, sleepNap],
-  )
-
   const setFormState = useCallback((patch: Partial<SleepFormState>) => {
-    if (patch.sleepDate !== undefined) setSleepDate(patch.sleepDate)
-    if (patch.sleepStart !== undefined) setSleepStart(patch.sleepStart)
-    if (patch.sleepEnd !== undefined) setSleepEnd(patch.sleepEnd)
-    if (patch.sleepMood !== undefined) setSleepMood(patch.sleepMood)
-    if (patch.sleepEnvironment !== undefined) setSleepEnvironment(patch.sleepEnvironment)
-    if (patch.sleepTeething !== undefined) setSleepTeething(patch.sleepTeething)
-    if (patch.sleepSick !== undefined) setSleepSick(patch.sleepSick)
-    if (patch.sleepNap !== undefined) setSleepNap(patch.sleepNap)
+    setFormStateInternal((prev) => ({ ...prev, ...patch }))
   }, [])
 
   const seedSleepTimesToNow = useCallback(() => {
-    setSleepDate(nowUtcDateValue())
-    setSleepStart(nowUtcTimeValue())
-    setSleepEnd(nowUtcTimeValue())
+    setFormStateInternal((prev) => ({
+      ...prev,
+      sleepDate: nowUtcDateValue(),
+      sleepStart: nowUtcTimeValue(),
+      sleepEnd: nowUtcTimeValue(),
+    }))
   }, [])
 
   const prevFormOpen = useRef(false)
@@ -158,18 +141,16 @@ export function useSleepLogs() {
 
   const resetForm = () => {
     setEditingLogId('')
-    setSleepMood('')
-    setSleepEnvironment('')
-    setSleepTeething(false)
-    setSleepSick(false)
-    setSleepNap(false)
-    seedSleepTimesToNow()
+    setFormStateInternal({
+      ...defaultSleepFormState(),
+      sleepDate: nowUtcDateValue(),
+      sleepStart: nowUtcTimeValue(),
+      sleepEnd: nowUtcTimeValue(),
+    })
     multi.resetMultiBabyFlow('')
   }
 
   const buildSleepFields = useCallback((): SleepLogCreate | null => {
-    if (!formState.sleepMood.trim()) return null
-    if (!formState.sleepEnvironment.trim()) return null
     return sleepFormStateToCreate(formState)
   }, [formState])
 
@@ -192,19 +173,9 @@ export function useSleepLogs() {
       babies.find((b) => b.fullName?.trim() === d.babyName?.trim())?.id?.trim() ||
       ''
 
-    const startIso = d.sleepStartTime || d.start || log.atIso
-    const endIso = d.sleepEndTime || d.end || ''
-
     setEditingLogId(log.id)
     setFormBabyId(babyId || selectedBabyId || getBabyId() || '')
-    setSleepDate(d.sleepDate?.trim() || isoToUtcDateValue(startIso) || nowUtcDateValue())
-    setSleepStart(isoToUtcTimeValue(startIso))
-    setSleepEnd(endIso ? isoToUtcTimeValue(endIso) : nowUtcTimeValue())
-    setSleepMood(d.sleepMood?.trim() ?? '')
-    setSleepEnvironment(d.sleepEnvironment?.trim() ?? '')
-    setSleepTeething(d.isTeething === 'true')
-    setSleepSick(d.isSick === 'true')
-    setSleepNap(d.isNap === 'true')
+    setFormStateInternal(sleepDetailsToFormState(d, log.atIso))
     multi.resetMultiBabyFlow(babyId || selectedBabyId || getBabyId() || '')
     setFormOpen(true)
   }
@@ -277,14 +248,6 @@ export function useSleepLogs() {
 
     const fields = buildSleepFields()
     if (!fields) {
-      if (!formState.sleepMood.trim()) {
-        setError('Enter a sleep mood.')
-        return
-      }
-      if (!formState.sleepEnvironment.trim()) {
-        setError('Enter a sleep environment.')
-        return
-      }
       setError('Enter a valid sleep start time.')
       return
     }
@@ -321,6 +284,29 @@ export function useSleepLogs() {
     }
   }
 
+  const downloadSleepPdf = useCallback(async () => {
+    if (!sleepLogs.length) {
+      setError('Log at least one sleep session before exporting a PDF.')
+      return
+    }
+    setExportingPdf(true)
+    setError(null)
+    try {
+      const caregiverName = user?.fullName?.trim() || user?.username?.trim() || 'Caregiver'
+      const { downloadSleepReportPdf } = await import('@/lib/sleepReportPdf')
+      await downloadSleepReportPdf({
+        logs: sleepLogs,
+        babies,
+        selectedBabyId: selectedBabyId ?? '',
+        caregiverName,
+      })
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not create sleep PDF')
+    } finally {
+      setExportingPdf(false)
+    }
+  }, [sleepLogs, babies, selectedBabyId, user])
+
   return {
     babies,
     selectedBabyId,
@@ -350,5 +336,7 @@ export function useSleepLogs() {
     formState,
     setFormState,
     editingLogId,
+    exportingPdf,
+    downloadSleepPdf,
   }
 }

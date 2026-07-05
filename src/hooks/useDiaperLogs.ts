@@ -33,6 +33,7 @@ export function useDiaperLogs() {
   const [saving, setSaving] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
   const [deletingLogId, setDeletingLogId] = useState('')
+  const [exportingPdf, setExportingPdf] = useState(false)
 
   const [diaperPee, setDiaperPee] = useState(false)
   const [diaperPoop, setDiaperPoop] = useState(false)
@@ -308,6 +309,29 @@ export function useDiaperLogs() {
     }
   }
 
+  const downloadDiaperPdf = useCallback(async () => {
+    if (!diaperLogs.length) {
+      setError('Log at least one diaper change before exporting a PDF.')
+      return
+    }
+    setExportingPdf(true)
+    setError(null)
+    try {
+      const caregiverName = user?.fullName?.trim() || user?.username?.trim() || 'Caregiver'
+      const { downloadDiaperReportPdf } = await import('@/lib/diaperReportPdf')
+      await downloadDiaperReportPdf({
+        logs: diaperLogs,
+        babies,
+        selectedBabyId: selectedBabyId ?? '',
+        caregiverName,
+      })
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not create diaper PDF')
+    } finally {
+      setExportingPdf(false)
+    }
+  }, [diaperLogs, babies, selectedBabyId, user])
+
   return {
     babies,
     selectedBabyId,
@@ -337,5 +361,7 @@ export function useDiaperLogs() {
     formState,
     setFormState,
     editingLogId,
+    exportingPdf,
+    downloadDiaperPdf,
   }
 }

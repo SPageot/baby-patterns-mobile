@@ -35,6 +35,7 @@ export function usePottyLogs() {
   const [saving, setSaving] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
   const [deletingLogId, setDeletingLogId] = useState('')
+  const [exportingPdf, setExportingPdf] = useState(false)
 
   const [pottyResult, setPottyResult] = useState(DEFAULT_POTTY_RESULT)
   const [pottyTime, setPottyTime] = useState(nowLocalInputValue)
@@ -280,6 +281,29 @@ export function usePottyLogs() {
     }
   }
 
+  const downloadPottyPdf = useCallback(async () => {
+    if (!pottyLogs.length) {
+      setError('Log at least one potty visit before exporting a PDF.')
+      return
+    }
+    setExportingPdf(true)
+    setError(null)
+    try {
+      const caregiverName = user?.fullName?.trim() || user?.username?.trim() || 'Caregiver'
+      const { downloadPottyReportPdf } = await import('@/lib/pottyReportPdf')
+      await downloadPottyReportPdf({
+        logs: pottyLogs,
+        babies,
+        selectedBabyId: selectedBabyId ?? '',
+        caregiverName,
+      })
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not create potty PDF')
+    } finally {
+      setExportingPdf(false)
+    }
+  }, [pottyLogs, babies, selectedBabyId, user])
+
   return {
     babies,
     selectedBabyId,
@@ -309,5 +333,7 @@ export function usePottyLogs() {
     formState,
     setFormState,
     editingLogId,
+    exportingPdf,
+    downloadPottyPdf,
   }
 }
