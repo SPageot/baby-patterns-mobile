@@ -7,6 +7,8 @@ const GUEST_ALLOWED_PATHS = new Set([
   '/forgot-password',
   '/reset-password',
   '/pricing',
+  '/parents-corner',
+  '/solution-board',
   '/terms',
   '/privacy',
 ])

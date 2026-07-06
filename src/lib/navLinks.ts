@@ -26,6 +26,7 @@ export const NAV_LINKS: NavLink[] = [
   { label: 'Home', href: '/', requiresBaby: false, icon: 'heart' },
   { label: 'Why track', href: '/why', requiresBaby: false, icon: 'heart' },
   { label: 'Parents Corner', href: '/parents-corner', requiresBaby: false, icon: 'users' },
+  { label: 'Solution Board', href: '/solution-board', requiresBaby: false, icon: 'star' },
   { label: 'Reviews', href: '/reviews', requiresBaby: false, icon: 'star' },
   { label: 'Pricing', href: '/pricing', requiresBaby: false, icon: 'tag' },
   { label: 'Diapers', href: '/diapers', requiresBaby: true, icon: 'diaper' },
@@ -51,6 +52,7 @@ export function getVisibleNavLinks(options: {
         link.href === '/' ||
         link.href === '/pricing' ||
         link.href === '/parents-corner' ||
+        link.href === '/solution-board' ||
         link.href === '/reviews',
     )
   }

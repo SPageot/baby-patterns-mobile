@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
-import { useRouter } from 'expo-router'
+import { Link, useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { AccountMenu } from '@/components/nav/AccountMenu'
 import { BrandMark } from '@/components/nav/BrandMark'
 import { NotificationsMenu } from '@/components/notifications/NotificationsMenu'
+import { Button } from '@/components/ui/primitives'
 import { UserAvatar } from '@/components/ui/UserAvatar'
 import { useApp } from '@/context/AppContext'
 import type { AppPalette } from '@/constants/homeTheme'
@@ -65,6 +66,12 @@ const createStyles = (t: AppPalette) => ({
     fontSize: 13,
     fontWeight: '600' as const,
   },
+  guestActions: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 8,
+    flexShrink: 1,
+  },
   pressed: {
     opacity: 0.82,
   },
@@ -114,7 +121,16 @@ export function Navbar() {
                 ) : null}
               </Pressable>
             </>
-          ) : null}
+          ) : (
+            <View style={styles.guestActions}>
+              <Link href="/login" asChild>
+                <Button title="Sign in" variant="ghost" />
+              </Link>
+              <Link href="/signup" asChild>
+                <Button title="Sign up" />
+              </Link>
+            </View>
+          )}
         </View>
       </View>
     </View>

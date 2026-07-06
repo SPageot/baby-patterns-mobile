@@ -70,7 +70,7 @@ export const APP_TABS: TabConfig[] = [
     shortLabel: 'Parents',
     icon: 'users',
     href: '/parents-corner',
-    paths: ['/parents-corner'],
+    paths: ['/parents-corner', '/solution-board'],
   },
   {
     id: 'daily-memories',
@@ -99,6 +99,11 @@ const HEALTH_SUB_LINKS: TabSubLink[] = [
   { label: 'Health', href: '/health', icon: 'health', requiresAuth: true },
   { label: 'Pediatrician', href: '/pediatrician', icon: 'hospital', requiresAuth: true },
   { label: 'Growth', href: '/growth', icon: 'growth', requiresAuth: true },
+]
+
+const PARENTS_SUB_LINKS: TabSubLink[] = [
+  { label: 'Parents Corner', href: '/parents-corner', icon: 'users' },
+  { label: 'Solution Board', href: '/solution-board', icon: 'star' },
 ]
 
 const GUEST_PROFILE_SUB_LINKS: TabSubLink[] = [
@@ -149,6 +154,7 @@ export function getSubLinksForTab(
     if (tabId === 'reports') return REPORTS_SUB_LINKS
     if (tabId === 'tracking') return TRACKING_SUB_LINKS
     if (tabId === 'health') return HEALTH_SUB_LINKS
+    if (tabId === 'parents-corner') return PARENTS_SUB_LINKS
     return []
   }
 
@@ -172,6 +178,8 @@ export function getSubLinksForTab(
       return TRACKING_SUB_LINKS
     case 'health':
       return HEALTH_SUB_LINKS
+    case 'parents-corner':
+      return PARENTS_SUB_LINKS
     default:
       return []
   }
