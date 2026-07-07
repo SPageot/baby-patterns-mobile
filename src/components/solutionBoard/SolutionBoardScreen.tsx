@@ -1,16 +1,21 @@
-import { useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { ScrollView, Text, View } from 'react-native'
 import { Link } from 'expo-router'
 
+import { ChallengeBoardCard } from '@/components/solutionBoard/ChallengeBoardCard'
+import { ChallengeBoardSearch } from '@/components/solutionBoard/ChallengeBoardSearch'
+import { ChallengeResponseStackModal } from '@/components/solutionBoard/ChallengeResponseStackModal'
 import { PinStickyNoteModal } from '@/components/solutionBoard/PinStickyNoteModal'
-import { StickyNoteCard } from '@/components/solutionBoard/StickyNoteCard'
 import { Button, Eyebrow, ErrorText } from '@/components/ui/primitives'
 import { PageLoadingScreen } from '@/components/ui/Loading'
 import { NavIcon } from '@/components/icons/NavIcon'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
 import { useConfirmAction } from '@/context/ConfirmContext'
+import { useModeration } from '@/context/ModerationContext'
 import { useSolutionBoard } from '@/hooks/useSolutionBoard'
+import { useSolutionBoardSeen } from '@/hooks/useSolutionBoardSeen'
+import { groupSolutionNotesByChallenge, filterChallengeGroupsByQuery } from '@/lib/solutionBoardGroups'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { heading } from '@/constants/typography'
@@ -21,7 +26,7 @@ import { Spacing } from '@/constants/theme'
 const createStyles = (t: AppPalette) => ({
   scroll: {
     flex: 1,
-    backgroundColor: '#ebe3d6',
+    backgroundColor: '#eef2f9',
   },
   content: {
     paddingHorizontal: Spacing.three,
@@ -100,13 +105,8 @@ const createStyles = (t: AppPalette) => ({
     textAlign: 'center' as const,
   },
   board: {
-    flexDirection: 'row' as const,
-    flexWrap: 'wrap' as const,
-    justifyContent: 'space-between' as const,
     gap: Spacing.two,
-  },
-  noteCol: {
-    width: '48%' as const,
+    alignItems: 'flex-start' as const,
   },
 })
 
@@ -115,9 +115,40 @@ export function SolutionBoardScreen() {
   const styles = useThemedStyles(createStyles)
   const { user, authReady } = useApp()
   const confirm = useConfirmAction()
+  const { isBlocked } = useModeration()
   const isLoggedIn = Boolean(user?.id)
   const board = useSolutionBoard(authReady && isApiConfigured())
+  const seen = useSolutionBoardSeen()
   const [pinOpen, setPinOpen] = useState(false)
+  const [addSolutionChallenge, setAddSolutionChallenge] = useState<string | null>(null)
+  const [openGroupKey, setOpenGroupKey] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const visibleNotes = useMemo(
+    () => board.notes.filter((note) => !isBlocked(note.author.id)),
+    [board.notes, isBlocked],
+  )
+  const challengeGroups = useMemo(
+    () => groupSolutionNotesByChallenge(visibleNotes),
+    [visibleNotes],
+  )
+  const filteredGroups = useMemo(
+    () => filterChallengeGroupsByQuery(challengeGroups, searchQuery),
+    [challengeGroups, searchQuery],
+  )
+  const openGroup = challengeGroups.find((group) => group.key === openGroupKey) ?? null
+
+  const openAddSolution = (challenge: string) => {
+    setAddSolutionChallenge(challenge)
+  }
+
+  const closeAddSolution = () => {
+    setAddSolutionChallenge(null)
+  }
+
+  useEffect(() => {
+    if (!openGroup || !seen.ready) return
+    seen.markSeen(openGroup)
+  }, [openGroup, seen.ready, seen.markSeen, openGroup?.notes.map((note) => note.id).join('|')])
 
   if (!authReady) {
     return <PageLoadingScreen label="Loading…" />
@@ -144,17 +175,24 @@ export function SolutionBoardScreen() {
         <Eyebrow>Community board</Eyebrow>
         <Text style={styles.title}>Solution Board</Text>
         <Text style={styles.subtitle}>
-          Sticky notes from parents — real challenges and what actually worked. Sign in to pin your own.
+          Real challenges from parents — tap a bubble to scroll through what worked for each family. Sign in to share your own.
         </Text>
       </View>
 
       {isLoggedIn ? (
         <View style={styles.pinRow}>
-          <Button title="Pin your note" onPress={() => setPinOpen(true)} />
+          <Button title="Share a challenge" onPress={() => setPinOpen(true)} />
           <PinStickyNoteModal
             open={pinOpen}
             saving={board.saving}
             onClose={() => setPinOpen(false)}
+            onSubmit={board.addNote}
+          />
+          <PinStickyNoteModal
+            open={Boolean(addSolutionChallenge)}
+            challenge={addSolutionChallenge ?? undefined}
+            saving={board.saving}
+            onClose={closeAddSolution}
             onSubmit={board.addNote}
           />
         </View>
@@ -174,42 +212,70 @@ export function SolutionBoardScreen() {
 
       {board.error ? <ErrorText>{board.error}</ErrorText> : null}
 
-      {board.notes.length === 0 ? (
+      {visibleNotes.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyTitle}>The board is empty</Text>
           <Text style={styles.emptyBody}>
             {isLoggedIn
-              ? 'Be the first to pin a note — someone else is probably facing the same challenge.'
+              ? 'Be the first to share a challenge — someone else is probably facing the same thing.'
               : 'Check back soon, or sign up and share what worked for you.'}
           </Text>
         </View>
       ) : (
-        <View style={styles.board}>
-          {board.notes.map((note) => (
-            <View key={note.id} style={styles.noteCol}>
-              <StickyNoteCard
-                note={note}
-                editing={board.editingNoteId === note.id}
-                saving={board.saving}
-                onEdit={note.isMine ? () => board.setEditingNoteId(note.id) : undefined}
-                onCancelEdit={() => board.setEditingNoteId(null)}
-                onSaveEdit={(input) => board.saveNoteEdit(note.id, input)}
-                onDelete={
-                  note.isMine
-                    ? () => {
-                        confirm({
-                          title: 'Remove sticky note?',
-                          message: 'This note will be taken off the board.',
-                          onConfirm: () => board.removeNote(note.id),
-                        })
-                      }
-                    : undefined
-                }
-              />
+        <>
+          <ChallengeBoardSearch value={searchQuery} onChange={setSearchQuery} />
+          {filteredGroups.length === 0 ? (
+            <View style={styles.empty}>
+              <Text style={styles.emptyTitle}>No matching challenges</Text>
+              <Text style={styles.emptyBody}>Try a different search term.</Text>
             </View>
-          ))}
-        </View>
+          ) : (
+            <View style={styles.board}>
+              {filteredGroups.map((group) => (
+                <ChallengeBoardCard
+                  key={group.key}
+                  group={group}
+                  onPress={() => setOpenGroupKey(group.key)}
+                  canAddSolution={isLoggedIn}
+                  onAddSolution={() => openAddSolution(group.challenge)}
+                  hasNew={seen.ready && seen.hasUnseen(group)}
+                />
+              ))}
+            </View>
+          )}
+        </>
       )}
+
+      <ChallengeResponseStackModal
+        open={Boolean(openGroupKey)}
+        groups={challengeGroups}
+        groupKey={openGroupKey}
+        onGroupChange={setOpenGroupKey}
+        onClose={() => {
+          setOpenGroupKey(null)
+          board.setEditingNoteId(null)
+        }}
+        moderationEnabled={isLoggedIn}
+        editingNoteId={board.editingNoteId}
+        saving={board.saving}
+        onEdit={(noteId) => board.setEditingNoteId(noteId)}
+        onCancelEdit={() => board.setEditingNoteId(null)}
+        onSaveEdit={board.saveNoteEdit}
+        onDelete={(noteId) => {
+          confirm({
+            title: 'Remove this story?',
+            message: 'It will be taken off the board.',
+            onConfirm: async () => {
+              await board.removeNote(noteId)
+              if (openGroup && openGroup.notes.length <= 1) {
+                setOpenGroupKey(null)
+              }
+            },
+          })
+        }}
+        canAddSolution={isLoggedIn}
+        onAddSolution={openGroup ? () => openAddSolution(openGroup.challenge) : undefined}
+      />
     </ScrollView>
   )
 }

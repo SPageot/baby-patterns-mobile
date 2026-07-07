@@ -2,6 +2,7 @@ import { Link } from 'expo-router'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 
 import { BabyChipBar } from '@/components/BabyChipBar'
+import { HealthDisclaimer } from '@/components/health/HealthDisclaimer'
 import { NavIcon } from '@/components/icons/NavIcon'
 import { PediatricianVisitModal } from '@/components/pediatrician/PediatricianVisitModal'
 import { TrackingHistoryBanner } from '@/components/track/TrackingHistoryBanner'
@@ -147,6 +148,8 @@ export function PediatricianTrackScreen() {
             </View>
           </View>
         </View>
+
+        <HealthDisclaimer />
 
         {!page.isPro ? <TrackingHistoryBanner /> : null}
 

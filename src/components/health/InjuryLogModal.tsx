@@ -1,6 +1,7 @@
 import { Pressable, Switch, Text, View } from 'react-native'
 
 import { TrackLogModalShell } from '@/components/track/TrackLogModalShell'
+import { HealthDisclaimer } from '@/components/health/HealthDisclaimer'
 import { Button, Input, Label } from '@/components/ui/primitives'
 import { DateTimeField } from '@/components/ui/DateTimeField'
 import { getTrackThemeFromPalette } from '@/constants/trackTheme'
@@ -51,6 +52,7 @@ export function InjuryLogModal({ health }: Props) {
       accentBorder={theme.accentBorder}
       accentSoft={theme.accentSoft}
     >
+      <HealthDisclaimer compact />
       {health.babies.length > 1 ? (
         <>
           <Label>Baby</Label>

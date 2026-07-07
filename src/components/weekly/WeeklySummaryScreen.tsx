@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 
 import { NavIcon } from '@/components/icons/NavIcon'
+import { HealthDisclaimer } from '@/components/health/HealthDisclaimer'
 import { WeeklySummaryContent } from '@/components/weekly/WeeklySummaryContent'
 import { Button, ErrorText, Eyebrow } from '@/components/ui/primitives'
 import { PageLoadingScreen } from '@/components/ui/Loading'
@@ -240,6 +241,8 @@ export function WeeklySummaryScreen() {
           A readable digest of sleep, naps, diapers, feeding, growth, and milestones — perfect for catching up with
           your partner or pediatrician.
         </Text>
+
+        <HealthDisclaimer />
 
         <View style={styles.weekRow}>
           {WEEK_OPTIONS.map((option) => {

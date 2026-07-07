@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
-import { useFocusEffect } from 'expo-router'
+import { useFocusEffect, useRouter } from 'expo-router'
 
 import {
   createDailyMemory,
@@ -28,6 +28,7 @@ import { nowLocalDateValue, ymdFromDate } from '@/lib/trackUtils'
 
 export function useDailyMemories() {
   const confirm = useConfirmAction()
+  const router = useRouter()
   const { babies, selectedBabyId, selectBaby, user, loadBabiesForCurrentUser } = useApp()
 
   const [babiesLoading, setBabiesLoading] = useState(false)
@@ -155,6 +156,19 @@ export function useDailyMemories() {
     [selectedYmd, filterBabyId, babies, resetMedia],
   )
 
+  const selectDay = useCallback(
+    (ymd: string) => {
+      setSelectedYmd(ymd)
+      const dayMemories = memoriesByDate.get(ymd) ?? []
+      if (dayMemories.length > 0) {
+        router.push(`/daily-memories/${ymd}` as '/')
+      } else {
+        openCreate(ymd)
+      }
+    },
+    [memoriesByDate, openCreate, router],
+  )
+
   const openEdit = useCallback((memory: DailyMemory) => {
     setEditingId(memory.id)
     setFormState(dailyMemoryToFormState(memory))
@@ -245,6 +259,7 @@ export function useDailyMemories() {
     memoriesByDate,
     selectedYmd,
     setSelectedYmd,
+    selectDay,
     selectedDayMemories,
     formOpen,
     formState,

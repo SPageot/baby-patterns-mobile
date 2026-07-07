@@ -3,6 +3,7 @@ import { Link, useRouter } from 'expo-router'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 
 import { BabyChipBar } from '@/components/BabyChipBar'
+import { HealthDisclaimer } from '@/components/health/HealthDisclaimer'
 import { GrowthLogModal } from '@/components/growth/GrowthLogModal'
 import { GrowthMilestoneModal } from '@/components/growth/GrowthMilestoneModal'
 import { GrowthTrendChart } from '@/components/growth/GrowthTrendChart'
@@ -387,6 +388,8 @@ export function GrowthTrackScreen() {
             </View>
           </View>
         </View>
+
+        <HealthDisclaimer />
 
         <BabyChipBar />
 

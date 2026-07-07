@@ -34,6 +34,17 @@ const createStyles = (t: AppPalette) => ({
     minHeight: 88,
     textAlignVertical: 'top' as const,
   },
+  lockedChallenge: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: t.text,
+    fontWeight: '600' as const,
+    padding: Spacing.two,
+    borderRadius: HomeRadius.md,
+    backgroundColor: t.card2,
+    borderWidth: 1,
+    borderColor: t.strokeSubtle,
+  },
   actions: {
     flexDirection: 'row' as const,
     justifyContent: 'flex-end' as const,
@@ -45,6 +56,7 @@ const createStyles = (t: AppPalette) => ({
 type Props = {
   saving?: boolean
   initial?: SolutionNoteInput
+  lockedChallenge?: string
   submitLabel?: string
   onSubmit: (input: SolutionNoteInput) => Promise<void>
   onCancel?: () => void
@@ -53,19 +65,21 @@ type Props = {
 export function StickyNoteComposer({
   saving = false,
   initial,
+  lockedChallenge,
   submitLabel = 'Pin to board',
   onSubmit,
   onCancel,
 }: Props) {
   const styles = useThemedStyles(createStyles)
-  const [challenge, setChallenge] = useState(initial?.challenge ?? '')
+  const [challenge, setChallenge] = useState(initial?.challenge ?? lockedChallenge ?? '')
   const [solution, setSolution] = useState(initial?.solution ?? '')
+  const challengeValue = lockedChallenge?.trim() || challenge
 
   const handleSubmit = async () => {
-    if (!challenge.trim() || !solution.trim()) return
-    await onSubmit({ challenge, solution })
+    if (!challengeValue.trim() || !solution.trim()) return
+    await onSubmit({ challenge: challengeValue, solution })
     if (!initial) {
-      setChallenge('')
+      if (!lockedChallenge) setChallenge('')
       setSolution('')
     }
   }
@@ -74,15 +88,19 @@ export function StickyNoteComposer({
     <View style={styles.wrap}>
       <View style={styles.field}>
         <Text style={styles.label}>The challenge</Text>
-        <TextInput
-          style={styles.input}
-          value={challenge}
-          onChangeText={setChallenge}
-          placeholder="What was hard?"
-          placeholderTextColor="#9a94a0"
-          multiline
-          maxLength={500}
-        />
+        {lockedChallenge ? (
+          <Text style={styles.lockedChallenge}>{lockedChallenge}</Text>
+        ) : (
+          <TextInput
+            style={styles.input}
+            value={challenge}
+            onChangeText={setChallenge}
+            placeholder="What was hard?"
+            placeholderTextColor="#9a94a0"
+            multiline
+            maxLength={500}
+          />
+        )}
       </View>
       <View style={styles.field}>
         <Text style={styles.label}>What worked</Text>
@@ -103,7 +121,7 @@ export function StickyNoteComposer({
         <Button
           title={saving ? 'Saving…' : submitLabel}
           onPress={() => void handleSubmit()}
-          disabled={saving || !challenge.trim() || !solution.trim()}
+          disabled={saving || !challengeValue.trim() || !solution.trim()}
         />
       </View>
     </View>

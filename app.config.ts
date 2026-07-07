@@ -1,5 +1,9 @@
 import type { ExpoConfig, ConfigContext } from 'expo/config'
 
+const PUBLIC_SITE_URL = 'https://baby-pattern.com'
+const PRIVACY_POLICY_URL = `${PUBLIC_SITE_URL}/privacy`
+const TERMS_OF_SERVICE_URL = `${PUBLIC_SITE_URL}/terms`
+
 const allowCleartext = process.env.EXPO_PUBLIC_ALLOW_CLEARTEXT === 'true'
 
 const splash = {
@@ -67,5 +71,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   experiments: {
     typedRoutes: true,
     reactCompiler: true,
+  },
+  extra: {
+    siteUrl: PUBLIC_SITE_URL,
+    privacyPolicyUrl: PRIVACY_POLICY_URL,
+    termsUrl: TERMS_OF_SERVICE_URL,
   },
 })

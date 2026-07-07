@@ -1,7 +1,9 @@
-import { Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 
+import { ContentModerationMenu } from '@/components/moderation/ContentModerationMenu'
+import { NavIcon } from '@/components/icons/NavIcon'
 import { StickyNoteComposer } from '@/components/solutionBoard/StickyNoteComposer'
-import { Button } from '@/components/ui/primitives'
+import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { stickyNoteColor } from '@/lib/stickyNoteColors'
 import type { SolutionNote, SolutionNoteInput } from '@/schemas/solutionNote'
 import { Spacing } from '@/constants/theme'
@@ -20,6 +22,7 @@ type Props = {
   onCancelEdit?: () => void
   onSaveEdit?: (input: SolutionNoteInput) => Promise<void>
   onDelete?: () => void
+  moderationEnabled?: boolean
 }
 
 export function StickyNoteCard({
@@ -30,7 +33,9 @@ export function StickyNoteCard({
   onCancelEdit,
   onSaveEdit,
   onDelete,
+  moderationEnabled = false,
 }: Props) {
+  const theme = useHomeTheme()
   const color = stickyNoteColor(note.colorIndex)
   const authorName = note.author.fullName?.trim() || note.author.username || 'Parent'
 
@@ -94,7 +99,18 @@ export function StickyNoteCard({
         }}
       >
         <Text style={{ fontSize: 12, fontWeight: '700', color: '#3d3842' }}>{authorName}</Text>
-        <Text style={{ fontSize: 11, color: '#6b6570' }}>{formatNoteDate(note.createdAt)}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          {moderationEnabled ? (
+            <ContentModerationMenu
+              contentType="solution_note"
+              contentId={note.id}
+              authorId={note.author.id}
+              authorName={authorName}
+              isMine={note.isMine}
+            />
+          ) : null}
+          <Text style={{ fontSize: 11, color: '#6b6570' }}>{formatNoteDate(note.createdAt)}</Text>
+        </View>
       </View>
       <Text style={{ fontSize: 10, fontWeight: '800', letterSpacing: 0.5, color: '#8a8490', marginBottom: 4 }}>
         CHALLENGE
@@ -105,9 +121,37 @@ export function StickyNoteCard({
       </Text>
       <Text style={{ fontSize: 14, lineHeight: 20, color: '#2d2832', fontWeight: '500' }}>{note.solution}</Text>
       {note.isMine && (onEdit || onDelete) ? (
-        <View style={{ flexDirection: 'row', gap: 4, marginTop: 10, paddingTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.08)' }}>
-          {onEdit ? <Button title="Edit" variant="ghost" onPress={onEdit} /> : null}
-          {onDelete ? <Button title="Remove" variant="ghost" onPress={onDelete} /> : null}
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            gap: 2,
+            marginTop: 10,
+            paddingTop: 8,
+            borderTopWidth: 1,
+            borderTopColor: 'rgba(0,0,0,0.08)',
+          }}
+        >
+          {onEdit ? (
+            <Pressable
+              onPress={onEdit}
+              accessibilityRole="button"
+              accessibilityLabel="Edit"
+              style={{ width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 8 }}
+            >
+              <NavIcon name="edit" size={18} color={theme.textMuted} />
+            </Pressable>
+          ) : null}
+          {onDelete ? (
+            <Pressable
+              onPress={onDelete}
+              accessibilityRole="button"
+              accessibilityLabel="Remove"
+              style={{ width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 8 }}
+            >
+              <NavIcon name="trash" size={18} color="#9a5c5c" />
+            </Pressable>
+          ) : null}
         </View>
       ) : null}
     </View>

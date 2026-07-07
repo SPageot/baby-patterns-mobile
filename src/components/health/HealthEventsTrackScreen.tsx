@@ -2,6 +2,7 @@ import { Link, useRouter } from 'expo-router'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 
 import { BabyChipBar } from '@/components/BabyChipBar'
+import { HealthDisclaimer } from '@/components/health/HealthDisclaimer'
 import { NavIcon } from '@/components/icons/NavIcon'
 import { SicknessLogModal } from '@/components/health/SicknessLogModal'
 import { InjuryLogModal } from '@/components/health/InjuryLogModal'
@@ -174,6 +175,8 @@ export function HealthEventsTrackScreen() {
             </View>
           </View>
         </View>
+
+        <HealthDisclaimer />
 
         <BabyChipBar />
 

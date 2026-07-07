@@ -1,7 +1,23 @@
 /** Bump when Terms or Privacy content changes materially. */
-export const LEGAL_POLICY_VERSION = '2026-06-10'
+export const LEGAL_POLICY_VERSION = '2026-07-07'
 
-export const LEGAL_LAST_UPDATED = 'June 10, 2026'
+export const LEGAL_LAST_UPDATED = 'July 7, 2026'
+
+/** Public support and privacy contact for Terms, Privacy Policy, and app store listings. */
+export const SUPPORT_EMAIL = 'hello@baby-pattern.com'
+
+export function supportEmailMailto(): string {
+  return `mailto:${SUPPORT_EMAIL}`
+}
+
+export function splitAroundSupportEmail(text: string): { before: string; after: string } | null {
+  const idx = text.indexOf(SUPPORT_EMAIL)
+  if (idx === -1) return null
+  return {
+    before: text.slice(0, idx),
+    after: text.slice(idx + SUPPORT_EMAIL.length),
+  }
+}
 
 export type LegalSection = {
   title: string
@@ -87,7 +103,7 @@ export const TERMS_OF_USE: LegalSection[] = [
   {
     title: '10. Contact',
     paragraphs: [
-      'Questions about these Terms may be sent to the contact address listed on the Baby Patterns website or app.',
+      `For questions about these Terms, account access, billing, or technical support, email us at ${SUPPORT_EMAIL}. We aim to respond within a few business days.`,
     ],
   },
 ]
@@ -98,6 +114,7 @@ export const PRIVACY_POLICY: LegalSection[] = [
     paragraphs: [
       'This Privacy Policy explains how Baby Patterns ("we," "us") collects, uses, and shares information when you use our Service.',
       'We designed Baby Patterns for parents and caregivers tracking daily baby care. Protecting your family\'s information matters to us.',
+      `You can reach our support team at ${SUPPORT_EMAIL}.`,
     ],
   },
   {
@@ -176,14 +193,14 @@ export const PRIVACY_POLICY: LegalSection[] = [
     title: '9. Children\'s privacy',
     paragraphs: [
       'Baby Patterns is not directed to children under 13 to use on their own. Parents and guardians enter information about their children.',
-      'If you believe a child has created an account without appropriate consent, contact us so we can take appropriate action.',
+      `If you believe a child has created an account without appropriate consent, contact us at ${SUPPORT_EMAIL} so we can take appropriate action.`,
     ],
   },
   {
     title: '10. Your choices and rights',
     paragraphs: [
       'Depending on where you live, you may have rights to access, correct, delete, or export personal information. You can update profile details in the app, manage notification and weekly email preferences in settings, and remove family sharing connections from your profile settings.',
-      'To exercise privacy rights, contact us using the information on our website.',
+      `To exercise privacy rights (access, correction, or deletion), email ${SUPPORT_EMAIL} from the address associated with your account.`,
     ],
   },
   {
@@ -201,7 +218,7 @@ export const PRIVACY_POLICY: LegalSection[] = [
   {
     title: '13. Contact',
     paragraphs: [
-      'Privacy questions may be sent to the contact address listed on the Baby Patterns website or app.',
+      `For privacy questions or data requests, email ${SUPPORT_EMAIL}.`,
     ],
   },
 ]

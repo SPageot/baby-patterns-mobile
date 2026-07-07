@@ -2,7 +2,9 @@ import { Link, type Href } from 'expo-router'
 import { useState } from 'react'
 import { Image } from 'expo-image'
 import { Linking, Pressable, Text, TextInput, View } from 'react-native'
+import { useMemo } from 'react'
 
+import { ContentModerationMenu } from '@/components/moderation/ContentModerationMenu'
 import { Button } from '@/components/ui/primitives'
 import { LoadingState } from '@/components/ui/Loading'
 import { UserAvatar } from '@/components/ui/UserAvatar'
@@ -10,6 +12,7 @@ import type { Post, PostComment, PostSubmitInput } from '@/schemas/post'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
+import { useModeration } from '@/context/ModerationContext'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
 import { postBadgeLabel } from '@/lib/postBadges'
@@ -289,6 +292,7 @@ type Props = {
   onDelete: () => void
   isSiteDeveloper?: boolean
   readOnly?: boolean
+  currentUserId?: string
   requireAuthHref?: Href
 }
 
@@ -311,13 +315,19 @@ export function PostCard({
   onDelete,
   isSiteDeveloper: viewerIsSiteDeveloper = false,
   readOnly = false,
+  currentUserId,
   requireAuthHref = '/signup',
 }: Props) {
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
+  const { isBlocked } = useModeration()
   const [commentText, setCommentText] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const displayName = post.author.fullName?.trim() || post.author.username || 'Parent'
+  const visibleComments = useMemo(
+    () => comments.filter((comment) => !isBlocked(comment.author.id)),
+    [comments, isBlocked],
+  )
 
   const handleComment = async () => {
     if (readOnly) return
@@ -367,6 +377,15 @@ export function PostCard({
           </View>
         </View>
         <View style={styles.headerActions}>
+          {!readOnly ? (
+            <ContentModerationMenu
+              contentType="post"
+              contentId={post.id}
+              authorId={post.author.id}
+              authorName={displayName}
+              isMine={canEdit}
+            />
+          ) : null}
           {canEdit && onEdit ? (
             <Pressable onPress={onEdit} style={styles.headerAction}>
               <Text style={styles.headerActionText}>Edit</Text>
@@ -443,11 +462,12 @@ export function PostCard({
           {commentsLoading ? (
             <LoadingState label="Loading comments…" size="sm" inline compact />
           ) : null}
-          {!commentsLoading && comments.length === 0 ? (
+          {!commentsLoading && visibleComments.length === 0 ? (
             <Text style={styles.commentsHint}>No comments yet. Start the conversation.</Text>
           ) : null}
-          {comments.map((comment) => {
+          {visibleComments.map((comment) => {
             const commentName = comment.author.fullName?.trim() || comment.author.username || 'Parent'
+            const commentIsMine = Boolean(currentUserId && comment.author.id === currentUserId)
             return (
               <View key={comment.id} style={styles.comment}>
                 <View style={styles.commentTop}>
@@ -455,19 +475,30 @@ export function PostCard({
                     <AuthorAvatar author={comment.author} />
                     <Text style={styles.commentAuthor}>{commentName}</Text>
                   </View>
-                  {readOnly ? (
-                    <Link href={requireAuthHref} asChild>
-                      <Pressable>
-                        <Text style={styles.commentLike}>♥ {comment.likeCount}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                    {!readOnly ? (
+                      <ContentModerationMenu
+                        contentType="post_comment"
+                        contentId={comment.id}
+                        authorId={comment.author.id}
+                        authorName={commentName}
+                        isMine={commentIsMine}
+                      />
+                    ) : null}
+                    {readOnly ? (
+                      <Link href={requireAuthHref} asChild>
+                        <Pressable>
+                          <Text style={styles.commentLike}>♥ {comment.likeCount}</Text>
+                        </Pressable>
+                      </Link>
+                    ) : (
+                      <Pressable onPress={() => onLikeComment(comment.id)}>
+                        <Text style={[styles.commentLike, comment.likedByMe && styles.actionTextActive]}>
+                          ♥ {comment.likeCount}
+                        </Text>
                       </Pressable>
-                    </Link>
-                  ) : (
-                    <Pressable onPress={() => onLikeComment(comment.id)}>
-                      <Text style={[styles.commentLike, comment.likedByMe && styles.actionTextActive]}>
-                        ♥ {comment.likeCount}
-                      </Text>
-                    </Pressable>
-                  )}
+                    )}
+                  </View>
                 </View>
                 <Text style={styles.commentBody}>{comment.content}</Text>
               </View>

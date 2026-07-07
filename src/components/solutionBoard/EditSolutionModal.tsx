@@ -2,7 +2,7 @@ import { Modal, Pressable, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 import { StickyNoteComposer } from '@/components/solutionBoard/StickyNoteComposer'
-import type { SolutionNoteInput } from '@/schemas/solutionNote'
+import type { SolutionNote, SolutionNoteInput } from '@/schemas/solutionNote'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
@@ -48,11 +48,20 @@ const createStyles = (t: AppPalette) => ({
     fontWeight: '800' as const,
     color: t.text,
   },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: t.stroke,
+    backgroundColor: t.card2,
+  },
   close: {
     fontSize: 22,
     lineHeight: 24,
-    color: t.textMuted,
-    paddingHorizontal: 4,
+    color: t.text,
   },
   body: {
     padding: Spacing.three,
@@ -61,20 +70,19 @@ const createStyles = (t: AppPalette) => ({
 
 type Props = {
   open: boolean
+  note: SolutionNote | null
   saving?: boolean
-  challenge?: string
   onClose: () => void
-  onSubmit: (input: SolutionNoteInput) => Promise<void>
+  onSave: (noteId: string, input: SolutionNoteInput) => Promise<void>
 }
 
-export function PinStickyNoteModal({ open, saving = false, challenge, onClose, onSubmit }: Props) {
+export function EditSolutionModal({ open, note, saving = false, onClose, onSave }: Props) {
   const styles = useThemedStyles(createStyles)
-  const lockedChallenge = challenge?.trim() || undefined
-  const title = lockedChallenge ? 'Add your solution' : 'Share a challenge'
-  const submitLabel = lockedChallenge ? 'Post solution' : 'Post to board'
+
+  if (!note) return null
 
   const handleSubmit = async (input: SolutionNoteInput) => {
-    await onSubmit(input)
+    await onSave(note.id, input)
     onClose()
   }
 
@@ -85,18 +93,24 @@ export function PinStickyNoteModal({ open, saving = false, challenge, onClose, o
           <Pressable style={styles.backdrop} accessibilityRole="button" accessibilityLabel="Close" onPress={onClose} />
           <View style={styles.panel}>
             <View style={styles.header}>
-              <Text style={styles.title}>{title}</Text>
-              <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={onClose} hitSlop={8}>
+              <Text style={styles.title}>Edit your solution</Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Close"
+                onPress={onClose}
+                style={styles.closeBtn}
+                hitSlop={8}
+              >
                 <Text style={styles.close}>×</Text>
               </Pressable>
             </View>
             <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.body}>
               <StickyNoteComposer
+                initial={{ challenge: note.challenge, solution: note.solution }}
+                lockedChallenge={note.challenge}
                 saving={saving}
-                lockedChallenge={lockedChallenge}
-                submitLabel={submitLabel}
+                submitLabel="Save"
                 onSubmit={handleSubmit}
-                onCancel={onClose}
               />
             </ScrollView>
           </View>

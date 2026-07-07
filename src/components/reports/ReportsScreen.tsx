@@ -3,6 +3,7 @@ import { Link, useRouter } from 'expo-router'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 
 import { KindReportPanel } from '@/components/reports/KindReportPanel'
+import { HealthDisclaimer } from '@/components/health/HealthDisclaimer'
 import { GrowthReportPanel } from '@/components/reports/GrowthReportPanel'
 import { HealthReportPanel } from '@/components/reports/HealthReportPanel'
 import { ReportsOverview } from '@/components/reports/ReportsOverview'
@@ -197,6 +198,8 @@ export function ReportsScreen() {
           Deep analysis of sleep, naps, diapers, feeding, growth, and milestones — including best and worst days and times.
         </Text>
       </View>
+
+      <HealthDisclaimer />
 
       <View style={styles.rangeRow}>
         {(reports.isPro ? RANGE_OPTIONS_PRO : rangeOptions).map((option) => {

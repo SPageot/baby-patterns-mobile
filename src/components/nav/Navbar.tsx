@@ -3,15 +3,13 @@ import { Pressable, Text, View } from 'react-native'
 import { Link, useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { AccountMenu } from '@/components/nav/AccountMenu'
+import { AppMenu, AppMenuButton } from '@/components/nav/AppMenu'
 import { BrandMark } from '@/components/nav/BrandMark'
 import { NotificationsMenu } from '@/components/notifications/NotificationsMenu'
 import { Button } from '@/components/ui/primitives'
-import { UserAvatar } from '@/components/ui/UserAvatar'
 import { useApp } from '@/context/AppContext'
 import type { AppPalette } from '@/constants/homeTheme'
 import { heading } from '@/constants/typography'
-import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
 
@@ -50,21 +48,8 @@ const createStyles = (t: AppPalette) => ({
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     gap: 8,
-    flexShrink: 1,
+    flexShrink: 0,
     justifyContent: 'flex-end' as const,
-  },
-  userChip: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    gap: 8,
-    maxWidth: 140,
-    flexShrink: 1,
-  },
-  userName: {
-    flexShrink: 1,
-    color: t.textMuted,
-    fontSize: 13,
-    fontWeight: '600' as const,
   },
   guestActions: {
     flexDirection: 'row' as const,
@@ -81,15 +66,12 @@ export function Navbar() {
   const insets = useSafeAreaInsets()
   const router = useRouter()
   const { user } = useApp()
-  const colors = useHomeTheme()
   const styles = useThemedStyles(createStyles)
-  const [accountMenuOpen, setAccountMenuOpen] = useState(false)
-
-  const displayName = user?.fullName?.trim() || user?.username?.trim() || ''
+  const [menuOpen, setMenuOpen] = useState(false)
 
   return (
     <View style={[styles.nav, { paddingTop: insets.top + 8 }]}>
-      <AccountMenu open={accountMenuOpen} onClose={() => setAccountMenuOpen(false)} />
+      <AppMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
       <View style={styles.inner}>
         <View style={styles.start}>
           <Pressable
@@ -104,24 +86,8 @@ export function Navbar() {
         </View>
 
         <View style={styles.actions}>
-          {user ? (
-            <>
-              <NotificationsMenu enabled={Boolean(user.id)} />
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={displayName ? `Account menu for ${displayName}` : 'Account menu'}
-                onPress={() => setAccountMenuOpen(true)}
-                style={({ pressed }) => [styles.userChip, pressed && styles.pressed]}
-              >
-                <UserAvatar user={user} size="sm" />
-                {displayName ? (
-                  <Text style={styles.userName} numberOfLines={1}>
-                    {displayName}
-                  </Text>
-                ) : null}
-              </Pressable>
-            </>
-          ) : (
+          {user ? <NotificationsMenu enabled={Boolean(user.id)} /> : null}
+          {user ? null : (
             <View style={styles.guestActions}>
               <Link href="/login" asChild>
                 <Button title="Sign in" variant="ghost" />
@@ -131,6 +97,7 @@ export function Navbar() {
               </Link>
             </View>
           )}
+          <AppMenuButton onPress={() => setMenuOpen(true)} />
         </View>
       </View>
     </View>

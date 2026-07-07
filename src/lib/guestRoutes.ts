@@ -9,6 +9,8 @@ const GUEST_ALLOWED_PATHS = new Set([
   '/pricing',
   '/parents-corner',
   '/solution-board',
+  '/reviews',
+  '/why',
   '/terms',
   '/privacy',
 ])
