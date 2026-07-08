@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Platform, Pressable, Text, View } from 'react-native'
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker'
 
@@ -25,6 +25,8 @@ type Props = {
   zone?: 'local' | 'utc'
   placeholder?: string
   hideLabel?: boolean
+  minimumDate?: Date
+  maximumDate?: Date
 }
 
 const createStyles = (t: AppPalette) => ({
@@ -85,12 +87,20 @@ export function DateTimeField({
   zone = 'local',
   placeholder = mode === 'date' ? 'Select date' : mode === 'time' ? 'Select time' : 'Select date and time',
   hideLabel = false,
+  minimumDate,
+  maximumDate,
 }: Props) {
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
   const [showPicker, setShowPicker] = useState(false)
-  const pickerDate =
-    zone === 'utc' ? wallClockToPicker(value, mode) : parseDatetimeLocalValue(value, zone)
+  const pickerDate = useMemo(() => {
+    if (value.trim()) {
+      return zone === 'utc' ? wallClockToPicker(value, mode) : parseDatetimeLocalValue(value, zone)
+    }
+    if (maximumDate && mode === 'date') return maximumDate
+    if (minimumDate && mode === 'date') return minimumDate
+    return new Date()
+  }, [value, zone, mode, maximumDate, minimumDate])
   const display = formatPickerLabel(value, mode, zone)
 
   const commit = (date: Date) => {
@@ -147,6 +157,8 @@ export function DateTimeField({
             mode={mode === 'time' ? 'time' : mode}
             display={Platform.OS === 'ios' ? 'inline' : 'default'}
             onChange={onPickerChange}
+            minimumDate={minimumDate}
+            maximumDate={maximumDate}
             themeVariant={palette.mode === 'dark' ? 'dark' : 'light'}
           />
           {Platform.OS === 'ios' ? (

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Pressable, Switch, Text, View } from 'react-native'
 
 import { TrackLogModalShell } from '@/components/track/TrackLogModalShell'
+import { HealthDisclaimer } from '@/components/health/HealthDisclaimer'
 import { Button, Input, Label } from '@/components/ui/primitives'
 import { DateTimeField } from '@/components/ui/DateTimeField'
 import { getTrackThemeFromPalette } from '@/constants/trackTheme'
@@ -194,6 +195,8 @@ export function SicknessLogModal({ health }: Props) {
 
       <Label>Notes (optional)</Label>
       <Input value={health.sicknessNotes} onChangeText={health.setSicknessNotes} />
+
+      <HealthDisclaimer compact />
 
       <View style={styles.actions}>
         <Button

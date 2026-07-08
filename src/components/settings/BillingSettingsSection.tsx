@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Text, View } from 'react-native'
+import { Alert, Text, View } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import {
@@ -11,6 +11,11 @@ import { fetchCurrentUser } from '@/api/userApi'
 import { isApiConfigured } from '@/api/config'
 import { Button, ErrorText, SectionTitle, Subtitle } from '@/components/ui/primitives'
 import { isPaidProUser, isProUser, isSiteDeveloper } from '@/lib/subscription'
+import {
+  subscriptionPurchaseBlockedMessage,
+  subscriptionPurchaseBlockedTitle,
+  supportsInAppSubscriptionPurchase,
+} from '@/lib/platformBilling'
 import { useConfirmAction } from '@/context/ConfirmContext'
 import type { AppPalette } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
@@ -59,6 +64,7 @@ export function BillingSettingsSection({ user, onUserUpdated }: Props) {
     billingStatus?.proCurrentPeriodEnd ?? user.proCurrentPeriodEnd,
   )
   const cancelScheduled = Boolean(billingStatus?.cancelAtPeriodEnd)
+  const canPurchaseInApp = supportsInAppSubscriptionPurchase()
 
   useEffect(() => {
     if (!isPaidPro || !isApiConfigured()) {
@@ -132,7 +138,7 @@ export function BillingSettingsSection({ user, onUserUpdated }: Props) {
             ? periodEndLabel
               ? `Your Pro plan is active until ${periodEndLabel}, then you will return to the Free plan.`
               : 'Your Pro plan will end at the close of this billing period.'
-            : 'You have Baby Patterns Pro. Downgrade to stop future charges.'
+            : 'You have Baby Pattern Pro. Downgrade to stop future charges.'
           : hasProAccess
             ? 'You have Pro access on this account.'
             : 'You are on the Free plan.'}
@@ -152,7 +158,17 @@ export function BillingSettingsSection({ user, onUserUpdated }: Props) {
             />
           ) : null
         ) : (
-          <Button title="Upgrade to Pro" onPress={() => router.push('/pricing')} />
+          canPurchaseInApp ? (
+            <Button title="Upgrade to Pro" onPress={() => router.push('/pricing')} />
+          ) : (
+            <Button
+              title="How to get Pro"
+              variant="ghost"
+              onPress={() =>
+                Alert.alert(subscriptionPurchaseBlockedTitle(), subscriptionPurchaseBlockedMessage())
+              }
+            />
+          )
         )}
       </View>
     </View>

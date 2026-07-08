@@ -1,5 +1,6 @@
 import { ScrollView, Text, View } from 'react-native'
 import { Link } from 'expo-router'
+import { useMemo } from 'react'
 
 import { PostCard } from '@/components/parentsCorner/PostCard'
 import { PostComposer } from '@/components/parentsCorner/PostComposer'
@@ -9,6 +10,7 @@ import { NavIcon } from '@/components/icons/NavIcon'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
 import { useConfirmAction } from '@/context/ConfirmContext'
+import { useModeration } from '@/context/ModerationContext'
 import { useParentsCorner } from '@/hooks/useParentsCorner'
 import { isSiteDeveloper } from '@/lib/subscription'
 import type { AppPalette } from '@/constants/homeTheme'
@@ -103,8 +105,13 @@ export function ParentsCornerScreen() {
   const styles = useThemedStyles(createStyles)
   const { user, authReady } = useApp()
   const confirm = useConfirmAction()
+  const { isBlocked } = useModeration()
   const isLoggedIn = Boolean(user?.id)
   const corner = useParentsCorner(authReady && isApiConfigured(), user?.id)
+  const visiblePosts = useMemo(
+    () => corner.posts.filter((post) => !isBlocked(post.author.id)),
+    [corner.posts, isBlocked],
+  )
 
   if (!authReady) {
     return <PageLoadingScreen label="Loading…" />
@@ -165,7 +172,7 @@ export function ParentsCornerScreen() {
 
       {corner.error ? <ErrorText>{corner.error}</ErrorText> : null}
 
-      {corner.posts.length === 0 ? (
+      {visiblePosts.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyTitle}>No posts yet</Text>
           <Text style={styles.emptyBody}>
@@ -176,10 +183,11 @@ export function ParentsCornerScreen() {
         </View>
       ) : null}
 
-      {corner.posts.map((post) => (
+      {visiblePosts.map((post) => (
         <PostCard
           key={post.id}
           post={post}
+          currentUserId={user?.id}
           comments={corner.commentsByPost[post.id] ?? []}
           commentsOpen={Boolean(corner.commentsOpen[post.id])}
           commentsLoading={Boolean(corner.commentsLoading[post.id])}

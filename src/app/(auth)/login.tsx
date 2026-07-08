@@ -147,7 +147,7 @@ export default function LoginScreen() {
           <AuthBrandMark />
           <Eyebrow>Welcome back</Eyebrow>
           <Title>Baby </Title>
-          <AccentTitle>Patterns</AccentTitle>
+          <AccentTitle>Pattern</AccentTitle>
           <Subtitle>{mfaStep ? 'Verify your sign-in.' : 'Sign in to continue tracking.'}</Subtitle>
 
           <Card>

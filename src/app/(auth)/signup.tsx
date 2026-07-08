@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { KeyboardAvoidingView, Platform, ScrollView, Text } from 'react-native'
 import { Link, router } from 'expo-router'
 
@@ -7,6 +7,7 @@ import { isApiConfigured } from '@/api/config'
 import { createUser, deleteUser } from '@/api/userApi'
 import { LegalAcceptance } from '@/components/legal/LegalAcceptance'
 import { LegalFooterLinks } from '@/components/legal/LegalFooterLinks'
+import { DateTimeField } from '@/components/ui/DateTimeField'
 import {
   AccentTitle,
   Button,
@@ -23,12 +24,17 @@ import { AuthBrandMark } from '@/components/auth/AuthBrandMark'
 import { useApp } from '@/context/AppContext'
 import type { AppPalette } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
+import { Spacing } from '@/constants/theme'
 import {
+  EARLIEST_BIRTHDATE_YMD,
+  MIN_USER_AGE_YEARS,
+  latestUserBirthdateYmd,
   normalizeUserSignup,
-  validateUserSignupStep1,
-  validateUserSignupStep2,
+  validateUserSignup,
 } from '@/schemas/user'
+import { APP_AUDIENCE_NOTE } from '@/lib/healthDisclaimer'
 import { LEGAL_POLICY_VERSION } from '@/lib/legalContent'
+import { parseYmd } from '@/lib/trackUtils'
 
 const createStyles = (t: AppPalette) => ({
   flex: {
@@ -40,6 +46,20 @@ const createStyles = (t: AppPalette) => ({
     fontSize: 15,
     fontWeight: '600' as const,
     color: t.accentDeep,
+  },
+  hint: {
+    marginTop: -4,
+    marginBottom: 12,
+    fontSize: 13,
+    lineHeight: 18,
+    color: t.textMuted,
+  },
+  audienceNote: {
+    marginTop: 4,
+    marginBottom: Spacing.two,
+    fontSize: 12,
+    lineHeight: 18,
+    color: t.textMuted,
   },
 })
 
@@ -59,6 +79,14 @@ export default function SignupScreen() {
   const [legalError, setLegalError] = useState<string | null>(null)
   const [acceptedLegal, setAcceptedLegal] = useState(false)
   const [loading, setLoading] = useState(false)
+
+  const birthdateBounds = useMemo(
+    () => ({
+      minimumDate: parseYmd(EARLIEST_BIRTHDATE_YMD),
+      maximumDate: parseYmd(latestUserBirthdateYmd()),
+    }),
+    [],
+  )
 
   const submitUser = async () => {
     if (!isApiConfigured()) {
@@ -80,7 +108,7 @@ export default function SignupScreen() {
       fullName,
       location,
     })
-    const issues = [...validateUserSignupStep1(draft), ...validateUserSignupStep2(draft)]
+    const issues = validateUserSignup(draft)
     if (issues.length) {
       setError(issues[0]?.message ?? 'Fix the form')
       return
@@ -124,6 +152,7 @@ export default function SignupScreen() {
           <Title>Create </Title>
           <AccentTitle>account</AccentTitle>
           <Subtitle>Create your account to start tracking. You can add a baby profile anytime.</Subtitle>
+          <Text style={styles.audienceNote}>{APP_AUDIENCE_NOTE}</Text>
 
           <Card>
             {error ? <ErrorText>{error}</ErrorText> : null}
@@ -143,8 +172,19 @@ export default function SignupScreen() {
             <Input keyboardType="phone-pad" value={phone} onChangeText={setPhone} />
             <Label>Full name</Label>
             <Input value={fullName} onChangeText={setFullName} />
-            <Label>Birthdate (YYYY-MM-DD)</Label>
-            <Input placeholder="2000-01-15" value={birthdate} onChangeText={setBirthdate} />
+            <DateTimeField
+              label="Your birthdate"
+              mode="date"
+              zone="local"
+              value={birthdate}
+              onChange={setBirthdate}
+              placeholder="Select your birthdate"
+              minimumDate={birthdateBounds.minimumDate}
+              maximumDate={birthdateBounds.maximumDate}
+            />
+            <Text style={styles.hint}>
+              You must be at least {MIN_USER_AGE_YEARS} years old to create an account.
+            </Text>
             <Label>Location</Label>
             <Input value={location} onChangeText={setLocation} />
             <LegalAcceptance

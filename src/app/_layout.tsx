@@ -11,6 +11,7 @@ import { BottomTabNav } from '@/components/nav/BottomTabNav'
 import { Navbar } from '@/components/nav/Navbar'
 import { AppProvider, useApp } from '@/context/AppContext'
 import { ConfirmProvider } from '@/context/ConfirmContext'
+import { ModerationProvider } from '@/context/ModerationContext'
 import { TabNavProvider, useTabNav } from '@/context/TabNavContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { useGuestRouteGuard } from '@/hooks/useGuestRouteGuard'
@@ -70,13 +71,15 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <ThemeProvider>
         <AppProvider>
-          <ConfirmProvider>
-            <SplashController fontsReady={fontsLoaded} />
-            <BillingReturnHandler />
-            <PushNotificationHandler />
-            <LegalAcceptModal />
-            <AppShellWithTabs />
-          </ConfirmProvider>
+          <ModerationProvider>
+            <ConfirmProvider>
+              <SplashController fontsReady={fontsLoaded} />
+              <BillingReturnHandler />
+              <PushNotificationHandler />
+              <LegalAcceptModal />
+              <AppShellWithTabs />
+            </ConfirmProvider>
+          </ModerationProvider>
         </AppProvider>
       </ThemeProvider>
     </SafeAreaProvider>

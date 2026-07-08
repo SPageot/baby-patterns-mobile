@@ -1,5 +1,9 @@
 import type { ExpoConfig, ConfigContext } from 'expo/config'
 
+const PUBLIC_SITE_URL = 'https://baby-pattern.com'
+const PRIVACY_POLICY_URL = `${PUBLIC_SITE_URL}/privacy`
+const TERMS_OF_SERVICE_URL = `${PUBLIC_SITE_URL}/terms`
+
 const allowCleartext = process.env.EXPO_PUBLIC_ALLOW_CLEARTEXT === 'true'
 
 const splash = {
@@ -10,19 +14,19 @@ const splash = {
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'Baby Patterns',
+  name: 'Baby Pattern',
   slug: 'baby-patterns',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
-  scheme: 'babypatterns',
+  scheme: 'babypattern',
   userInterfaceStyle: 'automatic',
   ios: {
-    bundleIdentifier: 'com.babypatterns.app',
+    bundleIdentifier: 'com.babypattern.app',
     supportsTablet: true,
   },
   android: {
-    package: 'com.babypatterns.app',
+    package: 'com.babypattern.app',
     adaptiveIcon: {
       backgroundColor: '#ffffff',
       foregroundImage: './assets/images/android-icon-foreground.png',
@@ -51,8 +55,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-image-picker',
       {
-        photosPermission: 'Allow Baby Patterns to access your photos for profile pictures.',
-        cameraPermission: 'Allow Baby Patterns to use your camera for profile pictures.',
+        photosPermission: 'Allow Baby Pattern to access your photos for profile pictures.',
+        cameraPermission: 'Allow Baby Pattern to use your camera for profile pictures.',
       },
     ],
     'expo-sharing',
@@ -67,5 +71,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   experiments: {
     typedRoutes: true,
     reactCompiler: true,
+  },
+  extra: {
+    siteUrl: PUBLIC_SITE_URL,
+    privacyPolicyUrl: PRIVACY_POLICY_URL,
+    termsUrl: TERMS_OF_SERVICE_URL,
+    supportEmail: 'admin@baby-pattern.com',
+    androidPackage: 'com.babypattern.app',
   },
 })

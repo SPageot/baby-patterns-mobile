@@ -43,7 +43,7 @@ export function PlaceholderScreen({ title, description }: Props) {
     >
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.body}>
-        {description ?? 'This section will match the Baby Patterns website soon.'}
+        {description ?? 'This section will match the Baby Pattern website soon.'}
       </Text>
     </ScrollView>
   )

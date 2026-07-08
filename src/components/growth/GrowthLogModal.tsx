@@ -3,6 +3,7 @@ import { Pressable, Text, View } from 'react-native'
 import { Button, Input, Label } from '@/components/ui/primitives'
 import { DateTimeField } from '@/components/ui/DateTimeField'
 import { TrackLogModalShell } from '@/components/track/TrackLogModalShell'
+import { HealthDisclaimer } from '@/components/health/HealthDisclaimer'
 import { TrackingMediaField } from '@/components/growth/TrackingMediaField'
 import { getTrackThemeFromPalette } from '@/constants/trackTheme'
 import type { Baby } from '@/schemas/user'
@@ -192,6 +193,8 @@ export function GrowthLogModal({
         accentBorder={theme.accentBorder}
         accentSoft={theme.accentSoft}
       />
+
+      <HealthDisclaimer compact />
 
       <View style={styles.actions}>
         <Button title="Cancel" variant="secondary" onPress={onClose} disabled={saving} style={styles.actionBtn} />

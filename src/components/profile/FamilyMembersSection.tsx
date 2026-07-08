@@ -257,7 +257,7 @@ export function FamilyMembersSection({ enabled, user }: Props) {
 
       {!userIsPro ? (
         <Text style={styles.subtitle}>
-          Family sharing is included with Baby Patterns Pro.{' '}
+          Family sharing is included with Baby Pattern Pro.{' '}
           <Text style={styles.link} onPress={() => router.push('/pricing')}>
             Upgrade to Pro
           </Text>{' '}

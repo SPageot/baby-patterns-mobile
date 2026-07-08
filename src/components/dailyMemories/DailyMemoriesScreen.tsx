@@ -145,7 +145,7 @@ export function DailyMemoriesScreen() {
             <View style={{ flex: 1 }}>
               <Text style={styles.title}>Daily memories</Text>
               <Text style={styles.sub}>
-                Capture something memorable your baby did each day. Tap a date on the calendar to view or add a memory.
+                Capture something memorable your baby did each day. Tap a date to view memories or add a new one.
               </Text>
             </View>
           </View>
@@ -162,16 +162,11 @@ export function DailyMemoriesScreen() {
         {page.error ? <ErrorText>{page.error}</ErrorText> : null}
 
         <DailyMemoryCalendar
-            memoriesByDate={page.memoriesByDate}
-            selectedYmd={page.selectedYmd}
-            onSelectDay={page.setSelectedYmd}
-            selectedDayMemories={page.selectedDayMemories}
-            showBabyName={!page.filterBabyId && page.babies.length > 1}
-            onAddMemory={page.openCreate}
-            onEditMemory={page.openEdit}
-            onDeleteMemory={page.removeMemory}
-            deleting={page.saving}
-          />
+          memoriesByDate={page.memoriesByDate}
+          selectedYmd={page.selectedYmd}
+          onSelectDay={page.selectDay}
+          onChangeDay={page.setSelectedYmd}
+        />
       </ScrollView>
 
       <DailyMemoryFormModal

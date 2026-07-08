@@ -3,6 +3,7 @@ import { Link, useRouter } from 'expo-router'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 
 import { KindReportPanel } from '@/components/reports/KindReportPanel'
+import { HealthDisclaimer } from '@/components/health/HealthDisclaimer'
 import { GrowthReportPanel } from '@/components/reports/GrowthReportPanel'
 import { HealthReportPanel } from '@/components/reports/HealthReportPanel'
 import { ReportsOverview } from '@/components/reports/ReportsOverview'
@@ -259,6 +260,8 @@ export function ReportsScreen() {
           <ReportsTabPanel tab="health" active={activeTab}>
             <HealthReportPanel report={reports.report.health} />
           </ReportsTabPanel>
+
+      <HealthDisclaimer />
     </ScrollView>
   )
 }

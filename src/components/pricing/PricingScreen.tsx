@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Linking, Pressable, ScrollView, Text, View } from 'react-native'
+import { Alert, Linking, Pressable, ScrollView, Text, View } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import { NavIcon } from '@/components/icons/NavIcon'
@@ -8,6 +8,11 @@ import { createCheckoutSession } from '@/api/billingApi'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
 import { markBillingCheckoutStarted } from '@/lib/billingReturn'
+import {
+  subscriptionPurchaseBlockedMessage,
+  subscriptionPurchaseBlockedTitle,
+  supportsInAppSubscriptionPurchase,
+} from '@/lib/platformBilling'
 import { isPaidProUser, isProUser, isSiteDeveloper } from '@/lib/subscription'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
@@ -346,6 +351,7 @@ export function PricingScreen() {
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const proPrice = PRO_PRICING[proBilling]
+  const canPurchaseInApp = supportsInAppSubscriptionPurchase()
 
   useEffect(() => {
     if (userIsPaidPro && !isSiteDev) router.replace('/profile')
@@ -362,6 +368,11 @@ export function PricingScreen() {
       return
     }
     if (hasProAccess) return
+
+    if (!canPurchaseInApp) {
+      Alert.alert(subscriptionPurchaseBlockedTitle(), subscriptionPurchaseBlockedMessage())
+      return
+    }
 
     if (!isApiConfigured()) {
       setCheckoutError('Set EXPO_PUBLIC_API_URL in .env to subscribe.')
@@ -492,13 +503,17 @@ export function PricingScreen() {
                   title={
                     isCurrent
                       ? 'Current plan'
-                      : checkoutLoading
-                        ? 'Redirecting…'
-                        : loggedIn
-                          ? `Start ${PRO_TRIAL_DAYS}-day free trial`
+                      : !canPurchaseInApp
+                        ? loggedIn
+                          ? 'Pro via website only'
                           : 'Sign up for free trial'
+                        : checkoutLoading
+                          ? 'Redirecting…'
+                          : loggedIn
+                            ? `Start ${PRO_TRIAL_DAYS}-day free trial`
+                            : 'Sign up for free trial'
                   }
-                  variant={isCurrent ? 'secondary' : 'primary'}
+                  variant={isCurrent ? 'secondary' : canPurchaseInApp ? 'primary' : 'secondary'}
                   onPress={() => void onProAction()}
                   disabled={isCurrent || checkoutLoading}
                   style={styles.cta}
@@ -510,7 +525,9 @@ export function PricingScreen() {
       </View>
 
       <Text style={styles.disclaimer}>
-        Pro includes a {PRO_TRIAL_DAYS}-day free trial, then $4.99/month or $49.99/year. You won't be charged until after the trial. The free plan works at no cost with no credit card.
+        {canPurchaseInApp
+          ? `Pro includes a ${PRO_TRIAL_DAYS}-day free trial, then $4.99/month or $49.99/year. You won't be charged until after the trial. The free plan works at no cost with no credit card.`
+          : `Pro includes a ${PRO_TRIAL_DAYS}-day free trial, then $4.99/month or $49.99/year on the web. In-app subscription purchase is not available on this platform. Sign in to use Pro if your account already has access.`}
       </Text>
     </ScrollView>
   )

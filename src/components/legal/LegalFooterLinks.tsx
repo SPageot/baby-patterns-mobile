@@ -1,5 +1,7 @@
 import { Link } from 'expo-router'
-import { Text, View } from 'react-native'
+import { Linking, Pressable, Text, View } from 'react-native'
+
+import { SUPPORT_EMAIL, supportEmailMailto } from '@/lib/legalContent'
 
 import type { AppPalette } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
@@ -37,6 +39,10 @@ export function LegalFooterLinks() {
       <Link href="/privacy">
         <Text style={styles.link}>Privacy Policy</Text>
       </Link>
+      <Text style={styles.dot}>·</Text>
+      <Pressable onPress={() => void Linking.openURL(supportEmailMailto())}>
+        <Text style={styles.link}>{SUPPORT_EMAIL}</Text>
+      </Pressable>
     </View>
   )
 }

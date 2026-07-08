@@ -1,11 +1,12 @@
 import { Link, useRouter } from 'expo-router'
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { Linking, Pressable, ScrollView, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { heading } from '@/constants/typography'
-import { LEGAL_LAST_UPDATED, type LegalSection } from '@/lib/legalContent'
+import { LegalParagraph } from '@/components/legal/LegalParagraph'
+import { LEGAL_LAST_UPDATED, SUPPORT_EMAIL, supportEmailMailto, type LegalSection } from '@/lib/legalContent'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
 
@@ -13,6 +14,8 @@ type Props = {
   title: string
   intro: string
   sections: LegalSection[]
+  /** Public HTTPS URL for Play Console / app store listings. */
+  publicWebUrl?: string
 }
 
 const createStyles = (t: AppPalette) => ({
@@ -107,6 +110,19 @@ const createStyles = (t: AppPalette) => ({
     fontWeight: '600' as const,
     color: t.accentDeep,
   },
+  emailLink: {
+    fontWeight: '700' as const,
+    color: t.accentDeep,
+    textDecorationLine: 'underline' as const,
+  },
+  webLink: {
+    fontSize: 13,
+    lineHeight: 20,
+    fontWeight: '600' as const,
+    color: t.accentDeep,
+    textDecorationLine: 'underline' as const,
+    marginBottom: 12,
+  },
   footerDot: {
     color: t.textMuted,
   },
@@ -115,7 +131,7 @@ const createStyles = (t: AppPalette) => ({
   },
 })
 
-export function LegalDocument({ title, intro, sections }: Props) {
+export function LegalDocument({ title, intro, sections, publicWebUrl }: Props) {
   const insets = useSafeAreaInsets()
   const router = useRouter()
   const styles = useThemedStyles(createStyles)
@@ -138,15 +154,23 @@ export function LegalDocument({ title, intro, sections }: Props) {
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.docTitle}>{title}</Text>
         <Text style={styles.meta}>Last updated: {LEGAL_LAST_UPDATED}</Text>
+        {publicWebUrl ? (
+          <Pressable onPress={() => void Linking.openURL(publicWebUrl)}>
+            <Text style={styles.webLink}>View online: {publicWebUrl}</Text>
+          </Pressable>
+        ) : null}
         <Text style={styles.intro}>{intro}</Text>
 
         {sections.map((section) => (
           <View key={section.title} style={styles.section}>
             <Text style={styles.sectionTitle}>{section.title}</Text>
             {section.paragraphs.map((paragraph) => (
-              <Text key={paragraph} style={styles.paragraph}>
-                {paragraph}
-              </Text>
+              <LegalParagraph
+                key={paragraph}
+                text={paragraph}
+                style={styles.paragraph}
+                linkStyle={styles.emailLink}
+              />
             ))}
             {section.bullets?.map((item) => (
               <Text key={item} style={styles.bullet}>
@@ -157,6 +181,10 @@ export function LegalDocument({ title, intro, sections }: Props) {
         ))}
 
         <View style={styles.footer}>
+          <Pressable onPress={() => void Linking.openURL(supportEmailMailto())}>
+            <Text style={styles.footerLink}>Support</Text>
+          </Pressable>
+          <Text style={styles.footerDot}>·</Text>
           <Link href="/privacy" asChild>
             <Pressable>
               <Text style={styles.footerLink}>Privacy Policy</Text>

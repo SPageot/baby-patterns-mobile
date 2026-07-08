@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useRouter } from 'expo-router'
+import type { NotificationResponse } from 'expo-notifications'
 
 import { canUseExpoNotifications, loadExpoNotifications } from '@/lib/expoNotifications'
 
@@ -21,7 +22,7 @@ export function PushNotificationHandler() {
       const Notifications = await loadExpoNotifications()
       if (!Notifications) return
 
-      const navigateFromResponse = (response: Notifications.NotificationResponse | null) => {
+      const navigateFromResponse = (response: NotificationResponse | null) => {
         const route = routeFromNotificationData(
           response?.notification.request.content.data as Record<string, unknown> | undefined,
         )

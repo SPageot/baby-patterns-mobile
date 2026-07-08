@@ -1,10 +1,12 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Pressable, Text, TextInput, View } from 'react-native'
 
+import { ContentModerationMenu } from '@/components/moderation/ContentModerationMenu'
 import { StarRating } from '@/components/reviews/StarRating'
 import { Button } from '@/components/ui/primitives'
 import { LoadingState } from '@/components/ui/Loading'
 import { useConfirmAction } from '@/context/ConfirmContext'
+import { useModeration } from '@/context/ModerationContext'
 import {
   deleteProductReview,
   fetchProductReviews,
@@ -170,10 +172,15 @@ const createStyles = (t: AppPalette) => ({
 
 export function ProductReviews({ product, brandName, isLoggedIn, onReviewChange }: Props) {
   const confirm = useConfirmAction()
+  const { isBlocked } = useModeration()
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
   const [expanded, setExpanded] = useState(false)
   const [reviews, setReviews] = useState<ProductReview[]>([])
+  const visibleReviews = useMemo(
+    () => reviews.filter((review) => !isBlocked(review.author.id)),
+    [reviews, isBlocked],
+  )
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [rating, setRating] = useState(5)
@@ -275,14 +282,25 @@ export function ProductReviews({ product, brandName, isLoggedIn, onReviewChange 
             <LoadingState label="Loading reviews…" compact />
           ) : (
             <>
-              {reviews.map((review) => (
+              {visibleReviews.map((review) => (
                 <View key={review.id} style={styles.reviewItem}>
                   <View style={styles.reviewHead}>
                     <View>
                       <Text style={styles.reviewAuthor}>{displayAuthorName(review.author)}</Text>
                       <Text style={styles.reviewDate}>{formatReviewDate(review.createdAt)}</Text>
                     </View>
-                    <StarRating value={review.rating} size="sm" />
+                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 4 }}>
+                      {isLoggedIn ? (
+                        <ContentModerationMenu
+                          contentType="product_review"
+                          contentId={review.id}
+                          authorId={review.author.id}
+                          authorName={displayAuthorName(review.author)}
+                          isMine={review.isMine}
+                        />
+                      ) : null}
+                      <StarRating value={review.rating} size="sm" />
+                    </View>
                   </View>
                   <Text style={styles.reviewBody}>{review.content}</Text>
                   {review.isMine ? (
@@ -295,7 +313,7 @@ export function ProductReviews({ product, brandName, isLoggedIn, onReviewChange 
                 </View>
               ))}
 
-              {reviews.length === 0 ? (
+              {visibleReviews.length === 0 ? (
                 <Text style={styles.empty}>
                   Be the first to review {product.name} from {brandName}.
                 </Text>

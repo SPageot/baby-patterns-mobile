@@ -70,11 +70,78 @@ export type ValidationIssue = {
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const INVALID_BIRTHDATE_VALUES = new Set(['0001-01-01', '0000-00-00', '-infinity', 'infinity'])
+
+export const MIN_USER_AGE_YEARS = 18
+export const EARLIEST_BIRTHDATE_YMD = '1900-01-01'
 
 function isValidDateYmd(ymd: string): boolean {
   if (!DATE_RE.test(ymd)) return false
   const d = new Date(ymd + 'T12:00:00')
   return !Number.isNaN(d.getTime())
+}
+
+export function isValidBirthdateYmd(ymd: string): boolean {
+  const trimmed = ymd.trim()
+  if (!trimmed || INVALID_BIRTHDATE_VALUES.has(trimmed.toLowerCase())) return false
+  return isValidDateYmd(trimmed)
+}
+
+function todayAtNoon(): Date {
+  const now = new Date()
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0)
+}
+
+export function latestUserBirthdateYmd(now = new Date()): string {
+  const y = now.getFullYear() - MIN_USER_AGE_YEARS
+  const m = String(now.getMonth() + 1).padStart(2, '0')
+  const d = String(now.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+export function validateUserBirthdate(ymd: string): ValidationIssue[] {
+  const issues: ValidationIssue[] = []
+  const trimmed = ymd.trim()
+
+  if (!isValidBirthdateYmd(trimmed)) {
+    issues.push({ path: 'birthdate', message: 'Valid birthdate (YYYY-MM-DD) is required' })
+    return issues
+  }
+
+  const birthNoon = new Date(`${trimmed}T12:00:00`)
+  const todayNoon = todayAtNoon()
+  if (birthNoon > todayNoon) {
+    issues.push({ path: 'birthdate', message: 'Birthdate cannot be in the future' })
+    return issues
+  }
+
+  const youngestAllowed = new Date(todayNoon)
+  youngestAllowed.setFullYear(youngestAllowed.getFullYear() - MIN_USER_AGE_YEARS)
+  if (birthNoon > youngestAllowed) {
+    issues.push({
+      path: 'birthdate',
+      message: `You must be at least ${MIN_USER_AGE_YEARS} years old to create an account`,
+    })
+  }
+
+  return issues
+}
+
+export function validateBabyBirthdate(ymd: string): ValidationIssue[] {
+  const issues: ValidationIssue[] = []
+  const trimmed = ymd.trim()
+
+  if (!isValidBirthdateYmd(trimmed)) {
+    issues.push({ path: 'birthdate', message: 'Valid birthdate (YYYY-MM-DD) is required' })
+    return issues
+  }
+
+  const birthNoon = new Date(`${trimmed}T12:00:00`)
+  if (birthNoon > todayAtNoon()) {
+    issues.push({ path: 'birthdate', message: 'Birthdate cannot be in the future' })
+  }
+
+  return issues
 }
 
 export function validateLogin(data: LoginCredentials): ValidationIssue[] {
@@ -108,25 +175,46 @@ export function validateUserSignupStep2(
     issues.push({ path: 'phone', message: 'Valid phone number is required' })
   }
   if (!data.fullName.trim()) issues.push({ path: 'fullName', message: 'Full name is required' })
-  if (!data.birthdate.trim() || !isValidDateYmd(data.birthdate.trim())) {
-    issues.push({ path: 'birthdate', message: 'Valid birthdate is required' })
-  }
+  issues.push(...validateUserBirthdate(data.birthdate))
   if (!data.location.trim()) issues.push({ path: 'location', message: 'Location is required' })
   return issues
+}
+
+export function validateUserSignup(data: UserSignup): ValidationIssue[] {
+  return [...validateUserSignupStep1(data), ...validateUserSignupStep2(data)]
 }
 
 export function validateBabySignup(data: BabySignup): ValidationIssue[] {
   const issues: ValidationIssue[] = []
   if (!data.fullName.trim()) issues.push({ path: 'fullName', message: 'Full name is required' })
-  if (!data.birthdate.trim() || !isValidDateYmd(data.birthdate.trim())) {
-    issues.push({ path: 'birthdate', message: 'Valid birthdate is required' })
-  }
+  issues.push(...validateBabyBirthdate(data.birthdate))
   if (!data.locationBorn.trim()) {
     issues.push({ path: 'locationBorn', message: 'Location born is required' })
   }
   if (!data.currentLocation.trim()) {
     issues.push({ path: 'currentLocation', message: 'Current location is required' })
   }
+  return issues
+}
+
+export function validateUserUpdate(data: UserUpdate): ValidationIssue[] {
+  const issues: ValidationIssue[] = []
+
+  if (data.phone !== undefined) {
+    if (!data.phone.trim() || data.phone.trim().length < 7) {
+      issues.push({ path: 'phone', message: 'Valid phone number is required' })
+    }
+  }
+  if (data.fullName !== undefined && !data.fullName.trim()) {
+    issues.push({ path: 'fullName', message: 'Full name is required' })
+  }
+  if (data.birthdate !== undefined && data.birthdate.trim()) {
+    issues.push(...validateUserBirthdate(data.birthdate))
+  }
+  if (data.location !== undefined && !data.location.trim()) {
+    issues.push({ path: 'location', message: 'Location is required' })
+  }
+
   return issues
 }
 

@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 
 import { NavIcon } from '@/components/icons/NavIcon'
+import { HealthDisclaimer } from '@/components/health/HealthDisclaimer'
 import { WeeklySummaryContent } from '@/components/weekly/WeeklySummaryContent'
 import { Button, ErrorText, Eyebrow } from '@/components/ui/primitives'
 import { PageLoadingScreen } from '@/components/ui/Loading'
@@ -215,7 +216,7 @@ export function WeeklySummaryScreen() {
           </View>
           <Text style={styles.gateTitle}>Weekly summaries are a Pro feature</Text>
           <Text style={styles.gateText}>
-            Upgrade to Baby Patterns Pro for in-app weekly digests, email summaries, and unlimited report history.
+            Upgrade to Baby Pattern Pro for in-app weekly digests, email summaries, and unlimited report history.
           </Text>
           <Button title="View Pro plans" onPress={() => router.push('/pricing')} />
         </View>
@@ -297,6 +298,8 @@ export function WeeklySummaryScreen() {
         babyName={summary.selectedBaby?.fullName ?? ''}
         onCopy={summary.copySummary}
       />
+
+      <HealthDisclaimer />
     </ScrollView>
   )
 }

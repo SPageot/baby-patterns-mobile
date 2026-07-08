@@ -3,7 +3,7 @@ import { apiFetch } from '@/api/client'
 import { extractUserId } from '@/api/userApi'
 import { getBabyId } from '@/api/config'
 import {
-  datetimeLocalInputToIso,
+  datetimeUtcInputToIso,
   minutesToTimeSpanHms,
   parseSleepDurationMinutes,
 } from '@/lib/trackUtils'
@@ -12,7 +12,7 @@ import type { LogRecord, SleepLogCreate, SleepWakeUp } from '@/types/babyLog'
 function sleepTimeToUtcIso(value: string): string {
   const v = value.trim()
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(v) && !/[zZ]$|[+-]\d{2}:?\d{2}$/.test(v)) {
-    return datetimeLocalInputToIso(v)
+    return datetimeUtcInputToIso(v)
   }
   return toUtcIsoTime(v)
 }
