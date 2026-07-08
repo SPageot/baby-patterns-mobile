@@ -13,9 +13,9 @@ export const homeHighlights = [
 ] as const
 
 export const homeAbout = {
-  title: 'What is Baby Patterns?',
+  title: 'What is Baby Pattern?',
   paragraphs: [
-    'Baby Patterns is a web and mobile app for logging everyday baby care and spotting patterns over time. Create a free account, add your baby, and start tracking in seconds.',
+    'Baby Pattern is a web and mobile app for logging everyday baby care and spotting patterns over time. Create a free account, add your baby, and start tracking in seconds.',
     'Everything you log stays tied to your babies. Reports turn raw entries into trends you can use at home or share with a pediatrician.',
   ],
   bullets: [

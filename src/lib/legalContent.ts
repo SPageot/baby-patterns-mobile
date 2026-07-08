@@ -1,7 +1,7 @@
 /** Bump when Terms or Privacy content changes materially. Keep mobile and web copies identical. */
-export const LEGAL_POLICY_VERSION = '2026-07-08'
+export const LEGAL_POLICY_VERSION = '2026-07-09'
 
-export const LEGAL_LAST_UPDATED = 'July 8, 2026'
+export const LEGAL_LAST_UPDATED = 'July 9, 2026'
 
 /** Public support and privacy contact for Terms, Privacy Policy, and app store listings. */
 export const SUPPORT_EMAIL = 'admin@baby-pattern.com'
@@ -34,7 +34,7 @@ export const TERMS_OF_USE: LegalSection[] = [
   {
     title: '1. Agreement',
     paragraphs: [
-      'These Terms of Use ("Terms") govern your access to and use of Baby Patterns (the "Service"), including our website, mobile apps, and related APIs.',
+      'These Terms of Use ("Terms") govern your access to and use of Baby Pattern (the "Service"), including our website, mobile apps, and related APIs.',
       'By creating an account or using the Service, you agree to these Terms and our Privacy Policy. If you do not agree, do not use the Service.',
     ],
   },
@@ -48,7 +48,7 @@ export const TERMS_OF_USE: LegalSection[] = [
   {
     title: '3. Not medical advice',
     paragraphs: [
-      'Baby Patterns helps you log and review daily baby care and development information, including diapers, feeding, sleep, naps, potty training, growth measurements, milestones, sickness and injury events, and pediatrician visits (such as hospital, provider name, recommendations, and immunizations).',
+      'Baby Pattern helps you log and review daily baby care and development information, including diapers, feeding, sleep, naps, potty training, growth measurements, milestones, sickness and injury events, and pediatrician visits (such as hospital, provider name, recommendations, and immunizations).',
       'Reports, charts, weekly summaries, PDF exports, community posts, reviews, and other analysis features are for general informational purposes only. They are designed to help you organize caregiver-entered data and share summaries with your pediatrician or care team when you choose.',
       'The Service does not provide medical advice, diagnosis, or treatment and is not a substitute for professional care. Always consult a qualified pediatrician or healthcare provider about your child\'s health.',
       'Do not delay or disregard medical advice because of something you read, export, or log in the Service.',
@@ -70,7 +70,7 @@ export const TERMS_OF_USE: LegalSection[] = [
   {
     title: '5. Community content and moderation',
     paragraphs: [
-      'Some features let users share content with others, including Parents Corner posts and comments, product reviews, and Solution Board notes. Community content reflects the views of the person who posted it, not Baby Patterns.',
+      'Some features let users share content with others, including Parents Corner posts and comments, product reviews, and Solution Board notes. Community content reflects the views of the person who posted it, not Baby Pattern.',
       'If you see content that violates these Terms, use the in-app report option on that post, comment, review, or note. You can also block another user to stop seeing their posts, comments, reviews, and Solution Board notes in your feed. Blocking is private — the other person is not notified.',
       'When you submit a report, we store the content type, content identifier, reason you select (such as spam, harassment, inappropriate content, or other), and any optional details you provide. Reports help us identify abuse and improve safety.',
       'We review reports and may remove content, restrict features, or suspend or terminate accounts that violate these Terms or that we reasonably believe pose a safety risk. We aim to review reports within a reasonable time, but we do not guarantee immediate removal.',
@@ -86,7 +86,7 @@ export const TERMS_OF_USE: LegalSection[] = [
   {
     title: '7. Subscriptions and billing',
     paragraphs: [
-      'Baby Patterns offers free and Pro plans. Pro may include extended history, family sharing alerts, PDF export, weekly email summaries, and other features described on our pricing page.',
+      'Baby Pattern offers free and Pro plans. Pro may include extended history, family sharing alerts, PDF export, weekly email summaries, and other features described on our pricing page.',
       'Paid subscriptions are processed by Stripe or another payment provider we designate. Billing terms, renewals, and cancellations are shown at checkout and in your account settings. Payment card details are handled by the payment provider, not stored directly by us.',
     ],
   },
@@ -100,7 +100,7 @@ export const TERMS_OF_USE: LegalSection[] = [
     title: '9. Disclaimer and limitation of liability',
     paragraphs: [
       'THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.',
-      'TO THE MAXIMUM EXTENT PERMITTED BY LAW, BABY PATTERNS AND ITS OPERATORS WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF DATA, PROFITS, OR GOODWILL, ARISING FROM YOUR USE OF THE SERVICE.',
+      'TO THE MAXIMUM EXTENT PERMITTED BY LAW, BABY PATTERN AND ITS OPERATORS WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF DATA, PROFITS, OR GOODWILL, ARISING FROM YOUR USE OF THE SERVICE.',
     ],
   },
   {
@@ -122,8 +122,8 @@ export const PRIVACY_POLICY: LegalSection[] = [
   {
     title: '1. Overview',
     paragraphs: [
-      'This Privacy Policy explains how Baby Patterns ("we," "us") collects, uses, and shares information when you use our Service.',
-      'We designed Baby Patterns for parents and caregivers tracking daily baby care. Protecting your family\'s information matters to us.',
+      'This Privacy Policy explains how Baby Pattern ("we," "us") collects, uses, and shares information when you use our Service.',
+      'We designed Baby Pattern for parents and caregivers tracking daily baby care. Protecting your family\'s information matters to us.',
       `You can reach our support team at ${SUPPORT_EMAIL}.`,
     ],
   },
@@ -204,7 +204,7 @@ export const PRIVACY_POLICY: LegalSection[] = [
   {
     title: '9. Children\'s privacy',
     paragraphs: [
-      'Baby Patterns is not directed to children under 13 to use on their own. Parents and guardians enter information about their children.',
+      'Baby Pattern is not directed to children under 13 to use on their own. Parents and guardians enter information about their children.',
       `If you believe a child has created an account without appropriate consent, contact us at ${SUPPORT_EMAIL} so we can take appropriate action.`,
     ],
   },

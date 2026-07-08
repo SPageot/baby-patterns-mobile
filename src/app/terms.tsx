@@ -6,7 +6,7 @@ export default function TermsScreen() {
   return (
     <LegalDocument
       title="Terms of Use"
-      intro="Please read these terms carefully before using Baby Patterns."
+      intro="Please read these terms carefully before using Baby Pattern."
       sections={TERMS_OF_USE}
       publicWebUrl={TERMS_OF_SERVICE_URL}
     />

@@ -121,7 +121,7 @@ export function LegalAcceptModal() {
         <View style={styles.card}>
           <Text style={styles.title}>Updated Terms and Privacy Policy</Text>
           <Text style={styles.body}>
-            We updated our Terms of Use and Privacy Policy to reflect how Baby Patterns works today,
+            We updated our Terms of Use and Privacy Policy to reflect how Baby Pattern works today,
             including health and pediatrician tracking, reports, notifications, and Pro features.
             Please review and accept to continue using your account.
           </Text>

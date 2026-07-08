@@ -1,6 +1,6 @@
-# Baby Patterns (mobile)
+# Baby Pattern (mobile)
 
-Expo / React Native app for Baby Patterns tracking.
+Expo / React Native app for Baby Pattern tracking.
 
 ## Setup
 

@@ -5,10 +5,10 @@ import { PRIVACY_POLICY_URL, PUBLIC_SITE_URL, TERMS_OF_SERVICE_URL } from '@/lib
  * Reference for filling out Google Play Console before submission.
  * Copy values from here into Play Console → App content, Data safety, and Store listing.
  */
-export const GOOGLE_PLAY_PACKAGE = 'com.babypatterns.app'
+export const GOOGLE_PLAY_PACKAGE = 'com.babypattern.app'
 
 export const GOOGLE_PLAY_STORE_LISTING = {
-  appName: 'Baby Patterns',
+  appName: 'Baby Pattern',
   privacyPolicyUrl: PRIVACY_POLICY_URL,
   termsUrl: TERMS_OF_SERVICE_URL,
   websiteUrl: PUBLIC_SITE_URL,
@@ -124,7 +124,7 @@ export const GOOGLE_PLAY_DATA_SAFETY = [
 
 /**
  * Play Console → App content → Health apps & Families policy answers.
- * Baby Patterns logs caregiver-entered baby care data — it is not a medical device.
+ * Baby Pattern logs caregiver-entered baby care data — it is not a medical device.
  */
 export const GOOGLE_PLAY_HEALTH_AND_FAMILIES = {
   isMedicalDevice: false,
@@ -150,7 +150,7 @@ export const GOOGLE_PLAY_HEALTH_AND_FAMILIES = {
     'No simulated gambling, violence, or mature themes in core tracking features',
   ],
   storeListingHealthLine:
-    'Baby Patterns helps parents log daily baby care. It is not medical advice and is not a substitute for professional care.',
+    'Baby Pattern helps parents log daily baby care. It is not medical advice and is not a substitute for professional care.',
 } as const
 
 /** Play Console → App content checklist (manual steps). */

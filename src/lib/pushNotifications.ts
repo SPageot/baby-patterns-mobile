@@ -80,7 +80,7 @@ async function ensureAndroidChannel(
   if (Platform.OS !== 'android') return
 
   await Notifications.setNotificationChannelAsync('default', {
-    name: 'Baby Patterns',
+    name: 'Baby Pattern',
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 250, 250, 250],
     lightColor: '#7c5cbf',

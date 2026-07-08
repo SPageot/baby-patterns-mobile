@@ -270,7 +270,7 @@ export function ProfileScreen() {
 
         {proWelcome && isPaidPro ? (
           <View style={styles.welcomePro}>
-            <Text style={styles.welcomeProText}>Welcome to Baby Patterns Pro! Your account is upgraded.</Text>
+            <Text style={styles.welcomeProText}>Welcome to Baby Pattern Pro! Your account is upgraded.</Text>
           </View>
         ) : null}
 

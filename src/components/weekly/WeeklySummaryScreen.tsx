@@ -216,7 +216,7 @@ export function WeeklySummaryScreen() {
           </View>
           <Text style={styles.gateTitle}>Weekly summaries are a Pro feature</Text>
           <Text style={styles.gateText}>
-            Upgrade to Baby Patterns Pro for in-app weekly digests, email summaries, and unlimited report history.
+            Upgrade to Baby Pattern Pro for in-app weekly digests, email summaries, and unlimited report history.
           </Text>
           <Button title="View Pro plans" onPress={() => router.push('/pricing')} />
         </View>

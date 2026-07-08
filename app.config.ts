@@ -14,19 +14,19 @@ const splash = {
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'Baby Patterns',
+  name: 'Baby Pattern',
   slug: 'baby-patterns',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
-  scheme: 'babypatterns',
+  scheme: 'babypattern',
   userInterfaceStyle: 'automatic',
   ios: {
-    bundleIdentifier: 'com.babypatterns.app',
+    bundleIdentifier: 'com.babypattern.app',
     supportsTablet: true,
   },
   android: {
-    package: 'com.babypatterns.app',
+    package: 'com.babypattern.app',
     adaptiveIcon: {
       backgroundColor: '#ffffff',
       foregroundImage: './assets/images/android-icon-foreground.png',
@@ -55,8 +55,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-image-picker',
       {
-        photosPermission: 'Allow Baby Patterns to access your photos for profile pictures.',
-        cameraPermission: 'Allow Baby Patterns to use your camera for profile pictures.',
+        photosPermission: 'Allow Baby Pattern to access your photos for profile pictures.',
+        cameraPermission: 'Allow Baby Pattern to use your camera for profile pictures.',
       },
     ],
     'expo-sharing',
@@ -77,6 +77,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     privacyPolicyUrl: PRIVACY_POLICY_URL,
     termsUrl: TERMS_OF_SERVICE_URL,
     supportEmail: 'admin@baby-pattern.com',
-    androidPackage: 'com.babypatterns.app',
+    androidPackage: 'com.babypattern.app',
   },
 })

@@ -28,7 +28,7 @@ function addPageFooter(doc: jsPDF) {
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(7.5)
     doc.setTextColor(150, 146, 162)
-    doc.text('Baby Patterns — Potty Report', MARGIN, FOOTER_Y)
+    doc.text('Baby Pattern — Potty Report', MARGIN, FOOTER_Y)
     doc.text(`Page ${i} of ${pages}`, PAGE_W - MARGIN, FOOTER_Y, { align: 'right' })
   }
 }

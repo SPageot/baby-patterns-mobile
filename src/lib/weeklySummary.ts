@@ -633,7 +633,7 @@ export function formatWeeklySummaryPlainText(
   const healthLines = healthSummaryLines(report.health)
 
   const blocks = [
-    `Baby Patterns — Weekly summary`,
+    `Baby Pattern — Weekly summary`,
     bounds.label,
     babyName.trim() ? `Baby: ${babyName.trim()}` : '',
     '',

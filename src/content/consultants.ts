@@ -15,7 +15,7 @@ export type Consultant = {
 }
 
 export const CONSULTANTS_DISCLAIMER =
-  'Listings are for informational purposes only. Baby Patterns does not endorse, employ, or vet consultants. Any services you arrange are solely between you and the consultant. Consultant advice is not medical advice from Baby Patterns — consult your pediatrician about your child\'s health.'
+  'Listings are for informational purposes only. Baby Pattern does not endorse, employ, or vet consultants. Any services you arrange are solely between you and the consultant. Consultant advice is not medical advice from Baby Pattern — consult your pediatrician about your child\'s health.'
 
 /** Add or edit entries here to list consultants on /consultants */
 export const CONSULTANTS: Consultant[] = [

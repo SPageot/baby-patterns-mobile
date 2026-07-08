@@ -138,7 +138,7 @@ export function BillingSettingsSection({ user, onUserUpdated }: Props) {
             ? periodEndLabel
               ? `Your Pro plan is active until ${periodEndLabel}, then you will return to the Free plan.`
               : 'Your Pro plan will end at the close of this billing period.'
-            : 'You have Baby Patterns Pro. Downgrade to stop future charges.'
+            : 'You have Baby Pattern Pro. Downgrade to stop future charges.'
           : hasProAccess
             ? 'You have Pro access on this account.'
             : 'You are on the Free plan.'}

@@ -76,12 +76,12 @@ export function Navbar() {
         <View style={styles.start}>
           <Pressable
             accessibilityRole="link"
-            accessibilityLabel="Baby Patterns home"
+            accessibilityLabel="Baby Pattern home"
             onPress={() => router.push(user ? '/profile' : '/login')}
             style={({ pressed }) => [styles.brand, pressed && styles.pressed]}
           >
             <BrandMark size={32} />
-            <Text style={styles.brandName}>Baby Patterns</Text>
+            <Text style={styles.brandName}>Baby Pattern</Text>
           </Pressable>
         </View>
 

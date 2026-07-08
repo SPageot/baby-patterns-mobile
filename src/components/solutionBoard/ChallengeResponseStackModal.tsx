@@ -61,7 +61,7 @@ const createStyles = (t: AppPalette) => ({
     paddingVertical: Spacing.two,
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(47, 42, 56, 0.5)',
   },
   panel: {

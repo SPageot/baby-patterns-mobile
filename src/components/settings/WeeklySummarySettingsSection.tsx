@@ -103,7 +103,7 @@ export function WeeklySummarySettingsSection({ user }: Props) {
     <View style={styles.section}>
       <SectionTitle>Weekly summaries</SectionTitle>
       <Subtitle>
-        Get a digest of sleep, feeding, diapers, growth, and milestones each week. Included with Baby Patterns Pro.
+        Get a digest of sleep, feeding, diapers, growth, and milestones each week. Included with Baby Pattern Pro.
       </Subtitle>
 
       {error ? <ErrorText>{error}</ErrorText> : null}

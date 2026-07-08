@@ -14,10 +14,10 @@ export function supportsInAppSubscriptionPurchase(): boolean {
 
 export function subscriptionPurchaseBlockedMessage(): string {
   if (Platform.OS === 'android') {
-    return 'Pro subscriptions cannot be purchased inside the Android app yet. Sign in if you already have Pro, or subscribe on the Baby Patterns website from a browser.'
+    return 'Pro subscriptions cannot be purchased inside the Android app yet. Sign in if you already have Pro, or subscribe on the Baby Pattern website from a browser.'
   }
   if (Platform.OS === 'ios') {
-    return 'Pro subscriptions cannot be purchased inside the iOS app yet. Sign in if you already have Pro, or subscribe on the Baby Patterns website from a browser.'
+    return 'Pro subscriptions cannot be purchased inside the iOS app yet. Sign in if you already have Pro, or subscribe on the Baby Pattern website from a browser.'
   }
   return ''
 }
