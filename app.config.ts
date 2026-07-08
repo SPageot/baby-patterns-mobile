@@ -15,7 +15,7 @@ const splash = {
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Baby Pattern',
-  slug: 'baby-patterns',
+  slug: 'baby-pattern',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/images/icon.png',
