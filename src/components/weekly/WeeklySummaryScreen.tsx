@@ -242,8 +242,6 @@ export function WeeklySummaryScreen() {
           your partner or pediatrician.
         </Text>
 
-        <HealthDisclaimer />
-
         <View style={styles.weekRow}>
           {WEEK_OPTIONS.map((option) => {
             const active = summary.weekSelection === option.value
@@ -300,6 +298,8 @@ export function WeeklySummaryScreen() {
         babyName={summary.selectedBaby?.fullName ?? ''}
         onCopy={summary.copySummary}
       />
+
+      <HealthDisclaimer />
     </ScrollView>
   )
 }

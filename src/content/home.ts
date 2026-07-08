@@ -87,6 +87,11 @@ export const homeSitePages: HomeSitePage[] = [
     body: 'Browse and write reviews for baby brands and products.',
   },
   {
+    title: 'Consultants',
+    href: '/consultants',
+    body: 'Connect with specialists — email, Instagram, and website links in one place.',
+  },
+  {
     title: 'Profile',
     href: '/profile',
     body: 'Manage babies, month stats, activity calendar, family sharing, and posts. Pro unlocks PDF export.',

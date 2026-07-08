@@ -15,6 +15,7 @@ export type NavIconName =
   | 'calendar'
   | 'memories'
   | 'tag'
+  | 'info'
 
 export type NavLink = {
   label: string
@@ -29,6 +30,7 @@ export const NAV_LINKS: NavLink[] = [
   { label: 'Parents Corner', href: '/parents-corner', requiresBaby: false, icon: 'users' },
   { label: 'Solution Board', href: '/solution-board', requiresBaby: false, icon: 'star' },
   { label: 'Reviews', href: '/reviews', requiresBaby: false, icon: 'star' },
+  { label: 'Consultants', href: '/consultants', requiresBaby: false, icon: 'info' },
   { label: 'Pricing', href: '/pricing', requiresBaby: false, icon: 'tag' },
   { label: 'Diapers', href: '/diapers', requiresBaby: true, icon: 'diaper' },
   { label: 'Feeding', href: '/feeding', requiresBaby: true, icon: 'bottle' },
@@ -66,6 +68,7 @@ export function getVisibleNavLinks(options: {
         link.href === '/parents-corner' ||
         link.href === '/solution-board' ||
         link.href === '/reviews' ||
+        link.href === '/consultants' ||
         link.href === '/why',
     )
   }

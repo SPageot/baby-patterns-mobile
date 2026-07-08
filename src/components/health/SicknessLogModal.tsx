@@ -73,7 +73,6 @@ export function SicknessLogModal({ health }: Props) {
       accentBorder={theme.accentBorder}
       accentSoft={theme.accentSoft}
     >
-      <HealthDisclaimer compact />
       {health.babies.length > 1 ? (
         <>
           <Label>Baby</Label>
@@ -196,6 +195,8 @@ export function SicknessLogModal({ health }: Props) {
 
       <Label>Notes (optional)</Label>
       <Input value={health.sicknessNotes} onChangeText={health.setSicknessNotes} />
+
+      <HealthDisclaimer compact />
 
       <View style={styles.actions}>
         <Button

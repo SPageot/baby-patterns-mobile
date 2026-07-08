@@ -7,56 +7,52 @@ import {
   HEALTH_DISCLAIMER_TITLE,
 } from '@/lib/healthDisclaimer'
 import type { AppPalette } from '@/constants/homeTheme'
-import { HomeRadius } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
 
 const createStyles = (t: AppPalette) => ({
-  banner: {
-    borderWidth: 1,
-    borderColor: 'rgba(196, 92, 122, 0.22)',
-    borderRadius: HomeRadius.lg,
-    backgroundColor: 'rgba(196, 92, 122, 0.08)',
-    padding: Spacing.two,
+  wrap: {
+    marginTop: Spacing.one,
     marginBottom: Spacing.two,
-    gap: 6,
+    alignItems: 'flex-end' as const,
   },
-  compact: {
-    padding: 10,
-    marginBottom: Spacing.two,
-    gap: 4,
+  wrapCompact: {
+    marginTop: 6,
+    marginBottom: Spacing.one,
+    alignItems: 'flex-start' as const,
   },
-  header: {
+  trigger: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
-    justifyContent: 'space-between' as const,
-    gap: 8,
+    gap: 4,
   },
   title: {
-    flex: 1,
     fontSize: 12,
-    fontWeight: '800' as const,
-    color: '#9a3d58',
-    textTransform: 'uppercase' as const,
-    letterSpacing: 0.4,
+    fontWeight: '500' as const,
+    color: t.textMuted,
   },
   titleCompact: {
     fontSize: 11,
   },
   chevron: {
-    fontSize: 14,
-    lineHeight: 16,
-    fontWeight: '700' as const,
-    color: '#9a3d58',
-  },
-  body: {
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 12,
+    lineHeight: 14,
+    fontWeight: '600' as const,
     color: t.textMuted,
   },
-  bodyCompact: {
+  body: {
+    marginTop: 6,
+    maxWidth: 320,
     fontSize: 12,
     lineHeight: 17,
+    color: t.textMuted,
+    textAlign: 'right' as const,
+  },
+  bodyCompact: {
+    maxWidth: '100%' as const,
+    fontSize: 11,
+    lineHeight: 16,
+    textAlign: 'left' as const,
   },
 })
 
@@ -71,20 +67,18 @@ export function HealthDisclaimer({ compact = false, style }: Props) {
   const body = compact ? HEALTH_DISCLAIMER_COMPACT : HEALTH_DISCLAIMER_TEXT
 
   return (
-    <View style={[styles.banner, compact && styles.compact, style]}>
+    <View style={[styles.wrap, compact && styles.wrapCompact, style]}>
       <Pressable
         onPress={() => setOpen((value) => !value)}
         accessibilityRole="button"
         accessibilityState={{ expanded: open }}
         accessibilityLabel={HEALTH_DISCLAIMER_TITLE}
-        style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+        style={({ pressed }) => [styles.trigger, { opacity: pressed ? 0.7 : 1 }]}
       >
-        <View style={styles.header}>
-          <Text style={[styles.title, compact && styles.titleCompact]}>{HEALTH_DISCLAIMER_TITLE}</Text>
-          <Text style={styles.chevron} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-            {open ? '▾' : '▸'}
-          </Text>
-        </View>
+        <Text style={[styles.title, compact && styles.titleCompact]}>{HEALTH_DISCLAIMER_TITLE}</Text>
+        <Text style={styles.chevron} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          {open ? '▾' : '›'}
+        </Text>
       </Pressable>
       {open ? (
         <Text

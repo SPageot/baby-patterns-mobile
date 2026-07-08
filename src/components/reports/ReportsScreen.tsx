@@ -199,8 +199,6 @@ export function ReportsScreen() {
         </Text>
       </View>
 
-      <HealthDisclaimer />
-
       <View style={styles.rangeRow}>
         {(reports.isPro ? RANGE_OPTIONS_PRO : rangeOptions).map((option) => {
           const active = reports.rangeDays === option.value
@@ -262,6 +260,8 @@ export function ReportsScreen() {
           <ReportsTabPanel tab="health" active={activeTab}>
             <HealthReportPanel report={reports.report.health} />
           </ReportsTabPanel>
+
+      <HealthDisclaimer />
     </ScrollView>
   )
 }

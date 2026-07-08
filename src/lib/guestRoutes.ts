@@ -10,6 +10,7 @@ const GUEST_ALLOWED_PATHS = new Set([
   '/parents-corner',
   '/solution-board',
   '/reviews',
+  '/consultants',
   '/why',
   '/terms',
   '/privacy',

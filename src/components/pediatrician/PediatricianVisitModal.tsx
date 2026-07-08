@@ -67,7 +67,6 @@ export function PediatricianVisitModal({ page }: Props) {
       accentBorder={theme.accentBorder}
       accentSoft={theme.accentSoft}
     >
-      <HealthDisclaimer compact />
       {page.babies.length > 1 ? (
         <>
           <Label>Baby</Label>
@@ -147,6 +146,8 @@ export function PediatricianVisitModal({ page }: Props) {
 
       <Label>Notes (optional)</Label>
       <Input value={page.notes} onChangeText={page.setNotes} placeholder="Optional notes" />
+
+      <HealthDisclaimer compact />
 
       <View style={styles.actions}>
         <Button

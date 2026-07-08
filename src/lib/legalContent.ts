@@ -1,10 +1,10 @@
-/** Bump when Terms or Privacy content changes materially. */
-export const LEGAL_POLICY_VERSION = '2026-07-07'
+/** Bump when Terms or Privacy content changes materially. Keep mobile and web copies identical. */
+export const LEGAL_POLICY_VERSION = '2026-07-08'
 
-export const LEGAL_LAST_UPDATED = 'July 7, 2026'
+export const LEGAL_LAST_UPDATED = 'July 8, 2026'
 
 /** Public support and privacy contact for Terms, Privacy Policy, and app store listings. */
-export const SUPPORT_EMAIL = 'hello@baby-pattern.com'
+export const SUPPORT_EMAIL = 'admin@baby-pattern.com'
 
 export function supportEmailMailto(): string {
   return `mailto:${SUPPORT_EMAIL}`
@@ -58,7 +58,7 @@ export const TERMS_OF_USE: LegalSection[] = [
     title: '4. Your account and content',
     paragraphs: [
       'You are responsible for maintaining the confidentiality of your login credentials and for activity under your account.',
-      'You may post in Parents Corner, submit product reviews, upload profile images, log tracking data, export PDF reports, and share tracking access with family members you invite. You retain ownership of content you submit, but grant us a limited license to host, display, process, and transmit it solely to operate the Service (including notifications and email summaries you enable).',
+      'You may post in Parents Corner, submit product reviews, share challenges and solutions on the Solution Board, upload profile images, log tracking data, export PDF reports, and share tracking access with family members you invite. You retain ownership of content you submit, but grant us a limited license to host, display, process, and transmit it solely to operate the Service (including notifications and email summaries you enable).',
     ],
     bullets: [
       'Do not upload unlawful, harmful, or misleading content.',
@@ -68,40 +68,50 @@ export const TERMS_OF_USE: LegalSection[] = [
     ],
   },
   {
-    title: '5. Family sharing',
+    title: '5. Community content and moderation',
+    paragraphs: [
+      'Some features let users share content with others, including Parents Corner posts and comments, product reviews, and Solution Board notes. Community content reflects the views of the person who posted it, not Baby Patterns.',
+      'If you see content that violates these Terms, use the in-app report option on that post, comment, review, or note. You can also block another user to stop seeing their posts, comments, reviews, and Solution Board notes in your feed. Blocking is private — the other person is not notified.',
+      'When you submit a report, we store the content type, content identifier, reason you select (such as spam, harassment, inappropriate content, or other), and any optional details you provide. Reports help us identify abuse and improve safety.',
+      'We review reports and may remove content, restrict features, or suspend or terminate accounts that violate these Terms or that we reasonably believe pose a safety risk. We aim to review reports within a reasonable time, but we do not guarantee immediate removal.',
+      `For urgent safety concerns, email ${SUPPORT_EMAIL} with a link or description of the content and your username.`,
+    ],
+  },
+  {
+    title: '6. Family sharing',
     paragraphs: [
       'When you add family members or friends, you choose who can view and log data for your babies, including health and pediatrician visit information. You are responsible for only inviting people you trust and for removing access when appropriate.',
     ],
   },
   {
-    title: '6. Subscriptions and billing',
+    title: '7. Subscriptions and billing',
     paragraphs: [
       'Baby Patterns offers free and Pro plans. Pro may include extended history, family sharing alerts, PDF export, weekly email summaries, and other features described on our pricing page.',
       'Paid subscriptions are processed by Stripe or another payment provider we designate. Billing terms, renewals, and cancellations are shown at checkout and in your account settings. Payment card details are handled by the payment provider, not stored directly by us.',
     ],
   },
   {
-    title: '7. Availability and changes',
+    title: '8. Availability and changes',
     paragraphs: [
       'We may modify, suspend, or discontinue features at any time. We may update these Terms from time to time. If changes are material, we will provide reasonable notice (for example, by posting an updated effective date and, where appropriate, asking you to accept the revised Terms). Continued use after changes take effect constitutes acceptance.',
     ],
   },
   {
-    title: '8. Disclaimer and limitation of liability',
+    title: '9. Disclaimer and limitation of liability',
     paragraphs: [
       'THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, WHETHER EXPRESS OR IMPLIED, INCLUDING IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.',
       'TO THE MAXIMUM EXTENT PERMITTED BY LAW, BABY PATTERNS AND ITS OPERATORS WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF DATA, PROFITS, OR GOODWILL, ARISING FROM YOUR USE OF THE SERVICE.',
     ],
   },
   {
-    title: '9. Termination',
+    title: '10. Termination',
     paragraphs: [
       'You may stop using the Service at any time and may delete your account through available account features where supported.',
       'We may suspend or terminate access if you violate these Terms or if necessary to protect the Service or other users.',
     ],
   },
   {
-    title: '10. Contact',
+    title: '11. Contact',
     paragraphs: [
       `For questions about these Terms, account access, billing, or technical support, email us at ${SUPPORT_EMAIL}. We aim to respond within a few business days.`,
     ],
@@ -125,7 +135,8 @@ export const PRIVACY_POLICY: LegalSection[] = [
       'Baby profiles: name, birthdate, locations, and optional measurements.',
       'Tracking logs: diaper, feeding, sleep, nap, potty, growth, milestone, sickness, injury, and pediatrician visit entries you or invited family members create (including dates, notes, symptoms, care details, hospital or clinic names, provider names, recommendations, and immunizations you enter).',
       'Reports and exports: aggregated charts, weekly summaries, and PDF reports generated from your logs when you view or download them.',
-      'Community content: Parents Corner posts, comments, likes, and product reviews.',
+      'Community content: Parents Corner posts, comments, likes, product reviews, and Solution Board notes.',
+      'Safety and moderation: content reports you submit (content type, content identifier, reason, and optional details) and a list of user accounts you choose to block.',
       'Profile media: avatar images you upload.',
       'Notifications: in-app notification history; optional browser or device push subscription endpoints when you turn alerts on; notification preferences.',
       'Email communications: account-related messages (such as welcome, password reset, and Pro trial reminders) and optional weekly summary emails when you enable them (Pro).',
@@ -140,7 +151,8 @@ export const PRIVACY_POLICY: LegalSection[] = [
       'Create and manage your account and baby profiles.',
       'Store, display, and analyze your tracking data, charts, reports, and weekly summaries.',
       'Enable family sharing and activity alerts you configure.',
-      'Operate community features such as Parents Corner and reviews.',
+      'Operate community features such as Parents Corner, reviews, and the Solution Board.',
+      'Review content reports, enforce these Terms, and respond to abuse or safety concerns.',
       'Send service emails (such as password reset and account notices) and optional weekly summary emails you opt into.',
       'Deliver push or in-app notifications about mentions, likes, family activity, and tracking updates when enabled.',
       'Process subscriptions and Pro features through our payment provider.',

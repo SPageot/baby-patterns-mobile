@@ -176,8 +176,6 @@ export function HealthEventsTrackScreen() {
           </View>
         </View>
 
-        <HealthDisclaimer />
-
         <BabyChipBar />
 
         {health.error ? <ErrorText>{health.error}</ErrorText> : null}
@@ -277,6 +275,8 @@ export function HealthEventsTrackScreen() {
         {health.babies.length === 0 && !health.babiesLoading ? (
           <Button title="Add a baby" onPress={() => router.push('/add-baby')} />
         ) : null}
+
+        <HealthDisclaimer />
       </ScrollView>
 
       <SicknessLogModal health={health} />

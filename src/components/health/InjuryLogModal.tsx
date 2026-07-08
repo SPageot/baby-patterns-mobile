@@ -52,7 +52,6 @@ export function InjuryLogModal({ health }: Props) {
       accentBorder={theme.accentBorder}
       accentSoft={theme.accentSoft}
     >
-      <HealthDisclaimer compact />
       {health.babies.length > 1 ? (
         <>
           <Label>Baby</Label>
@@ -122,6 +121,8 @@ export function InjuryLogModal({ health }: Props) {
 
       <Label>Notes (optional)</Label>
       <Input value={health.injuryNotes} onChangeText={health.setInjuryNotes} />
+
+      <HealthDisclaimer compact />
 
       <View style={styles.actions}>
         <Button

@@ -76,5 +76,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     siteUrl: PUBLIC_SITE_URL,
     privacyPolicyUrl: PRIVACY_POLICY_URL,
     termsUrl: TERMS_OF_SERVICE_URL,
+    supportEmail: 'admin@baby-pattern.com',
+    androidPackage: 'com.babypatterns.app',
   },
 })

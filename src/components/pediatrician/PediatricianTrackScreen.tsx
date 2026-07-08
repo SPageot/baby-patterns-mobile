@@ -149,8 +149,6 @@ export function PediatricianTrackScreen() {
           </View>
         </View>
 
-        <HealthDisclaimer />
-
         {!page.isPro ? <TrackingHistoryBanner /> : null}
 
         <BabyChipBar />
@@ -201,6 +199,8 @@ export function PediatricianTrackScreen() {
             ))
           )}
         </Card>
+
+        <HealthDisclaimer />
       </ScrollView>
 
       <PediatricianVisitModal page={page} />

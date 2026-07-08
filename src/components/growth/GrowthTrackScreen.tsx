@@ -389,8 +389,6 @@ export function GrowthTrackScreen() {
           </View>
         </View>
 
-        <HealthDisclaimer />
-
         <BabyChipBar />
 
         {growth.error ? <ErrorText>{growth.error}</ErrorText> : null}
@@ -549,6 +547,8 @@ export function GrowthTrackScreen() {
         {growth.babies.length === 0 && !growth.babiesLoading ? (
           <Button title="Add a baby" onPress={() => router.push('/add-baby')} />
         ) : null}
+
+        <HealthDisclaimer />
       </ScrollView>
 
       <GrowthLogModal

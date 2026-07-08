@@ -119,7 +119,6 @@ export function GrowthLogModal({
       accentBorder={theme.accentBorder}
       accentSoft={theme.accentSoft}
     >
-      <HealthDisclaimer compact />
       {babies.length > 1 ? (
         <>
           <Label>Baby</Label>
@@ -194,6 +193,8 @@ export function GrowthLogModal({
         accentBorder={theme.accentBorder}
         accentSoft={theme.accentSoft}
       />
+
+      <HealthDisclaimer compact />
 
       <View style={styles.actions}>
         <Button title="Cancel" variant="secondary" onPress={onClose} disabled={saving} style={styles.actionBtn} />
