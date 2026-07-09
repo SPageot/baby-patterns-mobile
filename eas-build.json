@@ -1,0 +1,48 @@
+﻿{
+  "id": "0db69221-fcbb-49d4-b313-b613616b3c36",
+  "status": "ERRORED",
+  "platform": "ANDROID",
+  "error": {
+    "errorCode": "EAS_BUILD_UNKNOWN_GRADLE_ERROR",
+    "message": "Gradle build failed with unknown error. See logs for the \"Run gradlew\" phase for more information."
+  },
+  "artifacts": {},
+  "fingerprint": {
+    "id": "019f483b-0703-7e5b-b1de-541eedc1bd90",
+    "hash": "c964e91cfed300affa22ebb97356790d4eefd2a3"
+  },
+  "initiatingActor": {
+    "id": "fe78c682-8f85-4401-9ffe-8ee44aa0ae0d",
+    "displayName": "stanleyp"
+  },
+  "logFiles": [
+    "https://storage.googleapis.com/eas-workflows-production/logs/187a1cf9-64ce-46ec-9dc4-8774c8874d7e/0db69221-fcbb-49d4-b313-b613616b3c36/2026-07-09T19%3A51%3A27Z-97676916-1dff-4ba7-9af8-1ec9057484a3.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260709%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260709T201248Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=85285610268f626242a14407c13a64432ab22b2a89417bf82fc0c696aff3abd191361f4bc855544af3418a6a15b190bbe7809d0277753e9d8c7c57b9c364c93f7404c4a53bd3a69974d099a795eacff8b18f3e038bbf0ed36e848255423025b1c9469ba7f2702b76fb8504e4dd9237895efd9ed9fe218a25c66882efae889a47c59eaff89a1f3c0f485b346bab8d5e76e9ceff48fc59145f0955989a6d1f1ae1d07c08b3b37b0762c22fcb21f9ee8fd931c55a67a7ce6d166634409de87303bb2917c1c8717c160b679c5dc7923641606d0722d4f5d5c7f30a75b7ef82f1e6f8889f10eecb65d27f3b7a510cd07875c3243c520874af5bf2315c22145cea05d9"
+  ],
+  "project": {
+    "id": "187a1cf9-64ce-46ec-9dc4-8774c8874d7e",
+    "name": "baby-pattern",
+    "slug": "baby-pattern",
+    "ownerAccount": {
+      "id": "68ca98d3-ab49-4a2f-b0cf-01c8ec11db64",
+      "name": "stanleyp"
+    }
+  },
+  "distribution": "STORE",
+  "buildProfile": "production",
+  "sdkVersion": "56.0.0",
+  "appVersion": "1.0.0",
+  "appBuildVersion": "1",
+  "gitCommitHash": "294bd922054fc0247a61c77149f51036de0d567f",
+  "gitCommitMessage": "Fix Android Gradle 9 build by patching foojay resolver",
+  "priority": "NORMAL_PLUS",
+  "createdAt": "2026-07-09T18:54:15.757Z",
+  "updatedAt": "2026-07-09T19:55:40.883Z",
+  "completedAt": "2026-07-09T19:55:40.683Z",
+  "expirationDate": "2026-08-08T18:54:15.800Z",
+  "isForIosSimulator": false,
+  "metrics": {
+    "buildWaitTime": 4480,
+    "buildQueueTime": 3431790,
+    "buildDuration": 248656
+  }
+}
