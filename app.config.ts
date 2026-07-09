@@ -73,10 +73,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     reactCompiler: true,
   },
   extra: {
+    ...config.extra,
     siteUrl: PUBLIC_SITE_URL,
     privacyPolicyUrl: PRIVACY_POLICY_URL,
     termsUrl: TERMS_OF_SERVICE_URL,
     supportEmail: 'admin@baby-pattern.com',
     androidPackage: 'com.babypattern.app',
+    eas: {
+      projectId: '187a1cf9-64ce-46ec-9dc4-8774c8874d7e',
+    },
   },
 })
