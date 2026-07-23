@@ -170,6 +170,8 @@ function normalizeUser(raw: unknown, options?: NormalizeUserOptions): User | nul
     fullName: pickUserField(payload, envelope, 'fullName', 'FullName'),
     location: pickUserField(payload, envelope, 'location', 'Location'),
     avatarUrl: avatarRaw ? avatarRaw.trim() : undefined,
+    pendingEmail:
+      pickUserField(payload, envelope, 'pendingEmail', 'PendingEmail') || undefined,
     weeklySummaryEmailEnabled: weeklyEmailRaw === true || weeklyEmailRaw === 'true',
     isPro,
     isSiteDeveloper,

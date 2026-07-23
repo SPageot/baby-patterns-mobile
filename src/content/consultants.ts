@@ -26,6 +26,6 @@ export const CONSULTANTS: Consultant[] = [
     imageKey: 'nurture-owl-sleep',
     email: 'Catherine@nutureowlsleep.com',
     instagram: 'https://www.instagram.com/nurtureowlsleep/',
-    website: '',
+    website: 'https://www.nurtureowlsleep.com/',
   },
 ]

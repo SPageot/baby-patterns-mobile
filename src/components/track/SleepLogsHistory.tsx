@@ -1,15 +1,14 @@
 import { useMemo, useState } from 'react'
-import { Pressable, Text, TextInput, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 
+import { DateTimeField } from '@/components/ui/DateTimeField'
 import { filterSleepLogs } from '@/lib/sleepLogUtils'
 import { logRecordKey } from '@/lib/trackUtils'
 import type { Baby } from '@/schemas/user'
 import type { LogRecord } from '@/types/babyLog'
 import type { AppPalette } from '@/constants/homeTheme'
-import { HomeRadius } from '@/constants/homeTheme'
 import { heading } from '@/constants/typography'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
-import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { Spacing } from '@/constants/theme'
 
 import { SleepLogCard } from './SleepLogCard'
@@ -34,24 +33,12 @@ const createStyles = (t: AppPalette) => ({
   title: { ...heading(18, { weight: '800' }), color: t.text },
   count: { fontSize: 13, fontWeight: '700' as const, color: t.textMuted, flexShrink: 1, textAlign: 'right' as const },
   filters: { gap: 10, marginBottom: Spacing.two },
-  label: { fontSize: 12, fontWeight: '700' as const, color: t.textMuted, marginBottom: 4 },
-  input: {
-    borderWidth: 1,
-    borderColor: t.stroke,
-    borderRadius: HomeRadius.md,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: t.text,
-    backgroundColor: t.card,
-  },
   clear: { alignSelf: 'flex-start' as const, paddingVertical: 6 },
   clearText: { fontSize: 13, fontWeight: '700' as const, color: t.accentDeep },
   empty: { color: t.textMuted, fontSize: 14, lineHeight: 22, paddingVertical: Spacing.two },
 })
 
 export function SleepLogsHistory({ logs, babies, onEditLog, onDeleteLog, busyLogId }: Props) {
-  const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
   const [babyId, setBabyId] = useState('')
   const [dateYmd, setDateYmd] = useState('')
@@ -78,17 +65,13 @@ export function SleepLogsHistory({ logs, babies, onEditLog, onDeleteLog, busyLog
       </View>
 
       <View style={styles.filters}>
-        <View>
-          <Text style={styles.label}>Sleep date UTC (YYYY-MM-DD)</Text>
-          <TextInput
-            value={dateYmd}
-            onChangeText={setDateYmd}
-            placeholder="Filter by date"
-            placeholderTextColor={palette.textMuted}
-            style={styles.input}
-            autoCapitalize="none"
-          />
-        </View>
+        <DateTimeField
+          label="Sleep date"
+          mode="date"
+          value={dateYmd}
+          onChange={setDateYmd}
+          placeholder="Filter by date"
+        />
         {hasFilters ? (
           <Pressable onPress={() => { setBabyId(''); setDateYmd('') }} style={styles.clear}>
             <Text style={styles.clearText}>Clear filters</Text>

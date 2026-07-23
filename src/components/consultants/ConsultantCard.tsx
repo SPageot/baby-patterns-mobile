@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Image } from 'expo-image'
 import { Linking, Pressable, Text, View } from 'react-native'
 
@@ -15,6 +15,7 @@ import { HomeRadius } from '@/constants/homeTheme'
 import { heading } from '@/constants/typography'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
+import { ConsultantEmailModal } from './ConsultantEmailModal'
 
 const createStyles = (t: AppPalette) => ({
   card: {
@@ -113,6 +114,7 @@ export function ConsultantCard({ consultant }: Props) {
   const websiteUrl = consultantWebsiteUrl(consultant.website)
   const websiteLabel = consultantWebsiteLabel(consultant.website)
   const imageSource = consultantImageSource(consultant.imageKey)
+  const [emailOpen, setEmailOpen] = useState(false)
 
   return (
     <View style={styles.card} accessibilityRole="summary">
@@ -132,7 +134,7 @@ export function ConsultantCard({ consultant }: Props) {
         <View style={styles.details}>
           <DetailRow label="Email" styles={styles}>
             {email ? (
-              <Pressable onPress={() => void openUrl(`mailto:${email}`)} accessibilityRole="link">
+              <Pressable onPress={() => setEmailOpen(true)} accessibilityRole="button">
                 <Text style={styles.link}>{email}</Text>
               </Pressable>
             ) : (
@@ -161,6 +163,15 @@ export function ConsultantCard({ consultant }: Props) {
           </DetailRow>
         </View>
       </View>
+
+      {email ? (
+        <ConsultantEmailModal
+          open={emailOpen}
+          email={email}
+          consultantName={consultant.name}
+          onClose={() => setEmailOpen(false)}
+        />
+      ) : null}
     </View>
   )
 }

@@ -5,15 +5,31 @@ import { HomeRadius } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
 
-export type SettingsTabId = 'password' | 'security' | 'subscription' | 'notifications' | 'weekly-summary' | 'account'
+export type SettingsTabId =
+  | 'email'
+  | 'password'
+  | 'security'
+  | 'subscription'
+  | 'notifications'
+  | 'weekly-summary'
+  | 'account'
 
-const SETTINGS_TAB_IDS: SettingsTabId[] = ['password', 'security', 'subscription', 'notifications', 'weekly-summary', 'account']
+const SETTINGS_TAB_IDS: SettingsTabId[] = [
+  'email',
+  'password',
+  'security',
+  'subscription',
+  'notifications',
+  'weekly-summary',
+  'account',
+]
 
 export function isSettingsTabId(value: string): value is SettingsTabId {
   return SETTINGS_TAB_IDS.includes(value as SettingsTabId)
 }
 
 const TABS: { id: SettingsTabId; label: string }[] = [
+  { id: 'email', label: 'Email' },
   { id: 'password', label: 'Password' },
   { id: 'security', label: 'Security' },
   { id: 'subscription', label: 'Subscription' },

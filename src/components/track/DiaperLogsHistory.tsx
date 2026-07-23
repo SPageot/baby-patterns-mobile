@@ -1,14 +1,12 @@
 import { useMemo, useState } from 'react'
-import { Pressable, Text, TextInput, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 
+import { DateTimeField } from '@/components/ui/DateTimeField'
 import { filterDiaperLogs } from '@/lib/diaperFeedUtils'
 import type { Baby } from '@/schemas/user'
 import type { LogRecord } from '@/types/babyLog'
 import type { AppPalette } from '@/constants/homeTheme'
-import { HomeRadius } from '@/constants/homeTheme'
 import { heading } from '@/constants/typography'
-import { getTrackThemeFromPalette } from '@/constants/trackTheme'
-import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
 
@@ -48,22 +46,6 @@ const createStyles = (t: AppPalette) => ({
     gap: 10,
     marginBottom: Spacing.two,
   },
-  label: {
-    fontSize: 12,
-    fontWeight: '700' as const,
-    color: t.textMuted,
-    marginBottom: 4,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: t.stroke,
-    borderRadius: HomeRadius.md,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: t.text,
-    backgroundColor: t.card,
-  },
   clear: {
     alignSelf: 'flex-start' as const,
     paddingVertical: 6,
@@ -76,8 +58,6 @@ const createStyles = (t: AppPalette) => ({
 })
 
 export function DiaperLogsHistory({ logs, babies, onEditLog, onDeleteLog, busyLogId }: Props) {
-  const palette = useHomeTheme()
-  const theme = getTrackThemeFromPalette('diaper', palette)
   const styles = useThemedStyles(createStyles)
   const [babyId, setBabyId] = useState('')
   const [dateYmd, setDateYmd] = useState('')
@@ -100,17 +80,13 @@ export function DiaperLogsHistory({ logs, babies, onEditLog, onDeleteLog, busyLo
       </View>
 
       <View style={styles.filters}>
-        <View>
-          <Text style={styles.label}>Date (YYYY-MM-DD)</Text>
-          <TextInput
-            value={dateYmd}
-            onChangeText={setDateYmd}
-            placeholder="Filter by date"
-            placeholderTextColor={palette.textMuted}
-            style={styles.input}
-            autoCapitalize="none"
-          />
-        </View>
+        <DateTimeField
+          label="Date"
+          mode="date"
+          value={dateYmd}
+          onChange={setDateYmd}
+          placeholder="Filter by date"
+        />
         {hasFilters ? (
           <Pressable
             onPress={() => {

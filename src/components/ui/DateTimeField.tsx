@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Platform, Pressable, Text, View } from 'react-native'
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker'
+import DateTimePicker from '@react-native-community/datetimepicker'
 
 import { Label } from '@/components/ui/primitives'
 import type { AppPalette } from '@/constants/homeTheme'
@@ -116,12 +116,7 @@ export function DateTimeField({
   }
 
   const openPicker = () => setShowPicker(true)
-
-  const onPickerChange = (event: DateTimePickerEvent, selected?: Date) => {
-    if (Platform.OS === 'android') setShowPicker(false)
-    if (event.type === 'dismissed' || !selected) return
-    commit(selected)
-  }
+  const closePicker = () => setShowPicker(false)
 
   return (
     <View>
@@ -156,7 +151,11 @@ export function DateTimeField({
             value={pickerDate}
             mode={mode === 'time' ? 'time' : mode}
             display={Platform.OS === 'ios' ? 'inline' : 'default'}
-            onChange={onPickerChange}
+            onValueChange={(_event, selected) => {
+              if (Platform.OS === 'android') closePicker()
+              commit(selected)
+            }}
+            onDismiss={closePicker}
             minimumDate={minimumDate}
             maximumDate={maximumDate}
             themeVariant={palette.mode === 'dark' ? 'dark' : 'light'}
@@ -164,7 +163,7 @@ export function DateTimeField({
           {Platform.OS === 'ios' ? (
             <Pressable
               accessibilityRole="button"
-              onPress={() => setShowPicker(false)}
+              onPress={closePicker}
               style={({ pressed }) => [styles.iconBtn, { alignSelf: 'flex-end' }, pressed && styles.pressed]}
             >
               <Text style={[styles.value, { color: palette.accentDeep }]}>Done</Text>

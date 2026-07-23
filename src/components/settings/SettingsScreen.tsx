@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 
 import { BillingSettingsSection } from '@/components/settings/BillingSettingsSection'
 import { DeleteAccountModal } from '@/components/settings/DeleteAccountModal'
+import { EmailSettingsSection } from '@/components/settings/EmailSettingsSection'
 import { SettingsTabs, isSettingsTabId, type SettingsTabId } from '@/components/settings/SettingsTabs'
 import { MfaSettingsSection } from '@/components/settings/MfaSettingsSection'
 import { PushNotificationSettingsSection } from '@/components/settings/PushNotificationSettingsSection'
@@ -78,7 +79,7 @@ export function SettingsScreen() {
   const styles = useThemedStyles(createStyles)
 
   const [activeTab, setActiveTab] = useState<SettingsTabId>(() =>
-    tab && isSettingsTabId(tab) ? tab : 'password',
+    tab && isSettingsTabId(tab) ? tab : 'email',
   )
 
   useEffect(() => {
@@ -168,7 +169,7 @@ export function SettingsScreen() {
     <Screen style={{ paddingTop: 0 }}>
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <SectionTitle>Account settings</SectionTitle>
-        <Subtitle>Manage your password, security, subscription, notifications, and account.</Subtitle>
+        <Subtitle>Manage your email, password, security, subscription, notifications, and account.</Subtitle>
 
         <SettingsTabs
           active={activeTab}
@@ -177,6 +178,12 @@ export function SettingsScreen() {
             router.setParams({ tab: nextTab })
           }}
         />
+
+        {activeTab === 'email' ? (
+          <Card>
+            <EmailSettingsSection user={user} />
+          </Card>
+        ) : null}
 
         {activeTab === 'password' ? (
           <Card>

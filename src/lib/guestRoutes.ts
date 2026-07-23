@@ -6,6 +6,7 @@ const GUEST_ALLOWED_PATHS = new Set([
   '/signup',
   '/forgot-password',
   '/reset-password',
+  '/confirm-email',
   '/pricing',
   '/parents-corner',
   '/solution-board',

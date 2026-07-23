@@ -15,6 +15,7 @@ export type UserSignup = UserAccountFields
 export type User = UserAccountFields & {
   id: string
   avatarUrl?: string
+  pendingEmail?: string | null
   weeklySummaryEmailEnabled?: boolean
   isPro?: boolean
   isSiteDeveloper?: boolean

@@ -7,6 +7,7 @@ import { PushNotificationHandler } from '@/components/notifications/PushNotifica
 import { SplashController } from '@/components/SplashController'
 import { useAppFonts } from '@/hooks/useAppFonts'
 import { BillingReturnHandler } from '@/components/billing/BillingReturnHandler'
+import { ConfirmEmailLinkHandler } from '@/components/auth/ConfirmEmailLinkHandler'
 import { BottomTabNav } from '@/components/nav/BottomTabNav'
 import { Navbar } from '@/components/nav/Navbar'
 import { AppProvider, useApp } from '@/context/AppContext'
@@ -75,6 +76,7 @@ export default function RootLayout() {
             <ConfirmProvider>
               <SplashController fontsReady={fontsLoaded} />
               <BillingReturnHandler />
+              <ConfirmEmailLinkHandler />
               <PushNotificationHandler />
               <LegalAcceptModal />
               <AppShellWithTabs />
