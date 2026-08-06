@@ -69,6 +69,7 @@ const KIND_TITLES: Record<LogKind, string> = {
   feeding: 'Feeding',
   sleep: 'Sleep',
   potty: 'Potty',
+  behavior: 'Behavior',
 }
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as const

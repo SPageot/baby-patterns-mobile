@@ -12,6 +12,7 @@ export type SettingsTabId =
   | 'subscription'
   | 'notifications'
   | 'weekly-summary'
+  | 'appearance'
   | 'account'
 
 const SETTINGS_TAB_IDS: SettingsTabId[] = [
@@ -21,6 +22,7 @@ const SETTINGS_TAB_IDS: SettingsTabId[] = [
   'subscription',
   'notifications',
   'weekly-summary',
+  'appearance',
   'account',
 ]
 
@@ -35,6 +37,7 @@ const TABS: { id: SettingsTabId; label: string }[] = [
   { id: 'subscription', label: 'Subscription' },
   { id: 'notifications', label: 'Notifications' },
   { id: 'weekly-summary', label: 'Weekly summary' },
+  { id: 'appearance', label: 'Appearance' },
   { id: 'account', label: 'Account' },
 ]
 

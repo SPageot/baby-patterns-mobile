@@ -84,12 +84,26 @@ const createStyles = (t: AppPalette) => ({
     borderWidth: 1,
     borderColor: t.strokeSubtle,
     backgroundColor: t.card,
+    alignItems: 'stretch' as const,
+  },
+  statHead: {
+    flexDirection: 'row' as const,
     alignItems: 'center' as const,
+    gap: 4,
+    marginBottom: 8,
+  },
+  statPage: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '800' as const,
+    color: t.text,
+    lineHeight: 16,
   },
   statValue: {
     fontSize: 22,
     fontWeight: '800' as const,
     color: t.text,
+    textAlign: 'center' as const,
   },
   statLabel: {
     fontSize: 12,
@@ -102,6 +116,25 @@ const createStyles = (t: AppPalette) => ({
     color: t.textMuted,
     marginTop: 6,
     textAlign: 'center' as const,
+  },
+  statAction: {
+    marginTop: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: HomeRadius.md,
+    borderWidth: 1,
+    borderColor: t.stroke,
+    backgroundColor: t.card2,
+    alignSelf: 'stretch' as const,
+    alignItems: 'center' as const,
+  },
+  statActionText: {
+    fontSize: 12,
+    fontWeight: '700' as const,
+    color: t.accentDeep,
+  },
+  statPressed: {
+    opacity: 0.85,
   },
   babyRow: {
     flexDirection: 'row' as const,
@@ -359,50 +392,120 @@ export function ProfileScreen() {
           ) : (
             <View style={styles.statsRow}>
               <View style={styles.stat}>
-                <NavIcon name="diaper" size={18} color={colors.text} />
+                <View style={styles.statHead}>
+                  <NavIcon name="diaper" size={18} color={colors.text} />
+                  <Text style={styles.statPage}>Diapers</Text>
+                </View>
                 <Text style={styles.statValue}>{profile.monthStats.diapers}</Text>
-                <Text style={styles.statLabel}>Diapers</Text>
                 <Text style={styles.statAvg}>{profile.formatAvgPerDay(profile.monthAverages.diapers)} avg / day</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Open diapers"
+                  onPress={() => router.push('/diapers')}
+                  style={({ pressed }) => [styles.statAction, pressed && styles.statPressed]}
+                >
+                  <Text style={styles.statActionText}>Open</Text>
+                </Pressable>
               </View>
               <View style={styles.stat}>
-                <NavIcon name="moon" size={18} color={colors.text} />
+                <View style={styles.statHead}>
+                  <NavIcon name="moon" size={18} color={colors.text} />
+                  <Text style={styles.statPage}>Sleep</Text>
+                </View>
                 <Text style={styles.statValue}>
                   {profile.formatSleepDurationShort(profile.monthSleepStats.totalMinutes)}
                 </Text>
-                <Text style={styles.statLabel}>Total sleep</Text>
                 <Text style={styles.statAvg}>
                   {profile.formatSleepDurationShort(profile.monthSleepStats.avgMinutesPerDay)} avg / day
                 </Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Open sleep"
+                  onPress={() => router.push('/sleep')}
+                  style={({ pressed }) => [styles.statAction, pressed && styles.statPressed]}
+                >
+                  <Text style={styles.statActionText}>Open</Text>
+                </Pressable>
               </View>
               <View style={styles.stat}>
-                <NavIcon name="bottle" size={18} color={colors.text} />
+                <View style={styles.statHead}>
+                  <NavIcon name="bottle" size={18} color={colors.text} />
+                  <Text style={styles.statPage}>Feeding</Text>
+                </View>
                 <Text style={styles.statValue}>{profile.monthStats.feeding}</Text>
-                <Text style={styles.statLabel}>Feeds</Text>
                 <Text style={styles.statAvg}>{profile.formatAvgPerDay(profile.monthAverages.feeding)} avg / day</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Open feeding"
+                  onPress={() => router.push('/feeding')}
+                  style={({ pressed }) => [styles.statAction, pressed && styles.statPressed]}
+                >
+                  <Text style={styles.statActionText}>Open</Text>
+                </Pressable>
               </View>
               <View style={styles.stat}>
-                <NavIcon name="potty" size={18} color={colors.text} />
+                <View style={styles.statHead}>
+                  <NavIcon name="potty" size={18} color={colors.text} />
+                  <Text style={styles.statPage}>Potty</Text>
+                </View>
                 <Text style={styles.statValue}>{profile.monthStats.potty}</Text>
-                <Text style={styles.statLabel}>Potty</Text>
                 <Text style={styles.statAvg}>{profile.formatAvgPerDay(profile.monthAverages.potty)} avg / day</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Open potty"
+                  onPress={() => router.push('/potty')}
+                  style={({ pressed }) => [styles.statAction, pressed && styles.statPressed]}
+                >
+                  <Text style={styles.statActionText}>Open</Text>
+                </Pressable>
               </View>
               <View style={styles.stat}>
-                <NavIcon name="growth" size={18} color={colors.text} />
+                <View style={styles.statHead}>
+                  <NavIcon name="growth" size={18} color={colors.text} />
+                  <Text style={styles.statPage}>Growth</Text>
+                </View>
                 <Text style={styles.statValue}>{profile.monthExtendedStats.growth}</Text>
-                <Text style={styles.statLabel}>Growth logs</Text>
                 <Text style={styles.statAvg}>{profile.monthExtendedStats.growthDetail}</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Open growth"
+                  onPress={() => router.push('/growth')}
+                  style={({ pressed }) => [styles.statAction, pressed && styles.statPressed]}
+                >
+                  <Text style={styles.statActionText}>Open</Text>
+                </Pressable>
               </View>
               <View style={styles.stat}>
-                <NavIcon name="star" size={18} color={colors.text} />
+                <View style={styles.statHead}>
+                  <NavIcon name="star" size={18} color={colors.text} />
+                  <Text style={styles.statPage}>Growth</Text>
+                </View>
                 <Text style={styles.statValue}>{profile.monthExtendedStats.milestones}</Text>
-                <Text style={styles.statLabel}>Milestones</Text>
                 <Text style={styles.statAvg}>{profile.monthExtendedStats.milestoneDetail}</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Open milestones"
+                  onPress={() => router.push('/growth')}
+                  style={({ pressed }) => [styles.statAction, pressed && styles.statPressed]}
+                >
+                  <Text style={styles.statActionText}>Open</Text>
+                </Pressable>
               </View>
               <View style={styles.stat}>
-                <NavIcon name="health" size={18} color={colors.text} />
+                <View style={styles.statHead}>
+                  <NavIcon name="health" size={18} color={colors.text} />
+                  <Text style={styles.statPage}>Health</Text>
+                </View>
                 <Text style={styles.statValue}>{profile.monthExtendedStats.health}</Text>
-                <Text style={styles.statLabel}>Health events</Text>
                 <Text style={styles.statAvg}>{profile.monthExtendedStats.healthDetail}</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Open health"
+                  onPress={() => router.push('/health')}
+                  style={({ pressed }) => [styles.statAction, pressed && styles.statPressed]}
+                >
+                  <Text style={styles.statActionText}>Open</Text>
+                </Pressable>
               </View>
             </View>
           )}

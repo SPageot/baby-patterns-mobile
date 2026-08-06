@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -6,7 +7,15 @@ import { NavIcon } from '@/components/icons/NavIcon'
 import { useApp } from '@/context/AppContext'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
-import { ACCOUNT_LINKS, getHamburgerMenuLinks } from '@/lib/navLinks'
+import {
+  ACCOUNT_LINKS,
+  getHamburgerMenuSections,
+  type NavGroupId,
+} from '@/lib/navLinks'
+import {
+  getStoredMenuGroupsDefault,
+  menuGroupsExpandedMap,
+} from '@/lib/menuGroupsPreference'
 import { userPlanLabel } from '@/lib/subscription'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
@@ -65,6 +74,32 @@ const createStyles = (t: AppPalette) => ({
     paddingTop: Spacing.two,
     paddingBottom: Spacing.five,
     gap: 4,
+  },
+  section: {
+    gap: 4,
+  },
+  sectionToggle: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    gap: 10,
+    marginTop: Spacing.two,
+    marginBottom: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 10,
+  },
+  sectionLabel: {
+    flex: 1,
+    fontSize: 11,
+    fontWeight: '700' as const,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase' as const,
+    color: t.textMuted,
+  },
+  sectionChevron: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: t.textMuted,
   },
   item: {
     flexDirection: 'row' as const,
@@ -129,10 +164,38 @@ export function AppMenu({ open, onClose }: Props) {
   const { user, logout } = useApp()
   const colors = useHomeTheme()
   const styles = useThemedStyles(createStyles)
+  const [expanded, setExpanded] = useState<Partial<Record<NavGroupId, boolean>>>({})
 
-  const links = getHamburgerMenuLinks({ user })
+  const sections = getHamburgerMenuSections({ user })
   const displayName = user?.fullName?.trim() || user?.username?.trim() || ''
   const planLabel = user ? userPlanLabel(user) : ''
+
+  useEffect(() => {
+    if (!open) {
+      setExpanded({})
+      return
+    }
+    let cancelled = false
+    void (async () => {
+      const preference = await getStoredMenuGroupsDefault()
+      if (cancelled) return
+      setExpanded(
+        menuGroupsExpandedMap(
+          sections.map((section) => section.id),
+          preference,
+        ),
+      )
+    })()
+    return () => {
+      cancelled = true
+    }
+    // Seed only when the menu opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sections read at open time
+  }, [open])
+
+  const toggleSection = (id: NavGroupId) => {
+    setExpanded((prev) => ({ ...prev, [id]: !prev[id] }))
+  }
 
   const navigate = (href: string) => {
     onClose()
@@ -172,17 +235,37 @@ export function AppMenu({ open, onClose }: Props) {
           contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + Spacing.five }]}
           showsVerticalScrollIndicator={false}
         >
-          {links.map((link) => (
-            <Pressable
-              key={link.href}
-              accessibilityRole="menuitem"
-              onPress={() => navigate(link.href)}
-              style={({ pressed }) => [styles.item, pressed && styles.pressed]}
-            >
-              <NavIcon name={link.icon} size={18} color={colors.accentDeep} />
-              <Text style={styles.itemText}>{link.label}</Text>
-            </Pressable>
-          ))}
+          {sections.map((section, index) => {
+            const isOpen = Boolean(expanded[section.id])
+            return (
+              <View key={section.id} style={styles.section}>
+                {index > 0 ? <View style={styles.divider} /> : null}
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{ expanded: isOpen }}
+                  accessibilityLabel={`${section.label}, ${isOpen ? 'expanded' : 'collapsed'}`}
+                  onPress={() => toggleSection(section.id)}
+                  style={({ pressed }) => [styles.sectionToggle, pressed && styles.pressed]}
+                >
+                  <Text style={styles.sectionLabel}>{section.label}</Text>
+                  <Text style={styles.sectionChevron}>{isOpen ? '▾' : '▸'}</Text>
+                </Pressable>
+                {isOpen
+                  ? section.links.map((link) => (
+                      <Pressable
+                        key={link.href}
+                        accessibilityRole="menuitem"
+                        onPress={() => navigate(link.href)}
+                        style={({ pressed }) => [styles.item, pressed && styles.pressed]}
+                      >
+                        <NavIcon name={link.icon} size={18} color={colors.accentDeep} />
+                        <Text style={styles.itemText}>{link.label}</Text>
+                      </Pressable>
+                    ))
+                  : null}
+              </View>
+            )
+          })}
 
           {user ? (
             <>

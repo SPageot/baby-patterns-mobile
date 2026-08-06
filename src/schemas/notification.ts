@@ -9,6 +9,10 @@ export type TrackingNotificationType =
   | 'diaper_updated'
   | 'feeding_logged'
   | 'feeding_updated'
+  | 'potty_logged'
+  | 'potty_updated'
+  | 'behavior_logged'
+  | 'behavior_updated'
   | 'sleep_logged'
   | 'sleep_updated'
   | 'growth_logged'
@@ -33,6 +37,10 @@ const NOTIFICATION_TYPES = new Set<string>([
   'diaper_updated',
   'feeding_logged',
   'feeding_updated',
+  'potty_logged',
+  'potty_updated',
+  'behavior_logged',
+  'behavior_updated',
   'sleep_logged',
   'sleep_updated',
   'growth_logged',
@@ -55,6 +63,8 @@ export function notificationRoute(type: NotificationType): string {
   if (type === 'family_share_request') return '/profile'
   if (type.startsWith('diaper_')) return '/diapers'
   if (type.startsWith('feeding_')) return '/feeding'
+  if (type.startsWith('potty_')) return '/potty'
+  if (type.startsWith('behavior_')) return '/behavior'
   if (type.startsWith('sleep_')) return '/sleep'
   if (type.startsWith('growth_') || type.startsWith('milestone_')) return '/growth'
   if (type.startsWith('sickness_') || type.startsWith('injury_')) return '/health'

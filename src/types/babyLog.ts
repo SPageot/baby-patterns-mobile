@@ -1,4 +1,4 @@
-export type LogKind = 'diaper' | 'feeding' | 'sleep' | 'potty'
+export type LogKind = 'diaper' | 'feeding' | 'sleep' | 'potty' | 'behavior'
 
 /** Create/update payload for feeding logs. */
 export type FeedingLogCreate = {
@@ -61,6 +61,32 @@ export function pottyLogFromDetails(
     notes: details.notes?.trim() || null,
     isTeething: BOOL(details.isTeething),
     isSick: BOOL(details.isSick),
+  }
+}
+
+/** Behavior log create/update payload. */
+export type BehaviorLogCreate = {
+  /** Calendar date YYYY-MM-DD */
+  occurredOn: string
+  /** Optional local time HH:mm */
+  occurredTime?: string | null
+  behaviorTag: string
+  location: string
+  notes?: string | null
+  resolution?: string | null
+}
+
+export function behaviorLogFromDetails(
+  details: Record<string, string>,
+  atIso: string,
+): BehaviorLogCreate {
+  return {
+    occurredOn: details.occurredOn?.trim() || isoToLocalYmd(atIso),
+    occurredTime: details.occurredTime?.trim() || null,
+    behaviorTag: details.behaviorTag?.trim() || '',
+    location: details.location?.trim() || '',
+    notes: details.notes?.trim() || null,
+    resolution: details.resolution?.trim() || null,
   }
 }
 

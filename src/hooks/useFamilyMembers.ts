@@ -9,6 +9,7 @@ import {
   fetchOutgoingFamilyRequests,
   removeFamilyMember,
   sendFamilyShareRequest,
+  updateFamilyMemberTag,
 } from '@/api/familyMembersApi'
 import { isApiConfigured } from '@/api/config'
 import type { FamilyMember, FamilyShareRequest } from '@/schemas/familyMember'
@@ -126,17 +127,20 @@ export function useFamilyMembers(enabled: boolean) {
   }, [])
 
   const acceptRequest = useCallback(
-    async (requestId: string) => {
+    async (requestId: string, relationshipTag?: string | null) => {
       setRespondingRequestId(requestId)
       setError(null)
       try {
-        const member = await acceptFamilyShareRequest(requestId)
+        const member = await acceptFamilyShareRequest(requestId, relationshipTag)
         setIncomingRequests((prev) => prev.filter((r) => r.id !== requestId))
         setMembers((prev) => {
-          if (prev.some((m) => m.memberUserId === member.memberUserId)) return prev
+          if (prev.some((m) => m.memberUserId === member.memberUserId)) {
+            return prev.map((m) => (m.memberUserId === member.memberUserId ? member : m))
+          }
           return [member, ...prev]
         })
         await loadBabiesForCurrentUser()
+        return member
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Could not accept invite')
         throw e
@@ -146,6 +150,20 @@ export function useFamilyMembers(enabled: boolean) {
     },
     [loadBabiesForCurrentUser],
   )
+
+  const updateMemberTag = useCallback(async (memberUserId: string, relationshipTag: string | null) => {
+    setError(null)
+    try {
+      const member = await updateFamilyMemberTag(memberUserId, relationshipTag)
+      setMembers((prev) =>
+        prev.map((m) => (m.memberUserId === member.memberUserId ? member : m)),
+      )
+      return member
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not update tag')
+      throw e
+    }
+  }, [])
 
   const declineRequest = useCallback(async (requestId: string) => {
     setRespondingRequestId(requestId)
@@ -213,6 +231,7 @@ export function useFamilyMembers(enabled: boolean) {
     isConnectedOrPending,
     sendRequest,
     acceptRequest,
+    updateMemberTag,
     declineRequest,
     cancelOutgoingRequest,
     removeMember,

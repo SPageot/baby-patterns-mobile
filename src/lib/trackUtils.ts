@@ -780,5 +780,6 @@ export function kindLabel(kind: LogKind) {
   if (kind === 'diaper') return 'Diaper'
   if (kind === 'feeding') return 'Feed'
   if (kind === 'potty') return 'Potty'
+  if (kind === 'behavior') return 'Behavior'
   return 'Sleep'
 }

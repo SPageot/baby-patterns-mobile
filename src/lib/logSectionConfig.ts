@@ -47,4 +47,13 @@ export const LOG_SECTION: Record<LogKind, LogSectionMeta> = {
     ctaHint: 'Result, time, location, and notes',
     storageNote: 'Synced with your API when configured',
   },
+  behavior: {
+    path: '/behavior',
+    title: 'Behavior Log',
+    subtitle: 'Record tantrums, listening challenges, daydreaming, and what helped resolve them.',
+    todayUnit: 'logs today',
+    ctaLabel: 'Log behavior',
+    ctaHint: 'Type, location, date, optional time, notes, and resolution',
+    storageNote: 'Synced with your API when configured',
+  },
 }

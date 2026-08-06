@@ -9,6 +9,7 @@ export type FamilyMember = {
   memberUserId: string
   username: string
   fullName: string
+  relationshipTag: string | null
   createdAt: string
   babies: FamilyMemberBaby[]
 }
@@ -24,3 +25,20 @@ export type FamilyShareRequest = {
   status: string
   createdAt: string
 }
+
+export const FAMILY_RELATIONSHIP_PRESETS = [
+  'Parent',
+  'Partner',
+  'Grandparent',
+  'Sibling',
+  'Aunt / Uncle',
+  'Doctor',
+  'Pediatrician',
+  'Babysitter',
+  'Nanny',
+  'Teacher',
+  'Caregiver',
+  'Friend',
+] as const
+
+export const FAMILY_RELATIONSHIP_TAG_MAX_LENGTH = 40

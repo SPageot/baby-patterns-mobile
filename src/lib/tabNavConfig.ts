@@ -37,7 +37,7 @@ export const APP_TABS: TabConfig[] = [
     id: 'solution-board',
     label: 'Solution Board',
     shortLabel: 'Solutions',
-    icon: 'star',
+    icon: 'check',
     href: '/solution-board',
     paths: ['/solution-board'],
   },

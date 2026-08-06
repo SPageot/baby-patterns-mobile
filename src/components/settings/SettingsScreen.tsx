@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 
+import { AppearanceSettingsSection } from '@/components/settings/AppearanceSettingsSection'
 import { BillingSettingsSection } from '@/components/settings/BillingSettingsSection'
 import { DeleteAccountModal } from '@/components/settings/DeleteAccountModal'
 import { EmailSettingsSection } from '@/components/settings/EmailSettingsSection'
@@ -169,7 +170,7 @@ export function SettingsScreen() {
     <Screen style={{ paddingTop: 0 }}>
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <SectionTitle>Account settings</SectionTitle>
-        <Subtitle>Manage your email, password, security, subscription, notifications, and account.</Subtitle>
+        <Subtitle>Manage your email, password, security, subscription, notifications, appearance, and account.</Subtitle>
 
         <SettingsTabs
           active={activeTab}
@@ -226,6 +227,12 @@ export function SettingsScreen() {
         {activeTab === 'weekly-summary' ? (
           <Card>
             <WeeklySummarySettingsSection user={user} />
+          </Card>
+        ) : null}
+
+        {activeTab === 'appearance' ? (
+          <Card>
+            <AppearanceSettingsSection />
           </Card>
         ) : null}
 

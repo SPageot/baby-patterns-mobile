@@ -43,6 +43,7 @@ function normalizeFamilyMember(raw: unknown): FamilyMember | null {
     memberUserId,
     username,
     fullName: pickStr(o, 'fullName', 'FullName'),
+    relationshipTag: pickStr(o, 'relationshipTag', 'RelationshipTag') || null,
     createdAt: pickStr(o, 'createdAt', 'CreatedAt'),
     babies,
   }
@@ -97,10 +98,36 @@ export async function sendFamilyShareRequest(username: string): Promise<FamilySh
   return request
 }
 
-export async function acceptFamilyShareRequest(requestId: string): Promise<FamilyMember> {
+export async function acceptFamilyShareRequest(
+  requestId: string,
+  relationshipTag?: string | null,
+): Promise<FamilyMember> {
   const data = await apiFetch<unknown>(
     `api/family-members/requests/${encodeURIComponent(requestId)}/accept`,
-    { method: 'POST' },
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        relationshipTag: relationshipTag?.trim() || null,
+      }),
+    },
+  )
+  const member = normalizeFamilyMember(data)
+  if (!member) throw new Error('Invalid family member response from server')
+  return member
+}
+
+export async function updateFamilyMemberTag(
+  memberUserId: string,
+  relationshipTag: string | null,
+): Promise<FamilyMember> {
+  const data = await apiFetch<unknown>(
+    `api/family-members/${encodeURIComponent(memberUserId)}/tag`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({
+        relationshipTag: relationshipTag?.trim() || null,
+      }),
+    },
   )
   const member = normalizeFamilyMember(data)
   if (!member) throw new Error('Invalid family member response from server')

@@ -1,12 +1,14 @@
 import { Pressable, Text, View } from 'react-native'
 import { useFocusEffect, useRouter } from 'expo-router'
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 
 import { Button, ErrorText, Input, Label } from '@/components/ui/primitives'
 import { LoadingState } from '@/components/ui/Loading'
+import { FamilyMemberTagModal } from '@/components/profile/FamilyMemberTagModal'
 import { useFamilyMembers } from '@/hooks/useFamilyMembers'
 import { useConfirmAction } from '@/context/ConfirmContext'
 import { isProUser } from '@/lib/subscription'
+import type { FamilyMember, FamilyShareRequest } from '@/schemas/familyMember'
 import type { User } from '@/schemas/user'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
@@ -176,6 +178,27 @@ const createStyles = (t: AppPalette) => ({
     color: t.textMuted,
     marginTop: 2,
   },
+  tag: {
+    alignSelf: 'flex-start' as const,
+    marginTop: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: t.strokeSubtle,
+    backgroundColor: t.accentSoft,
+  },
+  tagText: {
+    fontSize: 11,
+    fontWeight: '700' as const,
+    color: t.text,
+  },
+  itemActions: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    gap: 8,
+    marginTop: 8,
+  },
   requestHint: {
     fontSize: 12,
     color: t.textMuted,
@@ -215,6 +238,9 @@ export function FamilyMembersSection({ enabled, user }: Props) {
   const confirm = useConfirmAction()
   const userIsPro = isProUser(user)
   const styles = useThemedStyles(createStyles)
+  const [tagModal, setTagModal] = useState<
+    { mode: 'accept' | 'edit'; member: FamilyMember } | null
+  >(null)
 
   useFocusEffect(
     useCallback(() => {
@@ -242,14 +268,22 @@ export function FamilyMembersSection({ enabled, user }: Props) {
     })
   }
 
+  const onAccept = async (request: FamilyShareRequest) => {
+    const member = await family.acceptRequest(request.id)
+    setTagModal({ mode: 'accept', member })
+  }
+
+  const memberLabel = (member: FamilyMember) => member.fullName?.trim() || member.username
+
   return (
     <View style={styles.section}>
       <View style={styles.head}>
         <Text style={styles.title}>Family & friends</Text>
         <Text style={styles.subtitle}>
           Send an invite by username. When they accept, you&apos;ll both appear on each other&apos;s
-          profile and can track each other&apos;s babies. You can remove anyone or cancel a pending
-          invite at any time.
+          profile and can track each other&apos;s babies. After accepting, you can tag who they are
+          (Doctor, Babysitter, Teacher, and more). You can remove anyone or cancel a pending invite at
+          any time.
         </Text>
       </View>
 
@@ -282,7 +316,7 @@ export function FamilyMembersSection({ enabled, user }: Props) {
                   <Button
                     title={busy ? 'Accepting…' : 'Accept'}
                     disabled={!enabled || busy || family.adding}
-                    onPress={() => void family.acceptRequest(request.id)}
+                    onPress={() => void onAccept(request)}
                   />
                   <Button
                     title="Decline"
@@ -390,6 +424,11 @@ export function FamilyMembersSection({ enabled, user }: Props) {
                   <View style={styles.itemMeta}>
                     <Text style={styles.itemName}>{label}</Text>
                     <Text style={styles.itemUser}>@{member.username}</Text>
+                    {member.relationshipTag ? (
+                      <View style={styles.tag}>
+                        <Text style={styles.tagText}>{member.relationshipTag}</Text>
+                      </View>
+                    ) : null}
                   </View>
                   {member.babies.length > 0 ? (
                     <View style={styles.itemBabies}>
@@ -405,25 +444,45 @@ export function FamilyMembersSection({ enabled, user }: Props) {
                   ) : (
                     <Text style={styles.noBabies}>No babies on their account yet.</Text>
                   )}
+                  <View style={styles.itemActions}>
+                    <Button
+                      title={member.relationshipTag ? 'Edit tag' : 'Add tag'}
+                      variant="ghost"
+                      disabled={!enabled || removing || family.adding}
+                      onPress={() => setTagModal({ mode: 'edit', member })}
+                    />
+                    <Pressable
+                      accessibilityRole="button"
+                      disabled={!enabled || removing || family.adding}
+                      onPress={() => onRemoveMember(member.memberUserId, label)}
+                      style={({ pressed }) => [
+                        styles.removeButton,
+                        (pressed || removing) && styles.pressed,
+                      ]}
+                    >
+                      <Text style={styles.removeButtonText}>
+                        {removing ? 'Removing…' : 'Remove'}
+                      </Text>
+                    </Pressable>
+                  </View>
                 </View>
-                <Pressable
-                  accessibilityRole="button"
-                  disabled={!enabled || removing || family.adding}
-                  onPress={() => onRemoveMember(member.memberUserId, label)}
-                  style={({ pressed }) => [
-                    styles.removeButton,
-                    (pressed || removing) && styles.pressed,
-                  ]}
-                >
-                  <Text style={styles.removeButtonText}>
-                    {removing ? 'Removing…' : 'Remove'}
-                  </Text>
-                </Pressable>
               </View>
             )
           })}
         </View>
       )}
+
+      <FamilyMemberTagModal
+        open={tagModal != null}
+        mode={tagModal?.mode ?? 'edit'}
+        memberName={tagModal ? memberLabel(tagModal.member) : ''}
+        initialTag={tagModal?.member.relationshipTag ?? null}
+        onClose={() => setTagModal(null)}
+        onSave={async (tag) => {
+          if (!tagModal) return
+          await family.updateMemberTag(tagModal.member.memberUserId, tag)
+        }}
+      />
     </View>
   )
 }
