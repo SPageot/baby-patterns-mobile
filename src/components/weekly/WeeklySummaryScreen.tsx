@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router'
 import { Pressable, ScrollView, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import { NavIcon } from '@/components/icons/NavIcon'
 import { HealthDisclaimer } from '@/components/health/HealthDisclaimer'
@@ -16,11 +17,6 @@ import { heading } from '@/constants/typography'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
-
-const WEEK_OPTIONS: { value: WeekSelection; label: string }[] = [
-  { value: 'last', label: 'Last week' },
-  { value: 'this', label: 'This week' },
-]
 
 const createStyles = (t: AppPalette) => ({
   scroll: {
@@ -161,13 +157,19 @@ const createStyles = (t: AppPalette) => ({
 export function WeeklySummaryScreen() {
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
+  const { t } = useTranslation()
   const router = useRouter()
   const { user, authReady } = useApp()
   const summary = useWeeklySummary()
   const userIsPro = isProUser(user)
 
+  const weekOptions: { value: WeekSelection; label: string }[] = [
+    { value: 'last', label: t('weekly.lastWeek') },
+    { value: 'this', label: t('weekly.thisWeek') },
+  ]
+
   if (!authReady) {
-    return <PageLoadingScreen label="Loading weekly summary…" />
+    return <PageLoadingScreen label={t('common.loading')} />
   }
 
   if (!user) {
@@ -177,13 +179,13 @@ export function WeeklySummaryScreen() {
           <View style={styles.gateIcon}>
             <NavIcon name="calendar" size={24} color={palette.accentDeep} />
           </View>
-          <Text style={styles.gateTitle}>Weekly summaries</Text>
+          <Text style={styles.gateTitle}>{t('weekly.title')}</Text>
           <Text style={styles.gateText}>
             Log in to see a digest of your baby&apos;s sleep, feeding, diapers, growth, and milestones for each week.
           </Text>
           <View style={styles.gateActions}>
-            <Button title="Log in" onPress={() => router.push('/login')} />
-            <Button title="Sign up" variant="secondary" onPress={() => router.push('/signup')} />
+            <Button title={t('common.logIn')} onPress={() => router.push('/login')} />
+            <Button title={t('common.signUp')} variant="secondary" onPress={() => router.push('/signup')} />
           </View>
         </View>
       </ScrollView>
@@ -197,11 +199,11 @@ export function WeeklySummaryScreen() {
           <View style={styles.gateIcon}>
             <NavIcon name="calendar" size={24} color={palette.accentDeep} />
           </View>
-          <Text style={styles.gateTitle}>Weekly summaries</Text>
+          <Text style={styles.gateTitle}>{t('weekly.title')}</Text>
           <Text style={styles.gateText}>
             Add a baby profile to unlock your weekly digest of patterns and milestones.
           </Text>
-          <Button title="Add a baby" onPress={() => router.push('/add-baby')} />
+          <Button title={t('common.addBaby')} onPress={() => router.push('/add-baby')} />
         </View>
       </ScrollView>
     )
@@ -214,18 +216,16 @@ export function WeeklySummaryScreen() {
           <View style={styles.gateIcon}>
             <NavIcon name="calendar" size={24} color={palette.accentDeep} />
           </View>
-          <Text style={styles.gateTitle}>Weekly summaries are a Pro feature</Text>
-          <Text style={styles.gateText}>
-            Upgrade to Baby Pattern Pro for in-app weekly digests, email summaries, and unlimited report history.
-          </Text>
-          <Button title="View Pro plans" onPress={() => router.push('/pricing')} />
+          <Text style={styles.gateTitle}>{t('weekly.proOnly')}</Text>
+          <Text style={styles.gateText}>{t('weekly.upgrade')}</Text>
+          <Button title={t('weekly.upgrade')} onPress={() => router.push('/pricing')} />
         </View>
       </ScrollView>
     )
   }
 
   if (summary.loading) {
-    return <PageLoadingScreen label="Loading tracking data…" />
+    return <PageLoadingScreen label={t('common.loading')} />
   }
 
   return (
@@ -233,17 +233,17 @@ export function WeeklySummaryScreen() {
       <View style={styles.hero}>
         <View style={styles.badge}>
           <NavIcon name="calendar" size={16} color={palette.accentDeep} />
-          <Text style={styles.badgeText}>Weekly summary</Text>
+          <Text style={styles.badgeText}>{t('weekly.title')}</Text>
         </View>
         <Eyebrow>Digest</Eyebrow>
-        <Text style={styles.title}>Your week in review</Text>
+        <Text style={styles.title}>{t('weekly.inReview')}</Text>
         <Text style={styles.subtitle}>
           A readable digest of sleep, naps, diapers, feeding, growth, and milestones — perfect for catching up with
           your partner or pediatrician.
         </Text>
 
         <View style={styles.weekRow}>
-          {WEEK_OPTIONS.map((option) => {
+          {weekOptions.map((option) => {
             const active = summary.weekSelection === option.value
             return (
               <Pressable
@@ -279,9 +279,9 @@ export function WeeklySummaryScreen() {
         ) : null}
 
         <View style={styles.linksRow}>
-          <Button title="Full reports" variant="secondary" onPress={() => router.push('/reports')} />
+          <Button title={t('reports.title')} variant="secondary" onPress={() => router.push('/reports')} />
           <Button
-            title="Email settings"
+            title={t('settings.tabs.weeklySummary')}
             variant="ghost"
             onPress={() => router.push('/settings?tab=weekly-summary')}
           />

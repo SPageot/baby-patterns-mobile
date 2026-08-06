@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Text, View } from 'react-native'
 import { useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 
 import { LogToggleRow } from '@/components/track/LogToggleRow'
 import { ErrorText, SectionTitle, Subtitle } from '@/components/ui/primitives'
@@ -49,6 +50,7 @@ const createStyles = (t: AppPalette) => ({
 })
 
 export function WeeklySummarySettingsSection({ user }: Props) {
+  const { t } = useTranslation()
   const router = useRouter()
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
@@ -87,11 +89,7 @@ export function WeeklySummarySettingsSection({ user }: Props) {
       })
       setEnabled(Boolean(updated.weeklySummaryEmailEnabled))
       setUser(updated)
-      setSuccess(
-        next
-          ? "Weekly email summaries are enabled. Check your inbox for last week's digest."
-          : 'Weekly email summaries turned off.',
-      )
+      setSuccess(next ? t('settings.weeklySummary.successOn') : t('settings.weeklySummary.successOff'))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save preference')
     } finally {
@@ -101,40 +99,34 @@ export function WeeklySummarySettingsSection({ user }: Props) {
 
   return (
     <View style={styles.section}>
-      <SectionTitle>Weekly summaries</SectionTitle>
-      <Subtitle>
-        Get a digest of sleep, feeding, diapers, growth, and milestones each week. Included with Baby Pattern Pro.
-      </Subtitle>
+      <SectionTitle>{t('settings.weeklySummary.title')}</SectionTitle>
+      <Subtitle>{t('settings.weeklySummary.subtitle')}</Subtitle>
 
       {error ? <ErrorText>{error}</ErrorText> : null}
       {!userIsPro ? (
         <Subtitle>
           <Text style={styles.link} onPress={() => router.push('/pricing')}>
-            Upgrade to Pro
-          </Text>{' '}
-          to enable weekly email summaries.
+            {t('settings.weeklySummary.upgradeCta')}
+          </Text>
         </Subtitle>
       ) : null}
       {success ? <Text style={styles.success}>{success}</Text> : null}
 
       <Text style={styles.sub}>
-        Sent to {user.email || 'your account email'} every Monday with last week&apos;s highlights. You can also view
-        summaries anytime on the{' '}
-        <Text style={styles.link} onPress={() => router.push('/weekly-summary')}>
-          Weekly summary
-        </Text>{' '}
-        page.
+        {t('settings.weeklySummary.emailToggleSub', {
+          email: user.email || t('settings.weeklySummary.yourAccountEmail'),
+        })}
       </Text>
 
       <LogToggleRow
-        label="Email me weekly summaries"
+        label={t('settings.weeklySummary.emailToggle')}
         value={enabled}
         onChange={(next) => void onToggle(next)}
         accent={palette.accentDeep}
         stroke={palette.stroke}
         disabled={saving || !userIsPro}
       />
-      {saving ? <Subtitle>Saving…</Subtitle> : null}
+      {saving ? <Subtitle>{t('track.fields.saving')}</Subtitle> : null}
     </View>
   )
 }

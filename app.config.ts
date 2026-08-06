@@ -60,6 +60,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     'expo-sharing',
+    'expo-localization',
     [
       'expo-notifications',
       {

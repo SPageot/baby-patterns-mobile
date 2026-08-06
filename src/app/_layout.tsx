@@ -12,6 +12,7 @@ import { BottomTabNav } from '@/components/nav/BottomTabNav'
 import { Navbar } from '@/components/nav/Navbar'
 import { AppProvider, useApp } from '@/context/AppContext'
 import { ConfirmProvider } from '@/context/ConfirmContext'
+import { LocaleProvider, useLocale } from '@/context/LocaleContext'
 import { ModerationProvider } from '@/context/ModerationContext'
 import { TabNavProvider, useTabNav } from '@/context/TabNavContext'
 import { ThemeProvider } from '@/context/ThemeContext'
@@ -61,6 +62,29 @@ function AppShellWithTabs() {
   )
 }
 
+function RootWithLocale({ fontsLoaded }: { fontsLoaded: boolean }) {
+  const { ready } = useLocale()
+
+  if (!ready) {
+    return null
+  }
+
+  return (
+    <AppProvider>
+      <ModerationProvider>
+        <ConfirmProvider>
+          <SplashController fontsReady={fontsLoaded} />
+          <BillingReturnHandler />
+          <ConfirmEmailLinkHandler />
+          <PushNotificationHandler />
+          <LegalAcceptModal />
+          <AppShellWithTabs />
+        </ConfirmProvider>
+      </ModerationProvider>
+    </AppProvider>
+  )
+}
+
 export default function RootLayout() {
   const [fontsLoaded] = useAppFonts()
 
@@ -71,18 +95,9 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <AppProvider>
-          <ModerationProvider>
-            <ConfirmProvider>
-              <SplashController fontsReady={fontsLoaded} />
-              <BillingReturnHandler />
-              <ConfirmEmailLinkHandler />
-              <PushNotificationHandler />
-              <LegalAcceptModal />
-              <AppShellWithTabs />
-            </ConfirmProvider>
-          </ModerationProvider>
-        </AppProvider>
+        <LocaleProvider>
+          <RootWithLocale fontsLoaded={fontsLoaded} />
+        </LocaleProvider>
       </ThemeProvider>
     </SafeAreaProvider>
   )

@@ -18,6 +18,7 @@ import { formatHealthDuration } from '@/types/health'
 import { formatWhen } from './trackUtils'
 import { appendTrackWeeklyLogSections } from './trackWeeklyLogPdfSections'
 import { PDF_GROWTH_COLORS } from './pdfChartDrawing'
+import { pdfT } from './pdfUi'
 import { sharePdfDocument } from '@/lib/sharePdfDocument'
 
 type PdfWithTable = jsPDF & { lastAutoTable?: { finalY: number } }
@@ -59,8 +60,8 @@ function addPageFooter(doc: jsPDF) {
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(8)
     doc.setTextColor(150, 146, 162)
-    doc.text('Baby Pattern — Pediatric Care Report', MARGIN, FOOTER_Y)
-    doc.text(`Page ${i} of ${pages}`, PAGE_W - MARGIN, FOOTER_Y, { align: 'right' })
+    doc.text(pdfT('footerPediatric'), MARGIN, FOOTER_Y)
+    doc.text(pdfT('pageOf', { current: i, total: pages }), PAGE_W - MARGIN, FOOTER_Y, { align: 'right' })
   }
 }
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 
 import { AppearanceSettingsSection } from '@/components/settings/AppearanceSettingsSection'
 import { BillingSettingsSection } from '@/components/settings/BillingSettingsSection'
@@ -74,6 +75,7 @@ const createStyles = (t: AppPalette) => ({
 })
 
 export function SettingsScreen() {
+  const { t } = useTranslation()
   const router = useRouter()
   const { tab } = useLocalSearchParams<{ tab?: string }>()
   const { user, authReady, logout, setUser } = useApp()
@@ -148,18 +150,18 @@ export function SettingsScreen() {
   }
 
   if (!authReady) {
-    return <PageLoadingScreen label="Loading settings…" />
+    return <PageLoadingScreen label={t('common.loading')} />
   }
 
   if (!user) {
     return (
       <Screen>
         <View style={styles.gate}>
-          <Text style={styles.gateTitle}>Settings</Text>
-          <Text style={styles.gateText}>Log in to manage your account settings.</Text>
+          <Text style={styles.gateTitle}>{t('auth.gateSettingsTitle')}</Text>
+          <Text style={styles.gateText}>{t('auth.gateSettingsText')}</Text>
           <View style={styles.gateActions}>
-            <HomeButton title="Log in" onPress={() => router.push('/login')} />
-            <Button title="Sign up" variant="secondary" onPress={() => router.push('/signup')} />
+            <HomeButton title={t('common.logIn')} onPress={() => router.push('/login')} />
+            <Button title={t('common.signUp')} variant="secondary" onPress={() => router.push('/signup')} />
           </View>
         </View>
       </Screen>
@@ -169,8 +171,8 @@ export function SettingsScreen() {
   return (
     <Screen style={{ paddingTop: 0 }}>
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        <SectionTitle>Account settings</SectionTitle>
-        <Subtitle>Manage your email, password, security, subscription, notifications, appearance, and account.</Subtitle>
+        <SectionTitle>{t('settings.title')}</SectionTitle>
+        <Subtitle>{t('settings.subtitle')}</Subtitle>
 
         <SettingsTabs
           active={activeTab}
@@ -246,7 +248,7 @@ export function SettingsScreen() {
 
         <View style={styles.links}>
           <Pressable onPress={() => router.push('/profile')}>
-            <Text style={styles.link}>Back to profile</Text>
+            <Text style={styles.link}>{t('settings.backToProfile')}</Text>
           </Pressable>
           <Text style={styles.link}>·</Text>
           <Pressable onPress={() => router.push('/terms')}>

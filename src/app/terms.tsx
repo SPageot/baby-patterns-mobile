@@ -1,13 +1,19 @@
+import { useTranslation } from 'react-i18next'
+
 import { LegalDocument } from '@/components/legal/LegalDocument'
-import { TERMS_OF_USE } from '@/lib/legalContent'
+import { getTermsOfUse, getLegalLastUpdated } from '@/lib/legalContent'
 import { TERMS_OF_SERVICE_URL } from '@/lib/siteUrls'
 
 export default function TermsScreen() {
+  const { t, i18n } = useTranslation()
+  const language = i18n.language
+
   return (
     <LegalDocument
-      title="Terms of Use"
-      intro="Please read these terms carefully before using Baby Pattern."
-      sections={TERMS_OF_USE}
+      title={t('legal.termsTitle')}
+      intro={t('legal.termsIntro')}
+      sections={getTermsOfUse(language)}
+      lastUpdated={getLegalLastUpdated(language)}
       publicWebUrl={TERMS_OF_SERVICE_URL}
     />
   )

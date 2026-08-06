@@ -1,4 +1,5 @@
 import { View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import { TrackLogModalShell } from '@/components/track/TrackLogModalShell'
 import { TrackingMediaField } from '@/components/growth/TrackingMediaField'
@@ -78,13 +79,14 @@ export function DailyMemoryFormModal({
   onRemoveExistingMedia,
 }: Props) {
   const styles = useThemedStyles(createStyles)
+  const { t } = useTranslation()
   const showBabyPicker = babies.length > 1
 
   return (
     <TrackLogModalShell
       open={open}
       onClose={onClose}
-      title={isEdit ? 'Edit memory' : 'Add daily memory'}
+      title={isEdit ? 'Edit memory' : t('memories.add')}
       accentColor={DAILY_MEMORY_THEME.accentStrong}
       accentBorder={DAILY_MEMORY_THEME.accentBorder}
       accentSoft={DAILY_MEMORY_THEME.accentSoft}
@@ -164,7 +166,7 @@ export function DailyMemoryFormModal({
       <View style={styles.actions}>
         <Button title="Cancel" variant="secondary" onPress={onClose} disabled={saving} style={styles.actionBtn} />
         <Button
-          title={saving ? 'Saving…' : 'Save memory'}
+          title={saving ? t('track.fields.saving') : t('memories.save')}
           loading={saving}
           onPress={onSave}
           style={[dailyMemoryPrimaryButtonStyle, styles.actionBtn]}

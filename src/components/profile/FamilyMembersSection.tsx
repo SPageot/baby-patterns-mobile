@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from 'react-native'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button, ErrorText, Input, Label } from '@/components/ui/primitives'
 import { LoadingState } from '@/components/ui/Loading'
@@ -236,6 +237,7 @@ export function FamilyMembersSection({ enabled, user }: Props) {
   const router = useRouter()
   const family = useFamilyMembers(enabled)
   const confirm = useConfirmAction()
+  const { t } = useTranslation()
   const userIsPro = isProUser(user)
   const styles = useThemedStyles(createStyles)
   const [tagModal, setTagModal] = useState<
@@ -248,12 +250,11 @@ export function FamilyMembersSection({ enabled, user }: Props) {
     }, [family.loadAll]),
   )
 
-  const onRemoveMember = (memberUserId: string, displayName: string) => {
-    const name = displayName.trim() || 'this person'
+  const onRemoveMember = (memberUserId: string, _displayName: string) => {
     confirm({
-      title: 'Remove family member?',
-      message: `Remove ${name} from family & friends? You will both lose access to each other's babies.`,
-      confirmLabel: 'Remove',
+      title: t('family.removeConfirm'),
+      message: t('family.removeConfirmBody'),
+      confirmLabel: t('common.remove'),
       onConfirm: () => family.removeMember(memberUserId),
     })
   }
@@ -261,9 +262,9 @@ export function FamilyMembersSection({ enabled, user }: Props) {
   const onCancelInvite = (requestId: string, displayName: string) => {
     const name = displayName.trim() || 'this person'
     confirm({
-      title: 'Cancel invite?',
+      title: t('family.cancelInvite'),
       message: `Cancel your invite to ${name}?`,
-      confirmLabel: 'Cancel invite',
+      confirmLabel: t('family.cancelInvite'),
       onConfirm: () => family.cancelOutgoingRequest(requestId),
     })
   }
@@ -278,7 +279,7 @@ export function FamilyMembersSection({ enabled, user }: Props) {
   return (
     <View style={styles.section}>
       <View style={styles.head}>
-        <Text style={styles.title}>Family & friends</Text>
+        <Text style={styles.title}>{t('family.title')}</Text>
         <Text style={styles.subtitle}>
           Send an invite by username. When they accept, you&apos;ll both appear on each other&apos;s
           profile and can track each other&apos;s babies. After accepting, you can tag who they are
@@ -301,7 +302,7 @@ export function FamilyMembersSection({ enabled, user }: Props) {
 
       {family.incomingRequests.length > 0 ? (
         <View style={styles.requestsBlock}>
-          <Text style={styles.requestsTitle}>Invites for you</Text>
+          <Text style={styles.requestsTitle}>{t('family.invitesForYou')}</Text>
           {family.incomingRequests.map((request) => {
             const label = request.requesterFullName?.trim() || request.requesterUsername
             const busy = family.respondingRequestId === request.id
@@ -314,12 +315,12 @@ export function FamilyMembersSection({ enabled, user }: Props) {
                 </View>
                 <View style={styles.requestActions}>
                   <Button
-                    title={busy ? 'Accepting…' : 'Accept'}
+                    title={busy ? t('notifications.accepting') : t('notifications.accept')}
                     disabled={!enabled || busy || family.adding}
                     onPress={() => void onAccept(request)}
                   />
                   <Button
-                    title="Decline"
+                    title={t('notifications.decline')}
                     variant="ghost"
                     disabled={!enabled || busy || family.adding}
                     onPress={() => void family.declineRequest(request.id)}
@@ -363,7 +364,7 @@ export function FamilyMembersSection({ enabled, user }: Props) {
                   <Text style={styles.suggestionUser}>@{user.username}</Text>
                   {pending ? (
                     <Text style={styles.suggestionAdded}>
-                      {outgoing ? 'Invite sent' : 'Connected or pending'}
+                      {outgoing ? t('family.inviteSent') : 'Connected or pending'}
                     </Text>
                   ) : null}
                 </Pressable>
@@ -409,9 +410,7 @@ export function FamilyMembersSection({ enabled, user }: Props) {
         <LoadingState label="Loading family members…" compact />
       ) : family.members.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>
-            No family connections yet. Send an invite and wait for them to accept.
-          </Text>
+          <Text style={styles.emptyText}>{t('family.empty')}</Text>
         </View>
       ) : (
         <View style={styles.list}>
@@ -446,7 +445,7 @@ export function FamilyMembersSection({ enabled, user }: Props) {
                   )}
                   <View style={styles.itemActions}>
                     <Button
-                      title={member.relationshipTag ? 'Edit tag' : 'Add tag'}
+                      title={member.relationshipTag ? t('family.editTag') : t('family.addTag')}
                       variant="ghost"
                       disabled={!enabled || removing || family.adding}
                       onPress={() => setTagModal({ mode: 'edit', member })}

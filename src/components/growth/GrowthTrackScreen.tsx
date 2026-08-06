@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { Link, useRouter } from 'expo-router'
 import { Pressable, ScrollView, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import { BabyChipBar } from '@/components/BabyChipBar'
 import { HealthDisclaimer } from '@/components/health/HealthDisclaimer'
@@ -298,6 +299,7 @@ const createStyles = (t: AppPalette) => ({
 export function GrowthTrackScreen() {
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
+  const { t } = useTranslation()
   const router = useRouter()
   const { user, authReady } = useApp()
   const growth = useGrowthPage()
@@ -345,10 +347,10 @@ export function GrowthTrackScreen() {
           <View style={styles.iconWrap}>
             <NavIcon name="growth" size={22} color={palette.accentDeep} />
           </View>
-          <Text style={styles.gateTitle}>Growth & milestones</Text>
+          <Text style={styles.gateTitle}>{t('growth.title')}</Text>
           <Text style={styles.gateText}>
             <Link href="/login" style={styles.loginLink}>
-              Log in
+              {t('common.logIn')}
             </Link>{' '}
             to track weight, length, head size, and developmental milestones.
           </Text>
@@ -370,21 +372,19 @@ export function GrowthTrackScreen() {
               <NavIcon name="growth" size={22} color={palette.accentDeep} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.title}>Growth & milestones</Text>
-              <Text style={styles.subtitle}>
-                Track weight, length, and head size over time — and celebrate developmental firsts in one place.
-              </Text>
+              <Text style={styles.title}>{t('growth.title')}</Text>
+              <Text style={styles.subtitle}>{t('growth.subtitle')}</Text>
             </View>
           </View>
 
           <View style={styles.statsRow}>
             <View style={styles.stat}>
               <Text style={styles.statN}>{growth.measurementCount}</Text>
-              <Text style={styles.statLabel}>measurements</Text>
+              <Text style={styles.statLabel}>{t('growth.measurements')}</Text>
             </View>
             <View style={styles.stat}>
               <Text style={styles.statN}>{growth.milestoneCount}</Text>
-              <Text style={styles.statLabel}>milestones</Text>
+              <Text style={styles.statLabel}>{t('growth.milestones')}</Text>
             </View>
           </View>
         </View>
@@ -396,49 +396,47 @@ export function GrowthTrackScreen() {
         <Card>
           <View style={styles.sectionHead}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.sectionTitle}>Growth measurements</Text>
-              <Text style={styles.sectionSub}>Log checkup or home measurements (lb and in).</Text>
+              <Text style={styles.sectionTitle}>{t('growth.measurements')}</Text>
+              <Text style={styles.sectionSub}>{t('growth.subtitle')}</Text>
             </View>
-            <Button title="Add" onPress={growth.openGrowthForm} />
+            <Button title={t('growth.addMeasurement')} onPress={growth.openGrowthForm} />
           </View>
 
           <View style={styles.chartCard}>
-            <Text style={styles.chartTitle}>Weight</Text>
+            <Text style={styles.chartTitle}>{t('growth.weight')}</Text>
             <GrowthTrendChart
               measurements={growth.measurements}
               metric="weightLbs"
-              title="Weight"
+              title={t('growth.weight')}
               unit="Pounds (lb)"
               color={GROWTH_COLORS.weight}
             />
           </View>
 
           <View style={styles.chartCard}>
-            <Text style={styles.chartTitle}>Height / length</Text>
+            <Text style={styles.chartTitle}>{t('growth.height')}</Text>
             <GrowthTrendChart
               measurements={growth.measurements}
               metric="heightInches"
-              title="Height"
+              title={t('growth.height')}
               unit="Inches (in)"
               color={GROWTH_COLORS.height}
             />
           </View>
 
           <View style={styles.chartCard}>
-            <Text style={styles.chartTitle}>Head circumference</Text>
+            <Text style={styles.chartTitle}>{t('growth.head')}</Text>
             <GrowthTrendChart
               measurements={growth.measurements}
               metric="headCircumferenceInches"
-              title="Head circumference"
+              title={t('growth.head')}
               unit="Inches (in)"
               color={GROWTH_COLORS.head}
             />
           </View>
 
           {growth.measurements.length === 0 ? (
-            <Text style={styles.empty}>
-              No measurements yet — log weight, height, or head size from a checkup or home scale.
-            </Text>
+            <Text style={styles.empty}>{t('growth.noMeasurements')}</Text>
           ) : (
             growth.measurements.map((row) => {
               const { date, time } = formatStamp(row.recordedAt)
@@ -475,18 +473,14 @@ export function GrowthTrackScreen() {
         <Card>
           <View style={styles.sectionHead}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.sectionTitle}>Milestones</Text>
-              <Text style={styles.sectionSub}>
-                Record smiles, rolling, first words, and other developmental wins.
-              </Text>
+              <Text style={styles.sectionTitle}>{t('growth.milestones')}</Text>
+              <Text style={styles.sectionSub}>{t('growth.commonMilestones')}</Text>
             </View>
-            <Button title="Add" variant="secondary" onPress={() => growth.openMilestoneForm()} />
+            <Button title={t('growth.addMilestone')} variant="secondary" onPress={() => growth.openMilestoneForm()} />
           </View>
 
           {growth.milestones.length === 0 ? (
-            <Text style={styles.empty}>
-              No milestones saved yet. Log firsts from the suggestions below or add your own.
-            </Text>
+            <Text style={styles.empty}>{t('growth.noMeasurements')}</Text>
           ) : (
             CATEGORY_ORDER.map((cat) => {
               const rows = groupedMilestones.get(cat) ?? []

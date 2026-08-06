@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { ScrollView, Text, View } from 'react-native'
 import { Link } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 
 import { ChallengeBoardCard } from '@/components/solutionBoard/ChallengeBoardCard'
 import { ChallengeBoardSearch } from '@/components/solutionBoard/ChallengeBoardSearch'
@@ -113,6 +114,7 @@ const createStyles = (t: AppPalette) => ({
 export function SolutionBoardScreen() {
   const theme = useHomeTheme()
   const styles = useThemedStyles(createStyles)
+  const { t } = useTranslation()
   const { user, authReady } = useApp()
   const confirm = useConfirmAction()
   const { isBlocked } = useModeration()
@@ -173,7 +175,7 @@ export function SolutionBoardScreen() {
           <NavIcon name="star" size={24} color={theme.accent} />
         </View>
         <Eyebrow>Community board</Eyebrow>
-        <Text style={styles.title}>Solution Board</Text>
+        <Text style={styles.title}>{t('community.solutionBoard.title')}</Text>
         <Text style={styles.subtitle}>
           Real challenges from parents — tap a bubble to scroll through what worked for each family. Sign in to share your own.
         </Text>
@@ -181,7 +183,7 @@ export function SolutionBoardScreen() {
 
       {isLoggedIn ? (
         <View style={styles.pinRow}>
-          <Button title="Share a challenge" onPress={() => setPinOpen(true)} />
+          <Button title={t('community.solutionBoard.shareChallenge')} onPress={() => setPinOpen(true)} />
           <PinStickyNoteModal
             open={pinOpen}
             saving={board.saving}
@@ -214,7 +216,7 @@ export function SolutionBoardScreen() {
 
       {visibleNotes.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyTitle}>The board is empty</Text>
+          <Text style={styles.emptyTitle}>{t('community.solutionBoard.empty')}</Text>
           <Text style={styles.emptyBody}>
             {isLoggedIn
               ? 'Be the first to share a challenge — someone else is probably facing the same thing.'
@@ -226,7 +228,7 @@ export function SolutionBoardScreen() {
           <ChallengeBoardSearch value={searchQuery} onChange={setSearchQuery} />
           {filteredGroups.length === 0 ? (
             <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>No matching challenges</Text>
+              <Text style={styles.emptyTitle}>{t('community.solutionBoard.noMatching')}</Text>
               <Text style={styles.emptyBody}>Try a different search term.</Text>
             </View>
           ) : (

@@ -1,4 +1,5 @@
 import { Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import { NavIcon } from '@/components/icons/NavIcon'
 import type { AppPalette } from '@/constants/homeTheme'
@@ -217,6 +218,7 @@ type Props = {
 export function ReportsOverview({ report }: Props) {
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
+  const { t } = useTranslation()
   const cards = buildSummaryCards(report)
   const hasAnyData =
     report.sleep.totalEvents > 0 ||
@@ -228,13 +230,11 @@ export function ReportsOverview({ report }: Props) {
 
   return (
     <View style={styles.section}>
-      <Text style={styles.title}>Overview</Text>
-      <Text style={styles.sub}>
-        Snapshot across sleep, naps, diapers, feeding, growth, milestones, and health. Open a tab above for full charts and log tables.
-      </Text>
+      <Text style={styles.title}>{t('reports.tabs.overview')}</Text>
+      <Text style={styles.sub}>{t('reports.subtitle')}</Text>
 
       {!hasAnyData ? (
-        <Text style={styles.empty}>Start logging sleep, diapers, feeding, growth, milestones, or health events to unlock your overview.</Text>
+        <Text style={styles.empty}>{t('reports.noLogs')}</Text>
       ) : (
         <>
           <View style={styles.cards}>
@@ -251,7 +251,7 @@ export function ReportsOverview({ report }: Props) {
                   <Text style={styles.cardTotal}>{card.total}</Text>
                   <Text style={styles.cardSub}>{card.sub}</Text>
                   <Text style={styles.cardMeta}>
-                    {card.avgLabel ?? 'Daily avg'} {card.avg}
+                    {card.avgLabel ?? t('reports.dailyAverage')} {card.avg}
                   </Text>
                   {card.best ? (
                     <Text style={styles.cardMeta}>

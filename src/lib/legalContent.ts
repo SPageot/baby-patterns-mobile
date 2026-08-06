@@ -3,6 +3,8 @@ export const LEGAL_POLICY_VERSION = '2026-07-09'
 
 export const LEGAL_LAST_UPDATED = 'July 9, 2026'
 
+export const LEGAL_LAST_UPDATED_ES = '9 de julio de 2026'
+
 /** Public support and privacy contact for Terms, Privacy Policy, and app store listings. */
 export const SUPPORT_EMAIL = 'admin@baby-pattern.com'
 
@@ -23,6 +25,22 @@ export type LegalSection = {
   title: string
   paragraphs: string[]
   bullets?: string[]
+}
+
+function isSpanishLocale(locale: string): boolean {
+  return locale.trim().toLowerCase().startsWith('es')
+}
+
+export function getTermsOfUse(locale: string): LegalSection[] {
+  return isSpanishLocale(locale) ? TERMS_OF_USE_ES : TERMS_OF_USE
+}
+
+export function getPrivacyPolicy(locale: string): LegalSection[] {
+  return isSpanishLocale(locale) ? PRIVACY_POLICY_ES : PRIVACY_POLICY
+}
+
+export function getLegalLastUpdated(locale: string): string {
+  return isSpanishLocale(locale) ? LEGAL_LAST_UPDATED_ES : LEGAL_LAST_UPDATED
 }
 
 /** True when a signed-in user must accept the current Terms and Privacy Policy. */
@@ -114,6 +132,94 @@ export const TERMS_OF_USE: LegalSection[] = [
     title: '11. Contact',
     paragraphs: [
       `For questions about these Terms, account access, billing, or technical support, email us at ${SUPPORT_EMAIL}. We aim to respond within a few business days.`,
+    ],
+  },
+]
+
+export const TERMS_OF_USE_ES: LegalSection[] = [
+  {
+    title: '1. Acuerdo',
+    paragraphs: [
+      'Estos Términos de uso ("Términos") rigen su acceso y uso de Baby Pattern (el "Servicio"), incluido nuestro sitio web, aplicaciones móviles y API relacionadas.',
+      'Al crear una cuenta o usar el Servicio, usted acepta estos Términos y nuestra Política de privacidad. Si no está de acuerdo, no use el Servicio.',
+    ],
+  },
+  {
+    title: '2. Quién puede usar el Servicio',
+    paragraphs: [
+      'El Servicio está destinado a padres, tutores y cuidadores que tengan al menos 18 años (o la mayoría de edad donde viva).',
+      'Usted declara que tiene autoridad legal para ingresar información sobre cualquier perfil de niño que cree, y que no permitirá que menores creen cuentas sin el consentimiento parental adecuado.',
+    ],
+  },
+  {
+    title: '3. No es consejo médico',
+    paragraphs: [
+      'Baby Pattern le ayuda a registrar y revisar información diaria sobre el cuidado y el desarrollo del bebé, incluidos pañales, alimentación, sueño, siestas, entrenamiento para ir al baño, mediciones de crecimiento, hitos, eventos de enfermedad y lesiones, y visitas al pediatra (como hospital, nombre del proveedor, recomendaciones e inmunizaciones).',
+      'Los informes, gráficos, resúmenes semanales, exportaciones en PDF, publicaciones de la comunidad, reseñas y otras funciones de análisis son solo con fines informativos generales. Están diseñados para ayudarle a organizar los datos ingresados por el cuidador y compartir resúmenes con su pediatra o equipo de atención cuando lo desee.',
+      'El Servicio no proporciona consejo médico, diagnóstico ni tratamiento, y no sustituye la atención profesional. Consulte siempre a un pediatra o profesional de la salud calificado sobre la salud de su hijo.',
+      'No retrase ni ignore el consejo médico debido a algo que lea, exporte o registre en el Servicio.',
+    ],
+  },
+  {
+    title: '4. Su cuenta y contenido',
+    paragraphs: [
+      'Usted es responsable de mantener la confidencialidad de sus credenciales de inicio de sesión y de la actividad bajo su cuenta.',
+      'Puede publicar en Parents Corner, enviar reseñas de productos, compartir desafíos y soluciones en el Solution Board, subir imágenes de perfil, registrar datos de seguimiento, exportar informes en PDF y compartir acceso de seguimiento con miembros de la familia a quienes invite. Usted conserva la propiedad del contenido que envía, pero nos otorga una licencia limitada para alojarlo, mostrarlo, procesarlo y transmitirlo únicamente para operar el Servicio (incluidas las notificaciones y los resúmenes por correo electrónico que active).',
+    ],
+    bullets: [
+      'No suba contenido ilegal, dañino o engañoso.',
+      'No acose a otros usuarios ni se haga pasar por otras personas.',
+      'No intente acceder a los datos de otro usuario sin autorización.',
+      'No realice scraping, ingeniería inversa ni interrumpa el Servicio.',
+    ],
+  },
+  {
+    title: '5. Contenido de la comunidad y moderación',
+    paragraphs: [
+      'Algunas funciones permiten a los usuarios compartir contenido con otros, incluidas publicaciones y comentarios de Parents Corner, reseñas de productos y notas del Solution Board. El contenido de la comunidad refleja las opiniones de la persona que lo publicó, no de Baby Pattern.',
+      'Si ve contenido que viola estos Términos, use la opción de denuncia en la aplicación en esa publicación, comentario, reseña o nota. También puede bloquear a otro usuario para dejar de ver sus publicaciones, comentarios, reseñas y notas del Solution Board en su feed. El bloqueo es privado: la otra persona no recibe notificación.',
+      'Cuando envía una denuncia, almacenamos el tipo de contenido, el identificador del contenido, el motivo que selecciona (como spam, acoso, contenido inapropiado u otro) y cualquier detalle opcional que proporcione. Las denuncias nos ayudan a identificar abusos y mejorar la seguridad.',
+      'Revisamos las denuncias y podemos eliminar contenido, restringir funciones, o suspender o cancelar cuentas que violen estos Términos o que razonablemente creamos que representan un riesgo de seguridad. Procuramos revisar las denuncias en un plazo razonable, pero no garantizamos la eliminación inmediata.',
+      `Para inquietudes urgentes de seguridad, envíe un correo a ${SUPPORT_EMAIL} con un enlace o descripción del contenido y su nombre de usuario.`,
+    ],
+  },
+  {
+    title: '6. Compartir en familia',
+    paragraphs: [
+      'Cuando agrega miembros de la familia o amigos, usted elige quién puede ver y registrar datos de sus bebés, incluida la información de salud y de visitas al pediatra. Usted es responsable de invitar solo a personas de su confianza y de quitar el acceso cuando corresponda.',
+    ],
+  },
+  {
+    title: '7. Suscripciones y facturación',
+    paragraphs: [
+      'Baby Pattern ofrece planes gratuitos y Pro. Pro puede incluir historial ampliado, alertas de compartir en familia, exportación en PDF, resúmenes semanales por correo electrónico y otras funciones descritas en nuestra página de precios.',
+      'Las suscripciones de pago son procesadas por Stripe u otro proveedor de pago que designemos. Los términos de facturación, renovaciones y cancelaciones se muestran al pagar y en la configuración de su cuenta. Los datos de la tarjeta de pago los maneja el proveedor de pago; nosotros no los almacenamos directamente.',
+    ],
+  },
+  {
+    title: '8. Disponibilidad y cambios',
+    paragraphs: [
+      'Podemos modificar, suspender o discontinuar funciones en cualquier momento. Podemos actualizar estos Términos de vez en cuando. Si los cambios son materiales, proporcionaremos un aviso razonable (por ejemplo, publicando una fecha de vigencia actualizada y, cuando corresponda, pidiéndole que acepte los Términos revisados). El uso continuado después de que los cambios surtan efecto constituye aceptación.',
+    ],
+  },
+  {
+    title: '9. Descargo de responsabilidad y limitación de responsabilidad',
+    paragraphs: [
+      'EL SERVICIO SE PROPORCIONA "TAL CUAL" Y "SEGÚN DISPONIBILIDAD" SIN GARANTÍAS DE NINGÚN TIPO, YA SEAN EXPRESAS O IMPLÍCITAS, INCLUIDAS LAS GARANTÍAS IMPLÍCITAS DE COMERCIABILIDAD, IDONEIDAD PARA UN FIN PARTICULAR Y NO INFRACCIÓN.',
+      'EN LA MÁXIMA MEDIDA PERMITIDA POR LA LEY, BABY PATTERN Y SUS OPERADORES NO SERÁN RESPONSABLES POR DAÑOS INDIRECTOS, INCIDENTALES, ESPECIALES, CONSECUENTES O PUNITIVOS, NI POR PÉRDIDA DE DATOS, BENEFICIOS O FONDO DE COMERCIO, DERIVADOS DEL USO DEL SERVICIO.',
+    ],
+  },
+  {
+    title: '10. Terminación',
+    paragraphs: [
+      'Puede dejar de usar el Servicio en cualquier momento y puede eliminar su cuenta mediante las funciones de cuenta disponibles cuando estén admitidas.',
+      'Podemos suspender o terminar el acceso si usted viola estos Términos o si es necesario para proteger el Servicio u otros usuarios.',
+    ],
+  },
+  {
+    title: '11. Contacto',
+    paragraphs: [
+      `Para preguntas sobre estos Términos, acceso a la cuenta, facturación o soporte técnico, envíenos un correo a ${SUPPORT_EMAIL}. Procuramos responder en unos pocos días hábiles.`,
     ],
   },
 ]
@@ -231,6 +337,123 @@ export const PRIVACY_POLICY: LegalSection[] = [
     title: '13. Contact',
     paragraphs: [
       `For privacy questions or data requests, email ${SUPPORT_EMAIL}.`,
+    ],
+  },
+]
+
+export const PRIVACY_POLICY_ES: LegalSection[] = [
+  {
+    title: '1. Descripción general',
+    paragraphs: [
+      'Esta Política de privacidad explica cómo Baby Pattern ("nosotros") recopila, usa y comparte información cuando usted usa nuestro Servicio.',
+      'Diseñamos Baby Pattern para padres y cuidadores que hacen seguimiento del cuidado diario del bebé. Proteger la información de su familia es importante para nosotros.',
+      `Puede comunicarse con nuestro equipo de soporte en ${SUPPORT_EMAIL}.`,
+    ],
+  },
+  {
+    title: '2. Información que recopilamos',
+    paragraphs: ['Recopilamos información que usted proporciona directamente e información generada cuando usa el Servicio:'],
+    bullets: [
+      'Información de la cuenta: nombre de usuario, correo electrónico, contraseña (almacenada con hash), teléfono, fecha de nacimiento, nombre completo y ubicación.',
+      'Perfiles de bebé: nombre, fecha de nacimiento, ubicaciones y mediciones opcionales.',
+      'Registros de seguimiento: entradas de pañales, alimentación, sueño, siesta, baño, crecimiento, hitos, enfermedad, lesión y visitas al pediatra que usted o miembros de la familia invitados crean (incluidas fechas, notas, síntomas, detalles de cuidados, nombres de hospitales o clínicas, nombres de proveedores, recomendaciones e inmunizaciones que usted ingresa).',
+      'Informes y exportaciones: gráficos agregados, resúmenes semanales e informes en PDF generados a partir de sus registros cuando los ve o descarga.',
+      'Contenido de la comunidad: publicaciones, comentarios y me gusta de Parents Corner, reseñas de productos y notas del Solution Board.',
+      'Seguridad y moderación: denuncias de contenido que usted envía (tipo de contenido, identificador del contenido, motivo y detalles opcionales) y una lista de cuentas de usuario que elige bloquear.',
+      'Medios de perfil: imágenes de avatar que usted sube.',
+      'Notificaciones: historial de notificaciones en la aplicación; endpoints opcionales de suscripción push del navegador o del dispositivo cuando activa las alertas; preferencias de notificación.',
+      'Comunicaciones por correo electrónico: mensajes relacionados con la cuenta (como bienvenida, restablecimiento de contraseña y recordatorios de prueba Pro) y correos opcionales de resumen semanal cuando los activa (Pro).',
+      'Suscripción y facturación: estado del plan, intervalo de facturación e identificadores de suscripción de nuestro proveedor de pago (como IDs de cliente y suscripción de Stripe). No almacenamos números completos de tarjetas de pago.',
+      'Datos técnicos: tokens de autenticación, metadatos básicos de solicitud y registros de seguridad necesarios para operar y proteger la API.',
+    ],
+  },
+  {
+    title: '3. Cómo usamos la información',
+    paragraphs: ['Usamos la información recopilada para:'],
+    bullets: [
+      'Crear y administrar su cuenta y perfiles de bebé.',
+      'Almacenar, mostrar y analizar sus datos de seguimiento, gráficos, informes y resúmenes semanales.',
+      'Habilitar el compartir en familia y las alertas de actividad que usted configure.',
+      'Operar funciones de la comunidad como Parents Corner, reseñas y el Solution Board.',
+      'Revisar denuncias de contenido, aplicar estos Términos y responder a abusos o inquietudes de seguridad.',
+      'Enviar correos del servicio (como restablecimiento de contraseña y avisos de cuenta) y correos opcionales de resumen semanal a los que se suscriba.',
+      'Entregar notificaciones push o en la aplicación sobre menciones, me gusta, actividad familiar y actualizaciones de seguimiento cuando estén habilitadas.',
+      'Procesar suscripciones y funciones Pro a través de nuestro proveedor de pago.',
+      'Mantener la seguridad, prevenir abusos y mejorar la fiabilidad.',
+      'Cumplir con obligaciones legales.',
+    ],
+  },
+  {
+    title: '4. Información relacionada con la salud',
+    paragraphs: [
+      'Los registros de enfermedad, lesión y visitas al pediatra pueden contener información sensible relacionada con la salud que usted elige ingresar. Usamos esta información solo para proporcionar el Servicio; por ejemplo, para mostrar el historial, incluirla en informes que solicite, compartirla con miembros de la familia que autorice y resumirla en correos semanales opcionales.',
+      'No usamos los registros relacionados con la salud para publicidad y no los vendemos.',
+    ],
+  },
+  {
+    title: '5. Cómo compartimos la información',
+    paragraphs: [
+      'No vendemos su información personal.',
+      'Compartimos información solo en estas situaciones:',
+    ],
+    bullets: [
+      'Con personas que usted invita: los miembros de la familia que agregue pueden acceder a los datos de seguimiento del bebé que autorice, incluidos los registros de salud y de visitas al pediatra.',
+      'Con proveedores de servicios: alojamiento, entrega de correo electrónico, procesamiento de pagos (como Stripe) y socios de infraestructura que procesan datos en nuestro nombre bajo salvaguardas contractuales.',
+      'Por motivos legales: cuando lo exija la ley o para proteger derechos, seguridad e integridad.',
+      'Por su indicación: cuando exporta informes en PDF, copia resúmenes semanales o elige de otro modo compartir información fuera del Servicio.',
+    ],
+  },
+  {
+    title: '6. Cookies y almacenamiento local',
+    paragraphs: [
+      'El Servicio usa el almacenamiento local del navegador para mantenerlo conectado (tokens de acceso y actualización), recordar preferencias como la configuración del tema y admitir notificaciones push web opcionales en dispositivos donde las active.',
+      'No usamos cookies de publicidad de terceros en la versión actual del Servicio.',
+    ],
+  },
+  {
+    title: '7. Conservación y eliminación de datos',
+    paragraphs: [
+      'Conservamos los datos de la cuenta y de seguimiento mientras su cuenta esté activa para que el Servicio pueda funcionar.',
+      'Puede eliminar su cuenta cuando esa función esté disponible; eliminaremos o desidentificaremos los datos personales asociados en un plazo razonable, salvo cuando la conservación sea requerida por ley o por fines legítimos de seguridad.',
+    ],
+  },
+  {
+    title: '8. Seguridad',
+    paragraphs: [
+      'Usamos medidas estándar de la industria como contraseñas con hash, acceso autenticado a la API y conexiones cifradas (HTTPS) en producción.',
+      'Ningún método de transmisión o almacenamiento es completamente seguro; use una contraseña fuerte y única y proteja su dispositivo.',
+    ],
+  },
+  {
+    title: '9. Privacidad de los menores',
+    paragraphs: [
+      'Baby Pattern no está dirigido a que menores de 13 años lo usen por sí mismos. Los padres y tutores ingresan información sobre sus hijos.',
+      `Si cree que un menor ha creado una cuenta sin el consentimiento adecuado, contáctenos en ${SUPPORT_EMAIL} para que podamos tomar las medidas correspondientes.`,
+    ],
+  },
+  {
+    title: '10. Sus opciones y derechos',
+    paragraphs: [
+      'Según el lugar donde viva, puede tener derechos de acceso, corrección, eliminación o exportación de información personal. Puede actualizar los detalles del perfil en la aplicación, administrar las preferencias de notificación y de correo semanal en la configuración, y eliminar conexiones de compartir en familia desde la configuración de su perfil.',
+      `Para ejercer derechos de privacidad (acceso, corrección o eliminación), envíe un correo a ${SUPPORT_EMAIL} desde la dirección asociada a su cuenta.`,
+    ],
+  },
+  {
+    title: '11. Usuarios internacionales',
+    paragraphs: [
+      'Si accede al Servicio desde fuera de los Estados Unidos, su información puede procesarse en los Estados Unidos u otros países donde operan nuestros proveedores de servicios, que pueden tener leyes de protección de datos diferentes.',
+    ],
+  },
+  {
+    title: '12. Cambios a esta política',
+    paragraphs: [
+      'Podemos actualizar esta Política de privacidad de vez en cuando. Publicaremos la política revisada con una fecha de "Última actualización" actualizada. Los cambios materiales pueden requerir una nueva aceptación al registrarse o iniciar sesión.',
+    ],
+  },
+  {
+    title: '13. Contacto',
+    paragraphs: [
+      `Para preguntas de privacidad o solicitudes de datos, envíe un correo a ${SUPPORT_EMAIL}.`,
     ],
   },
 ]

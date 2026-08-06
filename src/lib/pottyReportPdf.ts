@@ -3,6 +3,7 @@ import autoTable from 'jspdf-autotable'
 import type { Baby } from '@/schemas/user'
 import type { LogRecord } from '@/types/babyLog'
 import { PDF_KIND_COLORS } from './pdfChartDrawing'
+import { pdfT } from './pdfUi'
 import { sharePdfDocument } from '@/lib/sharePdfDocument'
 import {
   buildPottyPdfContent,
@@ -28,8 +29,8 @@ function addPageFooter(doc: jsPDF) {
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(7.5)
     doc.setTextColor(150, 146, 162)
-    doc.text('Baby Pattern — Potty Report', MARGIN, FOOTER_Y)
-    doc.text(`Page ${i} of ${pages}`, PAGE_W - MARGIN, FOOTER_Y, { align: 'right' })
+    doc.text(pdfT('footerPotty'), MARGIN, FOOTER_Y)
+    doc.text(pdfT('pageOf', { current: i, total: pages }), PAGE_W - MARGIN, FOOTER_Y, { align: 'right' })
   }
 }
 
@@ -57,7 +58,7 @@ function addHighlightsTable(
   autoTable(doc, {
     startY: y,
     margin: { left: MARGIN, right: MARGIN },
-    head: [['Least visits', 'Most visits', 'Least success days', 'Most success days']],
+    head: [[pdfT('leastVisits'), pdfT('mostVisits'), pdfT('leastSuccessDays'), pdfT('mostSuccessDays')]],
     body: [[
       highlights.leastVisits,
       highlights.mostVisits,
@@ -100,10 +101,17 @@ function addPottyLogTable(doc: jsPDF, y: number, week: PottyWeekPdf): void {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8.5)
   doc.setTextColor(...TEXT)
-  doc.text('Daily potty log', MARGIN, y)
+  doc.text(pdfT('dailyPottyLog'), MARGIN, y)
   y += 4
 
-  const headers = ['Date', 'Time', 'Result', 'Location', 'Status', 'Notes']
+  const headers = [
+    pdfT('date'),
+    pdfT('time'),
+    pdfT('result'),
+    pdfT('location'),
+    pdfT('status'),
+    pdfT('notes'),
+  ]
 
   const body = week.rows.map((row) => [
     row.dateShort,
@@ -163,7 +171,7 @@ function addWeekPage(
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(isFirst ? 13 : 11)
   doc.setTextColor(255, 255, 255)
-  const title = isFirst ? `${content.babyName} — Potty Report` : content.babyName
+  const title = isFirst ? pdfT('titlePotty', { name: content.babyName }) : content.babyName
   doc.text(title, MARGIN, isFirst ? 10 : 9)
 
   if (isFirst) {
@@ -192,12 +200,12 @@ function addWeekPage(
   y += 6
 
   if (isFirst) {
-    y = addHighlightsTable(doc, y, 'Report highlights', content.highlights)
+    y = addHighlightsTable(doc, y, pdfT('reportHighlights'), content.highlights)
     if (!highlightsEqual(content.highlights, week.highlights)) {
-      y = addHighlightsTable(doc, y, 'Week highlights', week.highlights)
+      y = addHighlightsTable(doc, y, pdfT('weekHighlights'), week.highlights)
     }
   } else {
-    y = addHighlightsTable(doc, y, 'Week highlights', week.highlights)
+    y = addHighlightsTable(doc, y, pdfT('weekHighlights'), week.highlights)
   }
 
   addPottyLogTable(doc, y, week)
@@ -214,13 +222,13 @@ function addNotesAppendix(doc: jsPDF, content: PottyPdfContent): void {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(11)
   doc.setTextColor(...TEXT)
-  doc.text('Notes appendix', MARGIN, y)
+  doc.text(pdfT('notesAppendix'), MARGIN, y)
   y += 6
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
   doc.setTextColor(...MUTED)
-  doc.text('Full notes for rows truncated in weekly tables.', MARGIN, y)
+  doc.text(pdfT('notesAppendixHint'), MARGIN, y)
   y += 8
 
   for (const entry of entries) {
@@ -263,11 +271,11 @@ function buildPottyReportPdf(content: PottyPdfContent): jsPDF {
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(14)
     doc.setTextColor(...TEXT)
-    doc.text(`${content.babyName} — Potty Report`, MARGIN, 24)
+    doc.text(pdfT('titlePotty', { name: content.babyName }), MARGIN, 24)
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(10)
     doc.setTextColor(...MUTED)
-    doc.text('No potty logs to include in this report.', MARGIN, 34)
+    doc.text(pdfT('emptyPotty'), MARGIN, 34)
     addPageFooter(doc)
     return doc
   }

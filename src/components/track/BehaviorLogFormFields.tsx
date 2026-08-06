@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import { Input, Label } from '@/components/ui/primitives'
 import { DateTimeField } from '@/components/ui/DateTimeField'
@@ -8,6 +9,7 @@ import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
+import { tBehaviorTag } from '@/i18n/trackLabels'
 import {
   BEHAVIOR_TAG_PRESETS,
   DEFAULT_BEHAVIOR_TAG,
@@ -151,6 +153,7 @@ export function BehaviorLogFormFields({
   accentSoft,
   disabled,
 }: Props) {
+  const { t } = useTranslation()
   const styles = useThemedStyles(createStyles)
   const set = (patch: Partial<BehaviorFormState>) => setState(patch)
   const [draft, setDraft] = useState('')
@@ -171,7 +174,7 @@ export function BehaviorLogFormFields({
 
   return (
     <>
-      <Label>Behavior</Label>
+      <Label>{t('track.behaviorForm.label')}</Label>
       <View style={styles.chipRow}>
         {visibleTags.map((tag) => {
           const active = state.behaviorTags.includes(tag)
@@ -184,7 +187,9 @@ export function BehaviorLogFormFields({
               accessibilityRole="button"
               accessibilityState={{ selected: active }}
             >
-              <Text style={[styles.chipText, active && { color: accent }]}>{tag}</Text>
+              <Text style={[styles.chipText, active && { color: accent }]}>
+                {tBehaviorTag(t, tag)}
+              </Text>
             </Pressable>
           )
         })}
@@ -198,64 +203,65 @@ export function BehaviorLogFormFields({
             setDraft(v)
             if (draftError) setDraftError(null)
           }}
-          placeholder="Add a custom tag"
+          placeholder={t('track.behaviorForm.customTag')}
           editable={!disabled}
           maxLength={40}
           onSubmitEditing={addCustom}
           returnKeyType="done"
+          accessibilityLabel={t('track.behaviorForm.customTagAria')}
         />
         <Pressable
           onPress={addCustom}
           disabled={disabled || !draft.trim()}
           style={styles.addBtn}
           accessibilityRole="button"
-          accessibilityLabel="Add custom tag"
+          accessibilityLabel={t('track.behaviorForm.add')}
         >
           <Text style={[styles.addText, (!draft.trim() || disabled) && styles.addTextDisabled]}>
-            Add
+            {t('track.behaviorForm.add')}
           </Text>
         </Pressable>
       </View>
       {draftError ? <Text style={styles.error}>{draftError}</Text> : null}
 
       <DateTimeField
-        label="Date"
+        label={t('track.fields.date')}
         mode="date"
         value={state.occurredOn}
         onChange={(v) => set({ occurredOn: v })}
       />
 
       <DateTimeField
-        label="Time (optional)"
+        label={t('track.fields.timeOptional')}
         mode="time"
         value={state.occurredTime}
         onChange={(v) => set({ occurredTime: v })}
-        placeholder="Optional time"
+        placeholder={t('track.fields.timeOptional')}
       />
 
-      <Label>Location</Label>
+      <Label>{t('track.fields.location')}</Label>
       <Input
         value={state.location}
         onChangeText={(v) => set({ location: v })}
-        placeholder="Home, school, car…"
+        placeholder={t('track.behaviorForm.locationPlaceholder')}
         editable={!disabled}
         maxLength={120}
       />
 
-      <Label>What resolved it? (optional)</Label>
+      <Label>{t('track.behaviorForm.resolution')}</Label>
       <Input
         value={state.resolution}
         onChangeText={(v) => set({ resolution: v })}
-        placeholder="What helped calm or resolve the situation?"
+        placeholder={t('track.behaviorForm.resolutionPlaceholder')}
         editable={!disabled}
         multiline
       />
 
-      <Label>Notes (optional)</Label>
+      <Label>{t('track.fields.notesOptional')}</Label>
       <Input
         value={state.notes}
         onChangeText={(v) => set({ notes: v })}
-        placeholder="Triggers, duration, anything else worth noting"
+        placeholder={t('track.behaviorForm.notesPlaceholder')}
         editable={!disabled}
         multiline
       />

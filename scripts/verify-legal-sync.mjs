@@ -4,10 +4,7 @@ import { fileURLToPath } from 'node:url'
 
 const root = dirname(fileURLToPath(import.meta.url))
 const mobileLegal = join(root, '../src/lib/legalContent.ts')
-const webLegal = join(
-  root,
-  '../../../client/baby_patterns/baby-patterns/src/lib/legalContent.ts',
-)
+const webLegal = join(root, '../../../client/src/lib/legalContent.ts')
 
 const mobile = readFileSync(mobileLegal, 'utf8')
 const web = readFileSync(webLegal, 'utf8')

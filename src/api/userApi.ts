@@ -173,6 +173,8 @@ function normalizeUser(raw: unknown, options?: NormalizeUserOptions): User | nul
     pendingEmail:
       pickUserField(payload, envelope, 'pendingEmail', 'PendingEmail') || undefined,
     weeklySummaryEmailEnabled: weeklyEmailRaw === true || weeklyEmailRaw === 'true',
+    preferredLocale:
+      pickUserField(payload, envelope, 'preferredLocale', 'PreferredLocale') || undefined,
     isPro,
     isSiteDeveloper,
     hasProAccess,
@@ -296,6 +298,9 @@ function toUserUpdateBody(data: UserUpdate): Record<string, unknown> {
   if (data.avatarUrl != null) body.avatarUrl = data.avatarUrl
   if (data.weeklySummaryEmailEnabled != null) {
     body.weeklySummaryEmailEnabled = data.weeklySummaryEmailEnabled
+  }
+  if (data.preferredLocale != null) {
+    body.preferredLocale = data.preferredLocale
   }
   return body
 }

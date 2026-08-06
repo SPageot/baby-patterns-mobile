@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'expo-router'
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import { AddBrandProductPanel } from '@/components/reviews/AddBrandProductPanel'
 import { BrandCard } from '@/components/reviews/BrandCard'
@@ -120,6 +121,7 @@ const createStyles = (t: AppPalette) => ({
 export function ReviewsScreen() {
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
+  const { t } = useTranslation()
   const { user, authReady } = useApp()
   const reviews = useReviews(authReady)
   const [searchQuery, setSearchQuery] = useState('')
@@ -130,7 +132,7 @@ export function ReviewsScreen() {
   )
 
   if (!authReady || reviews.loading) {
-    return <PageLoadingScreen label="Loading brands…" />
+    return <PageLoadingScreen label={t('common.loading')} />
   }
 
   return (
@@ -139,8 +141,8 @@ export function ReviewsScreen() {
         <View style={styles.iconWrap}>
           <NavIcon name="star" size={22} color={palette.accentDeep} />
         </View>
-        <Eyebrow>Community</Eyebrow>
-        <Text style={styles.title}>Product Reviews</Text>
+        <Eyebrow>{t('nav.groups.community')}</Eyebrow>
+        <Text style={styles.title}>{t('community.reviews.title')}</Text>
         <Text style={styles.subtitle}>Find products you use and read what other parents think.</Text>
       </View>
 
@@ -161,7 +163,7 @@ export function ReviewsScreen() {
 
           {reviews.brands.length === 0 ? (
             <View style={styles.gate}>
-              <Text style={styles.gateText}>No brands yet. Use “Add a brand” above to add the first one.</Text>
+              <Text style={styles.gateText}>{t('community.reviews.noReviews')}</Text>
             </View>
           ) : (
             <>

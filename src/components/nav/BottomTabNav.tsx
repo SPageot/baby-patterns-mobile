@@ -1,5 +1,6 @@
 import { Pressable, Text, View } from 'react-native'
 import { useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { NavIcon } from '@/components/icons/NavIcon'
@@ -13,7 +14,16 @@ import {
   TAB_DOCK_PADDING,
   tabNeedsLogin,
   type TabConfig,
+  type TabId,
 } from '@/lib/tabNavConfig'
+
+const TAB_LABEL_KEYS: Record<TabId, string> = {
+  profile: 'nav.tabs.profile',
+  'parents-corner': 'nav.tabs.parents',
+  'solution-board': 'nav.tabs.solutions',
+  reports: 'nav.tabs.reports',
+  settings: 'nav.tabs.settings',
+}
 
 const createStyles = (t: AppPalette) => ({
   dock: {
@@ -82,6 +92,7 @@ function onTabPress(
 }
 
 export function BottomTabNav() {
+  const { t } = useTranslation()
   const insets = useSafeAreaInsets()
   const router = useRouter()
   const { user } = useApp()
@@ -98,18 +109,19 @@ export function BottomTabNav() {
         {visibleTabs.map((tab) => {
           const active = activeTabId === tab.id
           const iconColor = active ? colors.text : colors.textMuted
+          const label = t(TAB_LABEL_KEYS[tab.id], { defaultValue: tab.shortLabel })
           return (
             <Pressable
               key={tab.id}
               accessibilityRole="tab"
               accessibilityState={{ selected: active }}
-              accessibilityLabel={tab.label}
+              accessibilityLabel={label}
               onPress={() => onTabPress(tab, router, user)}
               style={({ pressed }) => [styles.tab, active && styles.tabActive, pressed && styles.pressed]}
             >
               <NavIcon name={tab.icon} size={16} color={iconColor} />
               <Text style={[styles.label, active && styles.labelActive]} numberOfLines={1}>
-                {tab.shortLabel}
+                {label}
               </Text>
             </Pressable>
           )

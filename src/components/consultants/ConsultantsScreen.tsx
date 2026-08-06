@@ -1,4 +1,5 @@
 import { ScrollView, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import { ConsultantCard } from '@/components/consultants/ConsultantCard'
 import { NavIcon } from '@/components/icons/NavIcon'
@@ -71,6 +72,7 @@ const createStyles = (t: AppPalette) => ({
 export function ConsultantsScreen() {
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
+  const { t } = useTranslation()
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -79,7 +81,7 @@ export function ConsultantsScreen() {
           <NavIcon name="info" size={22} color={palette.accentDeep} />
         </View>
         <Eyebrow>Directory</Eyebrow>
-        <Text style={styles.title}>Consultants</Text>
+        <Text style={styles.title}>{t('community.consultants.title')}</Text>
         <Text style={styles.subtitle}>
           Connect with specialists who support parents and families. Reach out by email, Instagram, or their website.
         </Text>
@@ -87,7 +89,7 @@ export function ConsultantsScreen() {
 
       {CONSULTANTS.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>No consultants are listed yet. Check back soon.</Text>
+          <Text style={styles.emptyText}>{t('community.consultants.empty')}</Text>
         </View>
       ) : (
         <View style={styles.grid}>

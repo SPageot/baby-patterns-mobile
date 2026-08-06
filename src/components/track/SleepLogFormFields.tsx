@@ -1,5 +1,6 @@
 import { Pressable, Text, View } from 'react-native'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Input, Label } from '@/components/ui/primitives'
 import { DateTimeField } from '@/components/ui/DateTimeField'
@@ -10,6 +11,7 @@ import { sleepLogFromDetails } from '@/types/babyLog'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
+import { mapSleepOptions } from '@/i18n/trackLabels'
 import {
   HOW_FELL_ASLEEP,
   PRE_SLEEP_ACTIVITIES,
@@ -349,10 +351,17 @@ type Props = {
 }
 
 export function SleepLogFormFields({ state, setState, accent, stroke, disabled }: Props) {
+  const { t } = useTranslation()
   const styles = useThemedStyles(createStyles)
   const accentSoft = `${accent}22`
   const accentBorder = accent
   const set = (patch: Partial<SleepFormState>) => setState(patch)
+
+  const qualityOptions = useMemo(() => mapSleepOptions(t, 'quality', SLEEP_QUALITY), [t])
+  const howOptions = useMemo(() => mapSleepOptions(t, 'how', HOW_FELL_ASLEEP), [t])
+  const preSleepOptions = useMemo(() => mapSleepOptions(t, 'preSleep', PRE_SLEEP_ACTIVITIES), [t])
+  const tagOptions = useMemo(() => mapSleepOptions(t, 'tags', SLEEP_EXTRA_TAGS), [t])
+  const wakeReasonOptions = useMemo(() => mapSleepOptions(t, 'wakeReasons', WAKE_UP_REASONS), [t])
 
   const durationPreview = useMemo(() => {
     if (!state.sleepEnd.trim()) return state.sleepStart.trim() ? 'In progress' : '—'
@@ -368,7 +377,7 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
   return (
     <>
       <LogToggleRow
-        label="This was a nap"
+        label={t('track.sleepForm.nap')}
         value={state.sleepNap}
         onChange={(v) => set({ sleepNap: v })}
         accent={accent}
@@ -376,7 +385,7 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
       />
 
       <DateTimeField
-        label="Sleep date (UTC)"
+        label={t('track.fields.date')}
         value={state.sleepDate}
         onChange={(v) => set({ sleepDate: v })}
         mode="date"
@@ -384,7 +393,7 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
       />
 
       <DateTimeField
-        label="Sleep start (UTC)"
+        label={t('track.sleepForm.start')}
         value={state.sleepStart}
         onChange={(v) => set({ sleepStart: v })}
         mode="time"
@@ -392,7 +401,7 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
       />
 
       <View style={styles.endLabelRow}>
-        <Label>Sleep end (UTC, optional)</Label>
+        <Label>{t('track.sleepForm.end')}</Label>
         {state.sleepEnd ? (
           <Pressable
             accessibilityRole="button"
@@ -406,7 +415,7 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
         ) : null}
       </View>
       <DateTimeField
-        label="Sleep end (UTC, optional)"
+        label={t('track.sleepForm.end')}
         hideLabel
         value={state.sleepEnd}
         onChange={(v) => set({ sleepEnd: v })}
@@ -420,7 +429,7 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
         <Text style={[styles.durationValue, { color: accent }]}>{durationPreview}</Text>
       </View>
 
-      <Label>Sleep mood</Label>
+      <Label>{t('track.sleepForm.moodBefore')}</Label>
       <Input
         value={state.sleepMood}
         onChangeText={(v) => set({ sleepMood: v })}
@@ -428,7 +437,7 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
         editable={!disabled}
       />
 
-      <Label>Sleep environment</Label>
+      <Label>{t('track.sleepForm.environment')}</Label>
       <Input
         value={state.sleepEnvironment}
         onChangeText={(v) => set({ sleepEnvironment: v })}
@@ -437,8 +446,8 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
       />
 
       <OptionChips
-        label="Sleep quality"
-        options={SLEEP_QUALITY}
+        label={t('track.sleepForm.quality')}
+        options={qualityOptions}
         value={state.quality}
         onSelect={(quality) => set({ quality })}
         accent={accent}
@@ -447,8 +456,8 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
       />
 
       <OptionChips
-        label="How fell asleep"
-        options={HOW_FELL_ASLEEP}
+        label={t('track.sleepForm.howFellAsleep')}
+        options={howOptions}
         value={state.howFellAsleep}
         onSelect={(howFellAsleep) => set({ howFellAsleep })}
         accent={accent}
@@ -457,8 +466,8 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
       />
 
       <OptionChips
-        label="Pre-sleep activity"
-        options={PRE_SLEEP_ACTIVITIES}
+        label={t('track.sleepForm.preSleep')}
+        options={preSleepOptions}
         multi
         selected={state.preSleepActivity}
         onToggle={(value, checked) =>
@@ -470,8 +479,8 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
       />
 
       <OptionChips
-        label="Tags"
-        options={SLEEP_EXTRA_TAGS}
+        label={t('track.sleepForm.tags')}
+        options={tagOptions}
         multi
         selected={state.extraTags}
         onToggle={(value, checked) =>
@@ -484,12 +493,12 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
 
       <View style={styles.wakeSection}>
         <View style={styles.wakeSectionLabel}>
-          <Label>Wake-ups during sleep</Label>
+          <Label>{t('track.sleepForm.wakeUps')}</Label>
         </View>
         {state.wakeUps.map((row, index) => (
           <View key={`wake-${index}`} style={styles.wakeBlock}>
             <DateTimeField
-              label="Wake time (UTC)"
+              label={t('track.fields.time')}
               value={row.time}
               onChange={(time) => setWakeUp(index, { time })}
               mode="time"
@@ -504,7 +513,7 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
             />
             <OptionChips
               label="Reason"
-              options={WAKE_UP_REASONS}
+              options={wakeReasonOptions}
               value={row.reason}
               onSelect={(reason) => setWakeUp(index, { reason })}
               accent={accent}
@@ -525,11 +534,11 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
           }
           style={[styles.linkBtn, styles.linkBtnAdd]}
         >
-          <Text style={[styles.linkText, { color: accent }]}>Add</Text>
+          <Text style={[styles.linkText, { color: accent }]}>{t('track.behaviorForm.add')}</Text>
         </Pressable>
       </View>
 
-      <Label>Notes</Label>
+      <Label>{t('track.fields.notes')}</Label>
       <Input
         value={state.notes}
         onChangeText={(notes) => set({ notes })}
@@ -538,7 +547,7 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
       />
 
       <LogToggleRow
-        label="Night sleep was fragmented"
+        label={t('track.sleepForm.fragmented')}
         value={state.isNightSleepFragmented}
         onChange={(isNightSleepFragmented) => set({ isNightSleepFragmented })}
         accent={accent}
@@ -546,14 +555,14 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
       />
 
       <LogToggleRow
-        label="Teething"
+        label={t('track.fields.teething')}
         value={state.sleepTeething}
         onChange={(v) => set({ sleepTeething: v })}
         accent={accent}
         stroke={stroke}
       />
       <LogToggleRow
-        label="Sick"
+        label={t('track.fields.sick')}
         value={state.sleepSick}
         onChange={(v) => set({ sleepSick: v })}
         accent={accent}

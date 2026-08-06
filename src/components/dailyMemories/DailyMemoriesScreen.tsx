@@ -1,5 +1,6 @@
 import { Link } from 'expo-router'
 import { ScrollView, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import { BabyChipBar } from '@/components/BabyChipBar'
 import { DailyMemoryCalendar } from '@/components/dailyMemories/DailyMemoryCalendar'
@@ -72,11 +73,12 @@ const createStyles = (t: AppPalette) => ({
 
 export function DailyMemoriesScreen() {
   const styles = useThemedStyles(createStyles)
+  const { t } = useTranslation()
   const { user, authReady } = useApp()
   const page = useDailyMemories()
 
   if (!authReady) {
-    return <PageLoadingScreen label="Loading daily memories…" />
+    return <PageLoadingScreen label={t('common.loading')} />
   }
 
   if (!user) {
@@ -86,16 +88,14 @@ export function DailyMemoriesScreen() {
           <View style={styles.gateIcon}>
             <NavIcon name="heart" size={24} color={DAILY_MEMORY_THEME.accent} />
           </View>
-          <Text style={styles.gateTitle}>Daily memories</Text>
-          <Text style={styles.gateText}>
-            Log in to save sweet moments on a calendar — first words, funny faces, and little wins worth remembering.
-          </Text>
+          <Text style={styles.gateTitle}>{t('memories.title')}</Text>
+          <Text style={styles.gateText}>{t('memories.gateLogin')}</Text>
           <View style={styles.gateActions}>
             <Link href="/login" asChild>
-              <Button title="Log in" />
+              <Button title={t('common.logIn')} />
             </Link>
             <Link href="/signup" asChild>
-              <Button title="Sign up" variant="secondary" />
+              <Button title={t('common.signUp')} variant="secondary" />
             </Link>
           </View>
         </View>
@@ -106,7 +106,7 @@ export function DailyMemoriesScreen() {
   if (!isApiConfigured()) {
     return (
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <Text style={styles.gateText}>Set EXPO_PUBLIC_API_URL in .env to connect to the API.</Text>
+        <Text style={styles.gateText}>{t('errors.apiRequired')}</Text>
       </ScrollView>
     )
   }
@@ -118,12 +118,10 @@ export function DailyMemoriesScreen() {
           <View style={styles.gateIcon}>
             <NavIcon name="heart" size={24} color={DAILY_MEMORY_THEME.accent} />
           </View>
-          <Text style={styles.gateTitle}>Daily memories</Text>
-          <Text style={styles.gateText}>
-            Add a baby profile to start capturing memorable moments on your calendar.
-          </Text>
+          <Text style={styles.gateTitle}>{t('memories.title')}</Text>
+          <Text style={styles.gateText}>{t('memories.gateBaby')}</Text>
           <Link href="/add-baby" asChild>
-            <Button title="Add a baby" />
+            <Button title={t('common.addBaby')} />
           </Link>
         </View>
       </ScrollView>
@@ -131,7 +129,7 @@ export function DailyMemoriesScreen() {
   }
 
   if (page.loading || page.babiesLoading) {
-    return <PageLoadingScreen label="Loading memories…" />
+    return <PageLoadingScreen label={t('common.loading')} />
   }
 
   return (
@@ -143,16 +141,14 @@ export function DailyMemoriesScreen() {
               <NavIcon name="heart" size={22} color={DAILY_MEMORY_THEME.accent} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.title}>Daily memories</Text>
-              <Text style={styles.sub}>
-                Capture something memorable your baby did each day. Tap a date to view memories or add a new one.
-              </Text>
+              <Text style={styles.title}>{t('memories.title')}</Text>
+              <Text style={styles.sub}>{t('memories.subtitle')}</Text>
             </View>
           </View>
           <View style={styles.statsRow}>
             <View style={styles.stat}>
               <Text style={styles.statN}>{page.visibleMemories.length}</Text>
-              <Text style={styles.statLabel}>memories saved</Text>
+              <Text style={styles.statLabel}>{t('memories.title')}</Text>
             </View>
           </View>
         </View>

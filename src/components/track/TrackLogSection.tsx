@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react'
 import { Pressable, ScrollView, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import { NavIcon } from '@/components/icons/NavIcon'
 import { LoadingSpinner } from '@/components/ui/Loading'
 import { getTrackThemeFromPalette } from '@/constants/trackTheme'
-import { LOG_SECTION } from '@/lib/logSectionConfig'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { heading } from '@/constants/typography'
@@ -159,10 +159,16 @@ export function TrackLogSection({
   recent,
   children,
 }: Props) {
+  const { t } = useTranslation()
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
-  const meta = LOG_SECTION[kind]
   const theme = getTrackThemeFromPalette(kind, palette)
+  const title = t(`track.${kind}.title`)
+  const subtitle = t(`track.${kind}.subtitle`)
+  const todayUnit = t(`track.${kind}.todayUnit`)
+  const ctaLabel = t(`track.${kind}.ctaLabel`)
+  const ctaHint = t(`track.${kind}.ctaHint`)
+  const storageNote = t(`track.${kind}.storageNote`)
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -172,15 +178,19 @@ export function TrackLogSection({
             <NavIcon name={theme.icon} size={22} color={theme.accent} />
           </View>
           <View style={styles.heroCopy}>
-            <Text style={styles.title}>{meta.title}</Text>
-            <Text style={styles.subtitle}>{meta.subtitle}</Text>
-            {meta.storageNote ? <Text style={styles.note}>{meta.storageNote}</Text> : null}
+            <Text style={styles.title}>{title}</Text>
+            <Text style={styles.subtitle}>{subtitle}</Text>
+            {storageNote ? <Text style={styles.note}>{storageNote}</Text> : null}
           </View>
         </View>
 
         <View style={[styles.stat, { backgroundColor: theme.accentSoft, borderColor: theme.accentBorder }]}>
-          {countLoading ? <LoadingSpinner size="sm" label="Loading count" /> : <Text style={[styles.statN, { color: theme.accent }]}>{todayCount}</Text>}
-          <Text style={styles.statLabel}>{meta.todayUnit}</Text>
+          {countLoading ? (
+            <LoadingSpinner size="sm" label={t('track.loadingCount')} />
+          ) : (
+            <Text style={[styles.statN, { color: theme.accent }]}>{todayCount}</Text>
+          )}
+          <Text style={styles.statLabel}>{todayUnit}</Text>
         </View>
       </View>
 
@@ -200,8 +210,8 @@ export function TrackLogSection({
             <NavIcon name={theme.icon} size={20} color={theme.accent} />
           </View>
           <View style={styles.ctaText}>
-            <Text style={styles.ctaLabel}>{meta.ctaLabel}</Text>
-            <Text style={styles.ctaHint}>{meta.ctaHint}</Text>
+            <Text style={styles.ctaLabel}>{ctaLabel}</Text>
+            <Text style={styles.ctaHint}>{ctaHint}</Text>
           </View>
           <Text style={[styles.ctaArrow, { color: theme.accent }]}>→</Text>
         </Pressable>

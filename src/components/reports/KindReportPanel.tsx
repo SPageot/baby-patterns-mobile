@@ -1,4 +1,5 @@
 import { Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import { NavIcon } from '@/components/icons/NavIcon'
 import type { AppPalette } from '@/constants/homeTheme'
@@ -105,6 +106,7 @@ type Props = {
 export function KindReportPanel({ report, logs, rangeDays }: Props) {
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
+  const { t } = useTranslation()
   const hasData = report.totalEvents > 0
   const dayUnit = report.kind === 'sleep' ? 'total sleep' : 'changes'
   const bestHourTitle =
@@ -129,28 +131,26 @@ export function KindReportPanel({ report, logs, rangeDays }: Props) {
               ? report.kind === 'sleep'
                 ? `${report.totalEvents} sessions (sleepStartTime → sleepEndTime only) across ${report.daysTracked} wake days · ${report.avgDisplay}`
                 : `${report.totalEvents} logs across ${report.daysTracked} days · ${report.avgDisplay}`
-              : 'No logs in this period yet.'}
+              : t('reports.noLogs')}
           </Text>
         </View>
       </View>
 
       {!hasData ? (
-        <Text style={styles.empty}>
-          Log a few {report.title.toLowerCase()} entries to unlock charts and analysis.
-        </Text>
+        <Text style={styles.empty}>{t('reports.noLogs')}</Text>
       ) : (
         <>
           <View style={styles.stats}>
             <View style={styles.stat}>
-              <Text style={styles.statLabel}>Total logs</Text>
+              <Text style={styles.statLabel}>{t('reports.totalLogs')}</Text>
               <Text style={styles.statValue}>{report.totalEvents}</Text>
             </View>
             <View style={styles.stat}>
-              <Text style={styles.statLabel}>Active days</Text>
+              <Text style={styles.statLabel}>{t('reports.activeDays')}</Text>
               <Text style={styles.statValue}>{report.daysTracked}</Text>
             </View>
             <View style={styles.stat}>
-              <Text style={styles.statLabel}>Daily average</Text>
+              <Text style={styles.statLabel}>{t('reports.dailyAverage')}</Text>
               <Text style={styles.statValue}>{report.avgDisplay}</Text>
             </View>
           </View>

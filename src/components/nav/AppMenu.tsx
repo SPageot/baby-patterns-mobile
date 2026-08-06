@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native'
 import { useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { NavIcon } from '@/components/icons/NavIcon'
 import { useApp } from '@/context/AppContext'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
+import { navGroupI18nKey, navLinkI18nKey } from '@/i18n/navKeys'
 import {
   ACCOUNT_LINKS,
   getHamburgerMenuSections,
@@ -143,13 +145,14 @@ const createStyles = (t: AppPalette) => ({
 })
 
 export function AppMenuButton({ onPress }: { onPress: () => void }) {
+  const { t } = useTranslation()
   const colors = useHomeTheme()
   const styles = useThemedStyles(createStyles)
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="Open menu"
+      accessibilityLabel={t('nav.openMenu')}
       onPress={onPress}
       style={({ pressed }) => [styles.menuBtn, pressed && styles.pressed]}
     >
@@ -159,6 +162,7 @@ export function AppMenuButton({ onPress }: { onPress: () => void }) {
 }
 
 export function AppMenu({ open, onClose }: Props) {
+  const { t } = useTranslation()
   const insets = useSafeAreaInsets()
   const router = useRouter()
   const { user, logout } = useApp()
@@ -212,7 +216,7 @@ export function AppMenu({ open, onClose }: Props) {
       <View style={styles.screen}>
         <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
           <View style={styles.headerText}>
-            <Text style={styles.headerTitle}>Menu</Text>
+            <Text style={styles.headerTitle}>{t('nav.menuTitle')}</Text>
             {user && displayName ? (
               <Text style={styles.headerMeta} numberOfLines={1}>
                 {displayName}
@@ -222,7 +226,7 @@ export function AppMenu({ open, onClose }: Props) {
           </View>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Close menu"
+            accessibilityLabel={t('nav.closeMenu')}
             onPress={onClose}
             style={({ pressed }) => [styles.closeBtn, pressed && styles.pressed]}
           >
@@ -237,17 +241,18 @@ export function AppMenu({ open, onClose }: Props) {
         >
           {sections.map((section, index) => {
             const isOpen = Boolean(expanded[section.id])
+            const sectionLabel = t(navGroupI18nKey(section.id))
             return (
               <View key={section.id} style={styles.section}>
                 {index > 0 ? <View style={styles.divider} /> : null}
                 <Pressable
                   accessibilityRole="button"
                   accessibilityState={{ expanded: isOpen }}
-                  accessibilityLabel={`${section.label}, ${isOpen ? 'expanded' : 'collapsed'}`}
+                  accessibilityLabel={`${sectionLabel}, ${isOpen ? 'expanded' : 'collapsed'}`}
                   onPress={() => toggleSection(section.id)}
                   style={({ pressed }) => [styles.sectionToggle, pressed && styles.pressed]}
                 >
-                  <Text style={styles.sectionLabel}>{section.label}</Text>
+                  <Text style={styles.sectionLabel}>{sectionLabel}</Text>
                   <Text style={styles.sectionChevron}>{isOpen ? '▾' : '▸'}</Text>
                 </Pressable>
                 {isOpen
@@ -259,7 +264,9 @@ export function AppMenu({ open, onClose }: Props) {
                         style={({ pressed }) => [styles.item, pressed && styles.pressed]}
                       >
                         <NavIcon name={link.icon} size={18} color={colors.accentDeep} />
-                        <Text style={styles.itemText}>{link.label}</Text>
+                        <Text style={styles.itemText}>
+                          {t(navLinkI18nKey(link.href), { defaultValue: link.label })}
+                        </Text>
                       </Pressable>
                     ))
                   : null}
@@ -278,7 +285,7 @@ export function AppMenu({ open, onClose }: Props) {
                   style={({ pressed }) => [styles.item, pressed && styles.pressed]}
                 >
                   <NavIcon name="heart" size={18} color={colors.accentDeep} />
-                  <Text style={styles.itemText}>{link.label}</Text>
+                  <Text style={styles.itemText}>{t('common.addBaby')}</Text>
                 </Pressable>
               ))}
               <Pressable
@@ -287,7 +294,7 @@ export function AppMenu({ open, onClose }: Props) {
                 style={({ pressed }) => [styles.item, pressed && styles.pressed]}
               >
                 <NavIcon name="heart" size={18} color={colors.error} />
-                <Text style={[styles.itemText, styles.itemDanger]}>Log out</Text>
+                <Text style={[styles.itemText, styles.itemDanger]}>{t('common.logOut')}</Text>
               </Pressable>
             </>
           ) : (
@@ -298,14 +305,14 @@ export function AppMenu({ open, onClose }: Props) {
                 onPress={() => navigate('/login')}
                 style={({ pressed }) => [styles.item, pressed && styles.pressed]}
               >
-                <Text style={styles.itemText}>Log in</Text>
+                <Text style={styles.itemText}>{t('common.logIn')}</Text>
               </Pressable>
               <Pressable
                 accessibilityRole="menuitem"
                 onPress={() => navigate('/signup')}
                 style={({ pressed }) => [styles.item, pressed && styles.pressed]}
               >
-                <Text style={styles.itemText}>Sign up</Text>
+                <Text style={styles.itemText}>{t('common.signUp')}</Text>
               </Pressable>
             </>
           )}

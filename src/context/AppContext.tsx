@@ -13,6 +13,7 @@ import { setSessionExpiredHandler } from '@/api/client'
 import { isApiConfigured } from '@/api/config'
 import { fetchCurrentUser } from '@/api/userApi'
 import { syncAppStore } from '@/lib/appStore'
+import { applyAccountLocale } from '@/lib/applyAccountLocale'
 import { hydrateAvatarCache } from '@/lib/avatarCache'
 import { clearAuthSession, getAccessToken, hydrateAuthSession } from '@/lib/authSession'
 import { ensureLiveConnection, stopLiveConnection } from '@/lib/liveHub'
@@ -82,6 +83,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (cancelled) return
         await hydrateAvatarCache(profile.id)
         setUserState(profile)
+        void applyAccountLocale(profile.preferredLocale)
 
         const list = await fetchAccessibleBabies()
         if (cancelled) return
@@ -107,7 +109,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!next) {
       setBabiesState([])
       setSelectedBabyId('')
+      return
     }
+    void applyAccountLocale(next.preferredLocale)
   }, [])
 
   const selectBaby = useCallback((baby: Baby) => {

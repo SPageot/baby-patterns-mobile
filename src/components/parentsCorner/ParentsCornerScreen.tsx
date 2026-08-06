@@ -1,6 +1,7 @@
 import { ScrollView, Text, View } from 'react-native'
 import { Link } from 'expo-router'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { PostCard } from '@/components/parentsCorner/PostCard'
 import { PostComposer } from '@/components/parentsCorner/PostComposer'
@@ -103,6 +104,7 @@ const createStyles = (t: AppPalette) => ({
 export function ParentsCornerScreen() {
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
+  const { t } = useTranslation()
   const { user, authReady } = useApp()
   const confirm = useConfirmAction()
   const { isBlocked } = useModeration()
@@ -121,8 +123,8 @@ export function ParentsCornerScreen() {
     return (
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <View style={styles.hero}>
-          <Eyebrow>Community</Eyebrow>
-          <Text style={styles.title}>Parents Corner</Text>
+          <Eyebrow>{t('nav.groups.community')}</Eyebrow>
+          <Text style={styles.title}>{t('community.parentsCorner.title')}</Text>
         </View>
         <ErrorText>Set EXPO_PUBLIC_API_URL in .env to use Parents Corner.</ErrorText>
       </ScrollView>
@@ -139,8 +141,8 @@ export function ParentsCornerScreen() {
         <View style={styles.iconWrap}>
           <NavIcon name="users" size={22} color={palette.accentDeep} />
         </View>
-        <Eyebrow>{isLoggedIn ? 'Live feed' : 'Community'}</Eyebrow>
-        <Text style={styles.title}>Parents Corner</Text>
+        <Eyebrow>{isLoggedIn ? t('community.parentsCorner.liveFeed') : t('nav.groups.community')}</Eyebrow>
+        <Text style={styles.title}>{t('community.parentsCorner.title')}</Text>
         <Text style={styles.subtitle}>
           {isLoggedIn
             ? 'Your community timeline — post updates, react, and join the conversation.'
@@ -161,10 +163,10 @@ export function ParentsCornerScreen() {
           </Text>
           <View style={styles.joinActions}>
             <Link href="/signup" asChild>
-              <Button title="Sign up to post" />
+              <Button title={t('community.parentsCorner.signUpToPost')} />
             </Link>
             <Link href="/login" asChild>
-              <Button title="Log in" variant="secondary" />
+              <Button title={t('common.logIn')} variant="secondary" />
             </Link>
           </View>
         </View>
@@ -174,7 +176,7 @@ export function ParentsCornerScreen() {
 
       {visiblePosts.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyTitle}>No posts yet</Text>
+          <Text style={styles.emptyTitle}>{t('community.parentsCorner.noPosts')}</Text>
           <Text style={styles.emptyBody}>
             {isLoggedIn
               ? 'Be the first to share a moment or ask the community a question.'
@@ -206,8 +208,8 @@ export function ParentsCornerScreen() {
           onSaveEdit={(input) => corner.savePostEdit(post.id, input)}
           onDelete={() => {
             confirm({
-              title: 'Delete post?',
-              message: 'This post and its comments will be removed. This cannot be undone.',
+              title: t('community.parentsCorner.deletePost'),
+              message: t('community.parentsCorner.deletePostBody'),
               onConfirm: () => corner.removePost(post.id),
             })
           }}

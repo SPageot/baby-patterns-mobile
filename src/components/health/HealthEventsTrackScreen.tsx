@@ -1,5 +1,6 @@
 import { Link, useRouter } from 'expo-router'
 import { Pressable, ScrollView, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import { BabyChipBar } from '@/components/BabyChipBar'
 import { HealthDisclaimer } from '@/components/health/HealthDisclaimer'
@@ -19,10 +20,7 @@ import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
 
-const TABS: { id: HealthTabId; label: string }[] = [
-  { id: 'sickness', label: 'Sickness' },
-  { id: 'injuries', label: 'Injuries' },
-]
+const TAB_IDS: HealthTabId[] = ['sickness', 'injuries']
 
 const HEALTH_ACCENT = '#c45c7a'
 
@@ -110,18 +108,24 @@ function formatStamp(iso: string) {
 export function HealthEventsTrackScreen() {
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
+  const { t } = useTranslation()
   const router = useRouter()
   const { user, authReady } = useApp()
   const health = useHealthEventsPage()
 
+  const tabs = TAB_IDS.map((id) => ({
+    id,
+    label: id === 'sickness' ? t('health.sickness') : t('health.injuries'),
+  }))
+
   if (!authReady) {
-    return <PageLoadingScreen label="Loading…" />
+    return <PageLoadingScreen label={t('common.loading')} />
   }
 
   if (!isApiConfigured()) {
     return (
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <ErrorText>Set EXPO_PUBLIC_API_URL in .env to connect to the API.</ErrorText>
+        <ErrorText>{t('errors.apiRequired')}</ErrorText>
       </ScrollView>
     )
   }
@@ -133,10 +137,10 @@ export function HealthEventsTrackScreen() {
           <View style={styles.iconWrap}>
             <NavIcon name="health" size={22} color={HEALTH_ACCENT} />
           </View>
-          <Text style={styles.gateTitle}>Health events</Text>
+          <Text style={styles.gateTitle}>{t('health.title')}</Text>
           <Text style={styles.gateText}>
             <Link href="/login" style={styles.loginLink}>
-              Log in
+              {t('common.logIn')}
             </Link>{' '}
             to track sickness, injuries, symptoms, and care notes.
           </Text>
@@ -146,7 +150,7 @@ export function HealthEventsTrackScreen() {
   }
 
   if (health.loading || health.babiesLoading) {
-    return <PageLoadingScreen label="Loading health events…" />
+    return <PageLoadingScreen label={t('common.loading')} />
   }
 
   return (
@@ -158,20 +162,18 @@ export function HealthEventsTrackScreen() {
               <NavIcon name="health" size={22} color={HEALTH_ACCENT} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.title}>Health events</Text>
-              <Text style={styles.sub}>
-                Track sickness and injuries — symptoms, temperature, care, and duration.
-              </Text>
+              <Text style={styles.title}>{t('health.title')}</Text>
+              <Text style={styles.sub}>{t('health.subtitle')}</Text>
             </View>
           </View>
           <View style={styles.statsRow}>
             <View style={styles.stat}>
               <Text style={styles.statN}>{health.sicknessCount}</Text>
-              <Text style={styles.statLabel}>sickness</Text>
+              <Text style={styles.statLabel}>{t('health.sickness')}</Text>
             </View>
             <View style={styles.stat}>
               <Text style={styles.statN}>{health.injuryCount}</Text>
-              <Text style={styles.statLabel}>injuries</Text>
+              <Text style={styles.statLabel}>{t('health.injuries')}</Text>
             </View>
           </View>
         </View>
@@ -181,7 +183,7 @@ export function HealthEventsTrackScreen() {
         {health.error ? <ErrorText>{health.error}</ErrorText> : null}
 
         <View style={styles.tabs}>
-          {TABS.map((tab) => {
+          {tabs.map((tab) => {
             const active = health.activeTab === tab.id
             return (
               <Pressable
@@ -200,13 +202,13 @@ export function HealthEventsTrackScreen() {
           <Card>
             <View style={styles.sectionHead}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.sectionTitle}>Sickness logs</Text>
-                <Text style={styles.sectionSub}>Illness type, duration, temperature, symptoms, and care.</Text>
+                <Text style={styles.sectionTitle}>{t('health.sickness')}</Text>
+                <Text style={styles.sectionSub}>{t('health.subtitle')}</Text>
               </View>
-              <Button title="Log sickness" onPress={health.openSicknessForm} />
+              <Button title={t('health.logSickness')} onPress={health.openSicknessForm} />
             </View>
             {health.visibleSickness.length === 0 ? (
-              <Text style={styles.empty}>No sickness events yet.</Text>
+              <Text style={styles.empty}>{t('health.noEvents')}</Text>
             ) : (
               health.visibleSickness.map((row) => (
                 <Card key={row.id} style={styles.card}>
@@ -240,13 +242,13 @@ export function HealthEventsTrackScreen() {
           <Card>
             <View style={styles.sectionHead}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.sectionTitle}>Injuries</Text>
-                <Text style={styles.sectionSub}>Bumps, scratches, swelling, and how you treated them.</Text>
+                <Text style={styles.sectionTitle}>{t('health.injuries')}</Text>
+                <Text style={styles.sectionSub}>{t('health.subtitle')}</Text>
               </View>
-              <Button title="Log injury" variant="secondary" onPress={health.openInjuryForm} />
+              <Button title={t('health.logInjury')} variant="secondary" onPress={health.openInjuryForm} />
             </View>
             {health.visibleInjuries.length === 0 ? (
-              <Text style={styles.empty}>No injuries logged yet.</Text>
+              <Text style={styles.empty}>{t('health.noEvents')}</Text>
             ) : (
               health.visibleInjuries.map((row) => (
                 <Card key={row.id} style={styles.card}>
@@ -273,7 +275,7 @@ export function HealthEventsTrackScreen() {
         )}
 
         {health.babies.length === 0 && !health.babiesLoading ? (
-          <Button title="Add a baby" onPress={() => router.push('/add-baby')} />
+          <Button title={t('common.addBaby')} onPress={() => router.push('/add-baby')} />
         ) : null}
 
         <HealthDisclaimer />

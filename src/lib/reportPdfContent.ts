@@ -5,9 +5,9 @@ import type { InjuryEventDto, SicknessEventDto } from '@/types/health'
 import type { PediatricianVisitDto } from '@/types/pediatrician'
 import { formatBabyAge } from './babyAge'
 import { diaperMixType } from './diaperFeedUtils'
-import { feedingTypeLabel } from './feedingLogUtils'
 import { buildGrowthMilestonesReport } from './growthReportAnalytics'
 import { buildHealthEventsReport } from './healthReportAnalytics'
+import { pdfT } from './pdfUi'
 import {
   buildFullReport,
   filterLogsForKindReport,
@@ -15,7 +15,6 @@ import {
   formatReportMinutes,
   isSleepNapLog,
   parseSleepInterval,
-  reportRangeLabel,
   type FullReport,
   type ReportExtras,
   type ReportRange,
@@ -85,8 +84,19 @@ export type ReportPdfContent = {
   analysis: FullReport
 }
 
+type TimeBucket = 'morning' | 'afternoon' | 'evening' | 'night'
+
+const TIME_BUCKETS: TimeBucket[] = ['morning', 'afternoon', 'evening', 'night']
+
+function reportPeriodLabel(rangeDays: ReportRange): string {
+  if (rangeDays === 0) return pdfT('report.period.allTime')
+  if (rangeDays === 90) return pdfT('report.period.last90')
+  if (rangeDays === 7) return pdfT('report.period.last7')
+  return pdfT('report.period.last30')
+}
+
 export function reportPeriodDates(rangeDays: ReportRange): { start: string; end: string; label: string } {
-  const label = reportRangeLabel(rangeDays)
+  const label = reportPeriodLabel(rangeDays)
   if (rangeDays === 0) return { start: '', end: '', label }
 
   const end = new Date()
@@ -115,11 +125,31 @@ function avgTimeDisplay(minutesFromMidnight: number[]): string {
   return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
 }
 
-function timeBucket(hour: number): 'Morning' | 'Afternoon' | 'Evening' | 'Night' {
-  if (hour >= 5 && hour < 12) return 'Morning'
-  if (hour >= 12 && hour < 17) return 'Afternoon'
-  if (hour >= 17 && hour < 21) return 'Evening'
-  return 'Night'
+function timeBucket(hour: number): TimeBucket {
+  if (hour >= 5 && hour < 12) return 'morning'
+  if (hour >= 12 && hour < 17) return 'afternoon'
+  if (hour >= 17 && hour < 21) return 'evening'
+  return 'night'
+}
+
+function timeBucketLabel(bucket: TimeBucket): string {
+  return pdfT(`report.timeOfDay.${bucket}`)
+}
+
+function feedingTypePdfLabel(type: string): string {
+  const key = type.trim().toLowerCase()
+  const known = ['breast', 'bottle', 'solids', 'snack'] as const
+  if ((known as readonly string[]).includes(key)) return pdfT(`report.feedingType.${key}`)
+  if (key) return key.charAt(0).toUpperCase() + key.slice(1)
+  return pdfT('report.feedingType.feed')
+}
+
+function pottyResultLabel(result: string): string {
+  const key = result.trim().toLowerCase()
+  const known = ['success', 'pee', 'poop', 'both', 'accident', 'dry_attempt'] as const
+  if ((known as readonly string[]).includes(key)) return pdfT(`report.pottyResult.${key}`)
+  if (!key) return pdfT('report.timeline.pottyVisit')
+  return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
 function countWakeUps(log: LogRecord): number {
@@ -149,24 +179,25 @@ function eventIso(log: LogRecord): string {
 
 function timelineLabel(log: LogRecord): string {
   if (log.kind === 'sleep') {
-    const nap = isSleepNapLog(log) ? 'Nap' : 'Sleep'
-    return `${nap} · ${formatSleepDuration(log)}`
+    const nap = isSleepNapLog(log) ? pdfT('report.timeline.nap') : pdfT('report.timeline.sleep')
+    return pdfT('report.timeline.sleepDuration', { kind: nap, duration: formatSleepDuration(log) })
   }
   if (log.kind === 'feeding') {
-    const parts = [feedingTypeLabel(log.details.feedingType ?? '')]
-    if (log.details.amountOz?.trim()) parts.push(`${log.details.amountOz.trim()} oz`)
+    const parts = [feedingTypePdfLabel(log.details.feedingType ?? '')]
+    if (log.details.amountOz?.trim()) {
+      parts.push(pdfT('report.timeline.amountOz', { amount: log.details.amountOz.trim() }))
+    }
     return parts.join(' · ')
   }
   if (log.kind === 'diaper') {
     const mix = diaperMixType(log)
-    if (mix === 'wet') return 'Wet diaper'
-    if (mix === 'dirty') return 'Dirty diaper'
-    if (mix === 'mixed') return 'Mixed diaper'
-    return 'Diaper change'
+    if (mix === 'wet') return pdfT('report.timeline.wetDiaper')
+    if (mix === 'dirty') return pdfT('report.timeline.dirtyDiaper')
+    if (mix === 'mixed') return pdfT('report.timeline.mixedDiaper')
+    return pdfT('report.timeline.diaperChange')
   }
   if (log.kind === 'potty') {
-    const result = log.details.result?.trim() || 'visit'
-    return result.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+    return pottyResultLabel(log.details.result?.trim() || '')
   }
   return log.kind
 }
@@ -254,25 +285,25 @@ function buildSleepSection(logs: LogRecord[], rangeDays: ReportRange) {
     }))
 
   const napDurations: PdfStat[] = [
-    { label: 'Morning', value: avgMinutesDisplay(napByPeriod.morning, napCounts.morning) },
-    { label: 'Afternoon', value: avgMinutesDisplay(napByPeriod.afternoon, napCounts.afternoon) },
-    { label: 'Evening', value: avgMinutesDisplay(napByPeriod.evening, napCounts.evening) },
+    { label: timeBucketLabel('morning'), value: avgMinutesDisplay(napByPeriod.morning, napCounts.morning) },
+    { label: timeBucketLabel('afternoon'), value: avgMinutesDisplay(napByPeriod.afternoon, napCounts.afternoon) },
+    { label: timeBucketLabel('evening'), value: avgMinutesDisplay(napByPeriod.evening, napCounts.evening) },
   ]
 
   const insights: string[] = []
   if (filtered.length === 0) {
-    insights.push('No sleep logs recorded in this period.')
+    insights.push(pdfT('report.sleepInsight.noLogs'))
   } else {
     if (bedtimeTrend.length >= 3) {
       const spread = Math.max(...bedtimeTrend.map((b) => b.value)) - Math.min(...bedtimeTrend.map((b) => b.value))
-      if (spread <= 30) insights.push('Bedtime is becoming more consistent.')
-      else insights.push('Bedtime varies across nights — a steady routine may help.')
+      if (spread <= 30) insights.push(pdfT('report.sleepInsight.bedtimeConsistent'))
+      else insights.push(pdfT('report.sleepInsight.bedtimeVaries'))
     }
-    if (avgWakings > 0 && avgWakings < 2) insights.push('Night wakings remain relatively low for this period.')
+    if (avgWakings > 0 && avgWakings < 2) insights.push(pdfT('report.sleepInsight.wakingsLow'))
     if (napSessions > 0 && napByPeriod.afternoon > napByPeriod.morning) {
-      insights.push('Afternoon naps account for a large share of daytime sleep.')
+      insights.push(pdfT('report.sleepInsight.afternoonNaps'))
     }
-    insights.push('Sleep averages are summarized from caregiver-entered logs.')
+    insights.push(pdfT('report.sleepInsight.averagesSummary'))
   }
 
   const sleepTimeline = filtered
@@ -283,21 +314,25 @@ function buildSleepSection(logs: LogRecord[], rangeDays: ReportRange) {
       const start = interval.start.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
       const end = interval.end.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })
       return [
-        { time: start, label: 'Sleeping', sortKey: interval.start.getTime() },
-        { time: end, label: isSleepNapLog(log) ? 'Wake (nap)' : 'Wake', sortKey: interval.end.getTime() },
+        { time: start, label: pdfT('report.timeline.sleeping'), sortKey: interval.start.getTime() },
+        {
+          time: end,
+          label: isSleepNapLog(log) ? pdfT('report.timeline.wakeNap') : pdfT('report.timeline.wake'),
+          sortKey: interval.end.getTime(),
+        },
       ]
     })
     .sort((a, b) => a.sortKey - b.sortKey)
 
   return {
     summary: [
-      { label: 'Average daily sleep', value: formatReportMinutes(avgDaily) },
-      { label: 'Night sleep', value: formatReportMinutes(avgNight) },
-      { label: 'Day sleep', value: formatReportMinutes(avgNap) },
-      { label: 'Average bedtime', value: avgTimeDisplay(bedtimes) },
-      { label: 'Average wake time', value: avgTimeDisplay(wakeTimes) },
-      { label: 'Avg night wakings', value: nightSessions > 0 ? formatReportCount(avgWakings) : '—' },
-      { label: 'Longest sleep stretch', value: longestStretch > 0 ? formatReportMinutes(longestStretch) : '—' },
+      { label: pdfT('report.sleepSummary.avgDaily'), value: formatReportMinutes(avgDaily) },
+      { label: pdfT('report.sleepSummary.nightSleep'), value: formatReportMinutes(avgNight) },
+      { label: pdfT('report.sleepSummary.daySleep'), value: formatReportMinutes(avgNap) },
+      { label: pdfT('report.sleepSummary.avgBedtime'), value: avgTimeDisplay(bedtimes) },
+      { label: pdfT('report.sleepSummary.avgWakeTime'), value: avgTimeDisplay(wakeTimes) },
+      { label: pdfT('report.sleepSummary.avgNightWakings'), value: nightSessions > 0 ? formatReportCount(avgWakings) : '—' },
+      { label: pdfT('report.sleepSummary.longestStretch'), value: longestStretch > 0 ? formatReportMinutes(longestStretch) : '—' },
     ],
     dailySleepBars: dailySleepBars.some((b) => b.value > 0)
       ? dailySleepBars
@@ -343,37 +378,44 @@ function buildFeedingSection(logs: LogRecord[], rangeDays: ReportRange) {
 
   const dayCount = Math.max(1, days.size)
   const byType: PdfStat[] = ['breast', 'bottle', 'solids', 'snack'].map((type) => ({
-    label: feedingTypeLabel(type),
+    label: feedingTypePdfLabel(type),
     value: typeCounts[type]
-      ? `${formatReportCount((typeCounts[type] ?? 0) / dayCount)}/day`
+      ? pdfT('report.feedingSummary.perDay', { count: formatReportCount((typeCounts[type] ?? 0) / dayCount) })
       : '—',
   }))
 
   const bottleStats: PdfStat[] = [
     {
-      label: 'Average ounces',
-      value: bottleOz.length > 0 ? `${formatReportCount(bottleOz.reduce((s, v) => s + v, 0) / bottleOz.length)} oz` : '—',
-    },
-    {
-      label: 'Largest bottle',
-      value: bottleOz.length > 0 ? `${Math.max(...bottleOz)} oz` : '—',
-    },
-    {
-      label: 'Smallest bottle',
-      value: bottleOz.length > 0 ? `${Math.min(...bottleOz)} oz` : '—',
-    },
-    {
-      label: 'Daily intake (avg)',
+      label: pdfT('report.feedingSummary.avgOunces'),
       value:
         bottleOz.length > 0
-          ? `${formatReportCount(bottleOz.reduce((s, v) => s + v, 0) / dayCount)} oz/day`
+          ? pdfT('report.feedingSummary.oz', {
+              count: formatReportCount(bottleOz.reduce((s, v) => s + v, 0) / bottleOz.length),
+            })
+          : '—',
+    },
+    {
+      label: pdfT('report.feedingSummary.largestBottle'),
+      value: bottleOz.length > 0 ? pdfT('report.feedingSummary.oz', { count: Math.max(...bottleOz) }) : '—',
+    },
+    {
+      label: pdfT('report.feedingSummary.smallestBottle'),
+      value: bottleOz.length > 0 ? pdfT('report.feedingSummary.oz', { count: Math.min(...bottleOz) }) : '—',
+    },
+    {
+      label: pdfT('report.feedingSummary.dailyIntakeAvg'),
+      value:
+        bottleOz.length > 0
+          ? pdfT('report.feedingSummary.ozPerDay', {
+              count: formatReportCount(bottleOz.reduce((s, v) => s + v, 0) / dayCount),
+            })
           : '—',
     },
   ]
 
   const breastfeedingStats: PdfStat[] = [
     {
-      label: 'Avg session length',
+      label: pdfT('report.feedingSummary.avgSessionLength'),
       value:
         breastDurations.length > 0
           ? formatReportMinutes(breastDurations.reduce((s, v) => s + v, 0) / breastDurations.length)
@@ -384,7 +426,13 @@ function buildFeedingSection(logs: LogRecord[], rangeDays: ReportRange) {
   const topFoods = [...foodMentions.entries()]
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
-    .map(([food, count]) => ({ label: food, value: `${count} log${count === 1 ? '' : 's'}` }))
+    .map(([food, count]) => ({
+      label: food,
+      value:
+        count === 1
+          ? pdfT('report.feedingSummary.logCount', { count })
+          : pdfT('report.feedingSummary.logCountPlural', { count }),
+    }))
 
   const schedule = filtered
     .slice(0, 12)
@@ -399,18 +447,20 @@ function buildFeedingSection(logs: LogRecord[], rangeDays: ReportRange) {
     .sort((a, b) => a.sortKey - b.sortKey)
 
   const insights: string[] = []
-  if (filtered.length === 0) insights.push('No feeding logs in this period.')
+  if (filtered.length === 0) insights.push(pdfT('report.feedingInsight.noLogs'))
   else {
-    if ((typeCounts.solids ?? 0) > (typeCounts.bottle ?? 0)) insights.push('Solid food logs outnumber bottle feeds in this period.')
+    if ((typeCounts.solids ?? 0) > (typeCounts.bottle ?? 0)) {
+      insights.push(pdfT('report.feedingInsight.solidsOutnumberBottle'))
+    }
     if ((typeCounts.bottle ?? 0) > 0 && bottleOz.length >= 2) {
       const firstHalf = bottleOz.slice(0, Math.floor(bottleOz.length / 2))
       const secondHalf = bottleOz.slice(Math.floor(bottleOz.length / 2))
       const avgFirst = firstHalf.reduce((s, v) => s + v, 0) / firstHalf.length
       const avgSecond = secondHalf.reduce((s, v) => s + v, 0) / secondHalf.length
-      if (avgSecond < avgFirst * 0.9) insights.push('Bottle intake appears to be decreasing over the period.')
-      if (avgSecond > avgFirst * 1.1) insights.push('Bottle intake appears to be increasing over the period.')
+      if (avgSecond < avgFirst * 0.9) insights.push(pdfT('report.feedingInsight.bottleDecreasing'))
+      if (avgSecond > avgFirst * 1.1) insights.push(pdfT('report.feedingInsight.bottleIncreasing'))
     }
-    insights.push('Feeding patterns are based on caregiver-entered logs.')
+    insights.push(pdfT('report.feedingInsight.patternsSummary'))
   }
 
   return { byType, bottleStats, breastfeedingStats, topFoods, schedule, insights }
@@ -421,7 +471,7 @@ function buildDiaperSection(logs: LogRecord[], rangeDays: ReportRange) {
   let wet = 0
   let dirty = 0
   let mixed = 0
-  const buckets = { Morning: 0, Afternoon: 0, Evening: 0, Night: 0 }
+  const buckets: Record<TimeBucket, number> = { morning: 0, afternoon: 0, evening: 0, night: 0 }
 
   const days = new Set<string>()
   for (const log of filtered) {
@@ -438,25 +488,25 @@ function buildDiaperSection(logs: LogRecord[], rangeDays: ReportRange) {
   }
 
   const dayCount = Math.max(1, days.size)
-  const timeOfDay = (Object.keys(buckets) as Array<keyof typeof buckets>).map((label) => ({
-    label,
-    value: buckets[label],
+  const timeOfDay = TIME_BUCKETS.map((bucket) => ({
+    label: timeBucketLabel(bucket),
+    value: buckets[bucket],
   }))
 
   const insights: string[] = []
-  if (filtered.length === 0) insights.push('No diaper logs in this period.')
+  if (filtered.length === 0) insights.push(pdfT('report.diaperInsight.noLogs'))
   else {
-    insights.push('Wet and dirty counts reflect caregiver-entered diaper changes.')
-    if (dirty / dayCount < 2) insights.push('Dirty diaper frequency is on the lower side for this period.')
+    insights.push(pdfT('report.diaperInsight.countsSummary'))
+    if (dirty / dayCount < 2) insights.push(pdfT('report.diaperInsight.dirtyLow'))
   }
 
   return {
     summary: [
-      { label: 'Wet', value: String(wet) },
-      { label: 'Dirty', value: String(dirty) },
-      { label: 'Mixed', value: String(mixed) },
-      { label: 'Wet (avg/day)', value: formatReportCount(wet / dayCount) },
-      { label: 'Dirty (avg/day)', value: formatReportCount(dirty / dayCount) },
+      { label: pdfT('report.diaperSummary.wet'), value: String(wet) },
+      { label: pdfT('report.diaperSummary.dirty'), value: String(dirty) },
+      { label: pdfT('report.diaperSummary.mixed'), value: String(mixed) },
+      { label: pdfT('report.diaperSummary.wetAvgDay'), value: formatReportCount(wet / dayCount) },
+      { label: pdfT('report.diaperSummary.dirtyAvgDay'), value: formatReportCount(dirty / dayCount) },
     ],
     timeOfDay,
     insights,
@@ -468,7 +518,7 @@ function buildPottySection(logs: LogRecord[], rangeDays: ReportRange) {
   let attempts = 0
   let successes = 0
   let accidents = 0
-  const buckets = { Morning: 0, Afternoon: 0, Evening: 0, Night: 0 }
+  const buckets: Record<TimeBucket, number> = { morning: 0, afternoon: 0, evening: 0, night: 0 }
   const weekMap = new Map<string, { success: number; total: number }>()
 
   for (const log of filtered) {
@@ -496,35 +546,37 @@ function buildPottySection(logs: LogRecord[], rangeDays: ReportRange) {
     .sort((a, b) => (a[0] < b[0] ? -1 : 1))
     .slice(-4)
     .map(([, row], i) => ({
-      label: `Week ${i + 1}`,
+      label: pdfT('report.pottySummary.week', { n: i + 1 }),
       value: row.total > 0 ? Math.round((row.success / row.total) * 100) : 0,
       displayValue: row.total > 0 ? `${Math.round((row.success / row.total) * 100)}%` : '—',
     }))
 
   const insights: string[] = []
-  if (attempts === 0) insights.push('No potty logs in this period.')
+  if (attempts === 0) insights.push(pdfT('report.pottyInsight.noLogs'))
   else {
-    if (successRate >= 70) insights.push('Potty success rate is strong for this period.')
-    if (buckets.Evening > buckets.Morning && accidents > 0) {
-      insights.push('Most accidents may cluster later in the day — extra reminders before bedtime can help.')
+    if (successRate >= 70) insights.push(pdfT('report.pottyInsight.successStrong'))
+    if (buckets.evening > buckets.morning && accidents > 0) {
+      insights.push(pdfT('report.pottyInsight.accidentsLater'))
     }
     if (weeklySuccess.length >= 2) {
       const first = weeklySuccess[0].value
       const last = weeklySuccess[weeklySuccess.length - 1].value
-      if (last > first) insights.push(`Success rate improved from about ${first}% to ${last}% across recent weeks.`)
+      if (last > first) {
+        insights.push(pdfT('report.pottyInsight.successImproved', { first, last }))
+      }
     }
   }
 
   return {
     summary: [
-      { label: 'Attempts', value: String(attempts) },
-      { label: 'Successful', value: String(successes) },
-      { label: 'Accidents', value: String(accidents) },
-      { label: 'Success rate', value: attempts > 0 ? `${successRate}%` : '—' },
+      { label: pdfT('report.pottySummary.attempts'), value: String(attempts) },
+      { label: pdfT('report.pottySummary.successful'), value: String(successes) },
+      { label: pdfT('report.pottySummary.accidents'), value: String(accidents) },
+      { label: pdfT('report.pottySummary.successRate'), value: attempts > 0 ? `${successRate}%` : '—' },
     ],
-    timeOfDay: (Object.keys(buckets) as Array<keyof typeof buckets>).map((label) => ({
-      label,
-      value: buckets[label],
+    timeOfDay: TIME_BUCKETS.map((bucket) => ({
+      label: timeBucketLabel(bucket),
+      value: buckets[bucket],
     })),
     weeklySuccess,
     insights,
@@ -547,15 +599,18 @@ function buildHealthSection(
       if (key) symptomMap.set(key, (symptomMap.get(key) ?? 0) + 1)
     }
     if (row.temperatureF && Number(row.temperatureF) >= 100) {
-      symptomMap.set('Fever', (symptomMap.get('Fever') ?? 0) + 1)
+      const feverLabel = pdfT('report.health.fever')
+      symptomMap.set(feverLabel, (symptomMap.get(feverLabel) ?? 0) + 1)
     }
   }
 
   const illnessTimeline = health.sickness.slice(0, 6).map((row) => {
     const lines = [row.sicknessType]
-    if (row.temperatureF) lines.push(`Fever ${row.temperatureF}°F`)
-    if (row.usedMedication && row.medicationUsed) lines.push(`Medicine: ${row.medicationUsed}`)
-    if (row.endedAt) lines.push(`Recovered ${formatWhen(row.endedAt)}`)
+    if (row.temperatureF) lines.push(pdfT('report.health.feverTemp', { temp: row.temperatureF }))
+    if (row.usedMedication && row.medicationUsed) {
+      lines.push(pdfT('report.health.medicine', { name: row.medicationUsed }))
+    }
+    if (row.endedAt) lines.push(pdfT('report.health.recovered', { when: formatWhen(row.endedAt) }))
     return { date: formatWhen(row.startedAt), lines }
   })
 
@@ -565,40 +620,47 @@ function buildHealthSection(
     .map((s) => ({
       medicine: s.medicationUsed ?? '—',
       dose: s.medicationAmount?.trim() || '—',
-      times: 'As logged',
+      times: pdfT('report.health.asLogged'),
     }))
 
   const vaccines = health.pediatricianVisits.flatMap((visit) =>
     visit.immunizations.map((name) => ({
       name,
       date: formatWhen(visit.visitedAt),
-      note: visit.notes?.trim() || 'No reactions noted in log',
+      note: visit.notes?.trim() || pdfT('report.health.noReactions'),
     })),
   )
 
   const injuryRows = health.injuries.slice(0, 6).map((row) => ({
     date: formatWhen(row.occurredAt),
     description: row.description,
-    details: [row.bodyPart, row.hasSwelling ? 'Swelling noted' : null, row.notes].filter(Boolean).join(' · ') || '—',
+    details:
+      [row.bodyPart, row.hasSwelling ? pdfT('report.health.swellingNoted') : null, row.notes]
+        .filter(Boolean)
+        .join(' · ') || '—',
   }))
 
   const insights: string[] = []
-  if (health.totalEvents === 0) insights.push('No health events logged in this period.')
+  if (health.totalEvents === 0) insights.push(pdfT('report.healthInsight.noLogs'))
   else {
-    if (feverEpisodes > 0) insights.push('Fever episodes were logged — monitor recovery and contact your pediatrician if concerned.')
+    if (feverEpisodes > 0) insights.push(pdfT('report.healthInsight.feverLogged'))
     if (health.ongoingSicknessCount + health.ongoingInjuryCount > 0) {
-      insights.push(`${health.ongoingSicknessCount + health.ongoingInjuryCount} health event(s) were still ongoing at report time.`)
+      insights.push(
+        pdfT('report.healthInsight.ongoing', {
+          count: health.ongoingSicknessCount + health.ongoingInjuryCount,
+        }),
+      )
     }
-    insights.push('Health observations are caregiver-entered and not medical conclusions.')
+    insights.push(pdfT('report.healthInsight.notMedical'))
   }
 
   return {
     summary: [
-      { label: 'Illnesses', value: String(health.sicknessCount) },
-      { label: 'Doctor visits', value: String(health.pediatricianCount) },
-      { label: 'Medicine days', value: String(health.withMedicationCount) },
-      { label: 'Fever episodes', value: String(feverEpisodes) },
-      { label: 'Injuries', value: String(health.injuryCount) },
+      { label: pdfT('report.healthSummary.illnesses'), value: String(health.sicknessCount) },
+      { label: pdfT('report.healthSummary.doctorVisits'), value: String(health.pediatricianCount) },
+      { label: pdfT('report.healthSummary.medicineDays'), value: String(health.withMedicationCount) },
+      { label: pdfT('report.healthSummary.feverEpisodes'), value: String(feverEpisodes) },
+      { label: pdfT('report.healthSummary.injuries'), value: String(health.injuryCount) },
     ],
     illnessTimeline,
     symptomFrequency: [...symptomMap.entries()]
@@ -627,13 +689,13 @@ function buildGrowthSection(measurements: GrowthMeasurementDto[], milestones: Mi
     key: p.key,
     label: p.label,
     value: p.value,
-    displayValue: `${p.value} lb`,
+    displayValue: pdfT('report.growth.lb', { value: p.value }),
   }))
   const heightTimeline = growth.heightTrend.slice(-6).map((p) => ({
     key: p.key,
     label: p.label,
     value: p.value,
-    displayValue: `${p.value} in`,
+    displayValue: pdfT('report.growth.in', { value: p.value }),
   }))
 
   const milestoneStats = growth.milestones.slice(0, 8).map((m) => ({
@@ -643,21 +705,23 @@ function buildGrowthSection(measurements: GrowthMeasurementDto[], milestones: Mi
 
   const insights: string[] = []
   if (growth.measurementCount === 0 && growth.milestoneCount === 0) {
-    insights.push('No growth measurements or milestones in this period.')
+    insights.push(pdfT('report.growthInsight.noLogs'))
   } else {
-    if (growth.weightChangeDisplay) insights.push(`Weight change in period: ${growth.weightChangeDisplay}.`)
-    if (heightChange) insights.push(`Height change in period: ${heightChange}.`)
-    insights.push('Growth trends follow caregiver-entered measurements.')
+    if (growth.weightChangeDisplay) {
+      insights.push(pdfT('report.growthInsight.weightChange', { change: growth.weightChangeDisplay }))
+    }
+    if (heightChange) insights.push(pdfT('report.growthInsight.heightChange', { change: heightChange }))
+    insights.push(pdfT('report.growthInsight.trendsSummary'))
   }
 
   return {
     summary: [
-      { label: 'Latest weight', value: growth.latestWeightDisplay },
-      { label: 'Latest height', value: growth.latestHeightDisplay },
-      { label: 'Latest head', value: growth.latestHeadDisplay },
-      { label: 'Weight change', value: growth.weightChangeDisplay ?? '—' },
-      { label: 'Height change', value: heightChange ?? '—' },
-      { label: 'Milestones', value: String(growth.milestoneCount) },
+      { label: pdfT('report.growthSummary.latestWeight'), value: growth.latestWeightDisplay },
+      { label: pdfT('report.growthSummary.latestHeight'), value: growth.latestHeightDisplay },
+      { label: pdfT('report.growthSummary.latestHead'), value: growth.latestHeadDisplay },
+      { label: pdfT('report.growthSummary.weightChange'), value: growth.weightChangeDisplay ?? '—' },
+      { label: pdfT('report.growthSummary.heightChange'), value: heightChange ?? '—' },
+      { label: pdfT('report.growthSummary.milestones'), value: String(growth.milestoneCount) },
     ],
     weightTimeline,
     heightTimeline,
@@ -707,27 +771,32 @@ function buildCorrelations(
 ): string[] {
   const lines: string[] = []
 
+  // Compare against translated insight/label strings from the same locale (stable codes via pdfT keys).
+  const bottleDecreasing = pdfT('report.feedingInsight.bottleDecreasing')
+  const solidsLabel = pdfT('report.feedingType.solids')
+  const bottleLabel = pdfT('report.feedingType.bottle')
+
   if (analysis.sleep.napSection && analysis.sleep.napSection.avgPerDay > 90 && sleep.summary[5]?.value !== '—') {
-    lines.push('Longer afternoon naps may be associated with nighttime sleep patterns — review sleep logs for your child.')
+    lines.push(pdfT('report.correlation.napsAndNight'))
   }
-  if (feeding.insights.some((i) => i.includes('decreasing')) && feeding.byType.some((t) => t.label === 'Solids')) {
-    lines.push('Reduced daytime milk intake often corresponds with changing solid food patterns in this period.')
+  if (feeding.insights.some((i) => i === bottleDecreasing) && feeding.byType.some((t) => t.label === solidsLabel)) {
+    lines.push(pdfT('report.correlation.milkAndSolids'))
   }
   if (analysis.health.sicknessCount > 0 && analysis.sleep.totalEvents > 0) {
-    lines.push('Illness periods may coincide with changes in sleep and appetite — compare health and feeding sections.')
+    lines.push(pdfT('report.correlation.illnessSleep'))
   }
-  if (analysis.diapers.totalEvents > 0 && feeding.byType.some((t) => t.label === 'Bottle')) {
-    lines.push('Diaper and feeding frequency can shift together — review fluid intake on lower-output days.')
+  if (analysis.diapers.totalEvents > 0 && feeding.byType.some((t) => t.label === bottleLabel)) {
+    lines.push(pdfT('report.correlation.diaperFeeding'))
   }
   if (potty.summary[0] && Number(potty.summary[0].value) > 0) {
-    lines.push('Potty training success often improves with consistent bathroom reminders and routine.')
+    lines.push(pdfT('report.correlation.pottyReminders'))
   }
 
   if (lines.length === 0) {
-    lines.push('Log more data across categories to surface cross-activity patterns in future reports.')
+    lines.push(pdfT('report.correlation.needMoreData'))
   }
 
-  return lines.map((line) => `${line} (Observation — not a medical conclusion.)`)
+  return lines.map((line) => pdfT('report.correlation.observationSuffix', { line }))
 }
 
 function buildAiSummary(
@@ -738,29 +807,37 @@ function buildAiSummary(
   feeding: ReportPdfContent['feeding'],
   health: ReportPdfContent['health'],
 ): string {
-  const sleepAvg = analysis.sleep.avgDisplay.replace(' avg/day', ' per day')
-  const feedingStable = feeding.insights.some((i) => i.includes('increasing') || i.includes('decreasing'))
-    ? 'with some shifts in bottle and solid intake'
-    : 'remained relatively stable'
+  const sleepAvg = analysis.sleep.avgDisplay.replace(
+    ' avg/day',
+    pdfT('report.ai.perDaySuffix'),
+  )
+  const bottleDecreasing = pdfT('report.feedingInsight.bottleDecreasing')
+  const bottleIncreasing = pdfT('report.feedingInsight.bottleIncreasing')
+  const feedingStable = feeding.insights.some((i) => i === bottleDecreasing || i === bottleIncreasing)
+    ? pdfT('report.ai.feedingShifts')
+    : pdfT('report.ai.feedingStable')
   const diaperNote =
     analysis.diapers.totalEvents > 0
-      ? 'Diaper frequency stayed within the range recorded in your logs'
-      : 'Diaper logging was light in this period'
+      ? pdfT('report.ai.diaperWithinRange')
+      : pdfT('report.ai.diaperLight')
   const illnessNote =
     health.summary[0] && Number(health.summary[0].value) > 0
-      ? `while ${health.summary[0].value} illness log(s) were noted`
-      : 'with no illness logs recorded'
+      ? pdfT('report.ai.illnessNoted', { count: health.summary[0].value })
+      : pdfT('report.ai.noIllness')
   const pottyNote =
     potty.summary[3]?.value && potty.summary[3].value !== '—'
-      ? `Potty training shows a ${potty.summary[3].value} success rate in this period.`
+      ? pdfT('report.ai.pottySuccess', { rate: potty.summary[3].value })
       : ''
 
-  return (
-    `Over ${rangeLabel.toLowerCase()}, ${childName} averaged ${sleepAvg}. ` +
-    `Feeding patterns ${feedingStable}, ${diaperNote}, ${illnessNote}. ` +
-    `${pottyNote} ` +
-    `Overall, routines and development are summarized from caregiver-entered data for discussion with your pediatrician.`
-  ).replace(/\s+/g, ' ')
+  return pdfT('report.ai.summary', {
+    range: rangeLabel.toLowerCase(),
+    childName,
+    sleepAvg,
+    feedingStable,
+    diaperNote,
+    illnessNote,
+    pottyNote,
+  }).replace(/\s+/g, ' ')
 }
 
 export function buildReportPdfContent(
@@ -775,13 +852,13 @@ export function buildReportPdfContent(
   const primaryBaby = babies[0]
   const childName =
     babies.length === 1
-      ? primaryBaby?.fullName?.trim() || 'Your child'
-      : babies.map((b) => b.fullName?.trim()).filter(Boolean).join(', ') || 'Your children'
+      ? primaryBaby?.fullName?.trim() || pdfT('report.cover.yourChild')
+      : babies.map((b) => b.fullName?.trim()).filter(Boolean).join(', ') || pdfT('report.cover.yourChildren')
   const childAge =
     babies.length === 1 && primaryBaby?.birthdate
       ? formatBabyAge(primaryBaby.birthdate)
       : babies.length > 1
-        ? 'Multiple children'
+        ? pdfT('report.cover.multipleChildren')
         : ''
 
   const generatedDate = new Date().toLocaleDateString(undefined, {
@@ -804,16 +881,29 @@ export function buildReportPdfContent(
   const dailyTimeline = buildDailyTimeline(logs, rangeDays)
 
   const dashboard: PdfStat[] = [
-    { label: 'Average sleep', value: analysis.sleep.avgDisplay.replace(' avg/day', '/day') },
-    { label: 'Feedings', value: analysis.feeding.avgDisplay },
-    { label: 'Wet diapers', value: diaper.summary[3]?.value ? `${diaper.summary[3].value}/day` : '—' },
-    { label: 'Dirty diapers', value: diaper.summary[4]?.value ? `${diaper.summary[4].value}/day` : '—' },
-    { label: 'Health events', value: String(analysis.health.totalEvents) },
     {
-      label: 'Growth',
+      label: pdfT('report.dashboard.avgSleep'),
+      value: analysis.sleep.avgDisplay.replace(' avg/day', pdfT('report.dashboard.perDayShort')),
+    },
+    { label: pdfT('report.dashboard.feedings'), value: analysis.feeding.avgDisplay },
+    {
+      label: pdfT('report.dashboard.wetDiapers'),
+      value: diaper.summary[3]?.value
+        ? pdfT('report.dashboard.valuePerDay', { value: diaper.summary[3].value })
+        : '—',
+    },
+    {
+      label: pdfT('report.dashboard.dirtyDiapers'),
+      value: diaper.summary[4]?.value
+        ? pdfT('report.dashboard.valuePerDay', { value: diaper.summary[4].value })
+        : '—',
+    },
+    { label: pdfT('report.dashboard.healthEvents'), value: String(analysis.health.totalEvents) },
+    {
+      label: pdfT('report.dashboard.growth'),
       value: [growth.summary[3]?.value, growth.summary[4]?.value].filter((v) => v && v !== '—').join(' · ') || '—',
     },
-    { label: 'Potty success', value: potty.summary[3]?.value ?? '—' },
+    { label: pdfT('report.dashboard.pottySuccess'), value: potty.summary[3]?.value ?? '—' },
   ]
 
   const correlations = buildCorrelations(analysis, sleep, feeding, potty)

@@ -1,0 +1,926 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "open": "Open",
+    "close": "Close",
+    "back": "Back",
+    "loading": "Loading…",
+    "menu": "Menu",
+    "logIn": "Log in",
+    "signUp": "Sign up",
+    "logOut": "Log out",
+    "addBaby": "Add a baby",
+    "profile": "Profile",
+    "settings": "Settings",
+    "search": "Search",
+    "retry": "Retry",
+    "done": "Done",
+    "continue": "Continue",
+    "remove": "Remove",
+    "yes": "Yes",
+    "no": "No",
+    "or": "or",
+    "and": "and"
+  },
+  "nav": {
+    "menuTitle": "Menu",
+    "closeMenu": "Close menu",
+    "openMenu": "Open menu",
+    "primary": "Primary",
+    "groups": {
+      "daily": "Daily care",
+      "health": "Health & growth",
+      "insights": "Insights",
+      "community": "Community",
+      "plan": "Plan"
+    },
+    "links": {
+      "home": "Home",
+      "diapers": "Diapers",
+      "feeding": "Feeding",
+      "sleep": "Sleep",
+      "potty": "Potty",
+      "behavior": "Behavior",
+      "growth": "Growth",
+      "health": "Health",
+      "pediatrician": "Pediatrician",
+      "reports": "Reports",
+      "weeklySummary": "Weekly summary",
+      "dailyMemories": "Daily memories",
+      "parentsCorner": "Parents Corner",
+      "solutionBoard": "Solution Board",
+      "reviews": "Reviews",
+      "consultants": "Consultants",
+      "pricing": "Pricing",
+      "why": "Why track",
+      "profile": "Profile",
+      "settings": "Settings",
+      "growthMilestones": "Growth & milestones",
+      "healthEvents": "Health events"
+    },
+    "tabs": {
+      "profile": "Profile",
+      "parents": "Parents",
+      "solutions": "Solutions",
+      "reports": "Reports",
+      "settings": "Settings"
+    }
+  },
+  "auth": {
+    "logInTitle": "Log in",
+    "signUpTitle": "Sign up",
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm password",
+    "forgotPassword": "Forgot password?",
+    "needAccount": "Need an account?",
+    "haveAccount": "Already have an account?",
+    "gateSettingsTitle": "Settings",
+    "gateSettingsText": "Log in to manage your account settings.",
+    "gateProfileTitle": "Profile",
+    "gateProfileText": "Log in to view your profile.",
+    "loginSubtitle": "Welcome back — sign in to continue.",
+    "mfaTitle": "Verify sign-in",
+    "mfaSubtitle": "Enter a code from your authenticator app or a recovery code.",
+    "authenticator": "Authenticator",
+    "recoveryCode": "Recovery code",
+    "verifying": "Verifying…",
+    "backToPassword": "Back to password",
+    "signupSubtitle": "Create your account to start tracking.",
+    "stepOf": "Step {{current}} of {{total}}",
+    "creatingTitle": "Creating your account",
+    "creatingBody": "This only takes a moment…",
+    "createAccount": "Create account",
+    "creatingAccount": "Creating account…",
+    "phone": "Phone",
+    "fullName": "Full name",
+    "birthdate": "Your birthdate",
+    "location": "Location",
+    "birthdateHint": "You must be 18 or older.",
+    "agreeLegal": "I agree to the Terms of Use and Privacy Policy",
+    "completeTitle": "Complete your profile",
+    "completeSubtitle": "A few details help personalize your experience.",
+    "saveContinue": "Save and continue",
+    "forgotTitle": "Forgot password",
+    "forgotSubtitle": "Enter your email and we’ll send a reset link.",
+    "sendResetLink": "Send reset link",
+    "sending": "Sending…",
+    "rememberPassword": "Remember your password?",
+    "backToLogin": "Back to log in"
+  },
+  "settings": {
+    "title": "Account settings",
+    "subtitle": "Manage your email, password, security, subscription, notifications, appearance, and account.",
+    "backToProfile": "Back to profile",
+    "tabs": {
+      "email": "Email",
+      "password": "Password",
+      "security": "Security",
+      "subscription": "Subscription",
+      "notifications": "Notifications",
+      "weeklySummary": "Weekly summary",
+      "appearance": "Appearance",
+      "account": "Account"
+    },
+    "tabsAria": "Settings sections",
+    "password": {
+      "title": "Change password",
+      "subtitle": "Use a strong password you do not use on other sites.",
+      "current": "Current password",
+      "new": "New password",
+      "confirm": "Confirm new password",
+      "updating": "Updating…",
+      "update": "Update password",
+      "success": "Your password has been updated."
+    },
+    "account": {
+      "title": "Delete account",
+      "subtitle": "Permanently remove your account and associated data. This action cannot be undone.",
+      "delete": "Delete account"
+    },
+    "appearance": {
+      "title": "Appearance",
+      "subtitle": "Choose language and how the main menu behaves on this device.",
+      "language": "Language",
+      "languageSub": "Applies to the app interface on this device.",
+      "expandGroups": "Expand menu groups by default",
+      "expandGroupsSub": "When on, Daily care and other menu sections open expanded. When off, they start collapsed until you open them.",
+      "expandGroupsAria": "Expand menu groups by default",
+      "menuExpandedOn": "Menu groups will open expanded by default.",
+      "menuExpandedOff": "Menu groups will open collapsed by default.",
+      "saveError": "Could not save preference on this device.",
+      "languageSaved": "Language updated."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "subtitle": "Get alerts when someone mentions you, likes your post, or logs family tracking activity.",
+      "alerts": "Notification alerts",
+      "successOn": "Notification alerts are on for this device.",
+      "successOff": "Notification alerts are off for this device.",
+      "unsupported": "Push notifications require a physical iOS or Android device."
+    },
+    "weeklySummary": {
+      "title": "Weekly summaries",
+      "subtitle": "Get a digest of sleep, feeding, diapers, growth, and milestones each week. Included with Baby Pattern Pro.",
+      "emailToggle": "Email me weekly summaries",
+      "emailToggleSub": "Sent to {{email}} every Monday with last week's highlights.",
+      "upgradeCta": "Upgrade to Pro to enable weekly email summaries.",
+      "successOn": "Weekly email summaries are enabled.",
+      "successOff": "Weekly email summaries turned off.",
+      "yourAccountEmail": "your account email"
+    },
+    "email": {
+      "title": "Change email",
+      "subtitle": "We’ll send a confirmation link to your new address.",
+      "current": "Current email",
+      "new": "New email",
+      "currentPassword": "Current password",
+      "sendConfirm": "Send confirmation email",
+      "sending": "Sending…"
+    },
+    "mfa": {
+      "title": "Two-factor authentication",
+      "subtitle": "Add an authenticator app for stronger account security.",
+      "setup": "Set up authenticator",
+      "secretKey": "Secret key",
+      "enable": "Enable two-factor",
+      "enabling": "Enabling…",
+      "turnOff": "Turn off two-factor",
+      "turningOff": "Turning off…",
+      "verificationCode": "Verification code",
+      "onStatus": "Two-factor authentication is on.",
+      "recoveryRemaining": "{{count}} recovery codes remaining"
+    },
+    "billing": {
+      "title": "Subscription",
+      "freePlan": "You’re on the Free plan.",
+      "proActive": "Pro is active on your account.",
+      "downgrade": "Downgrade to Free",
+      "upgrade": "Upgrade to Pro",
+      "processing": "Processing…"
+    }
+  },
+  "track": {
+    "diaper": {
+      "title": "Diapers",
+      "subtitle": "Record wet, bowel movement, and other details for each change.",
+      "todayUnit": "changes today",
+      "ctaLabel": "Log diaper change",
+      "ctaHint": "Tap to record wet, dirty, brand, size, and cream",
+      "storageNote": "Saved on this device",
+      "feedLink": "Tips and product notes live in"
+    },
+    "feeding": {
+      "title": "Feeding",
+      "subtitle": "Track breast, bottle, solids, and snacks with timing and optional notes.",
+      "todayUnit": "feeds today",
+      "ctaLabel": "Log a feed",
+      "ctaHint": "Type, time, amount, and duration",
+      "storageNote": "Synced with your API when configured",
+      "feedLink": "Feeding questions? Browse"
+    },
+    "sleep": {
+      "title": "Sleep",
+      "subtitle": "Capture start and end times, mood, and where baby slept.",
+      "todayUnit": "sessions today",
+      "ctaLabel": "Log sleep",
+      "ctaHint": "Start, end, mood, and environment",
+      "storageNote": "Synced with your API when configured",
+      "feedLink": "Sleep tips from other parents in"
+    },
+    "potty": {
+      "title": "Potty",
+      "subtitle": "Log potty training successes, practice sits, and accidents.",
+      "todayUnit": "visits today",
+      "ctaLabel": "Log potty visit",
+      "ctaHint": "Result, time, location, and notes",
+      "storageNote": "Synced with your API when configured",
+      "feedLink": "Track potty training progress over time."
+    },
+    "behavior": {
+      "title": "Behavior Log",
+      "subtitle": "Record tantrums, listening challenges, daydreaming, and what helped resolve them.",
+      "todayUnit": "logs today",
+      "ctaLabel": "Log behavior",
+      "ctaHint": "Type, location, date, optional time, notes, and resolution",
+      "storageNote": "Synced with your API when configured",
+      "feedLink": "Track tantrums, listening challenges, and other behaviors—with where, when, and what helped."
+    },
+    "downloadPdf": "Download PDF",
+    "preparingPdf": "Preparing PDF…",
+    "loadingCount": "Loading count",
+    "parentsCorner": "Parents Corner",
+    "fields": {
+      "date": "Date",
+      "time": "Time",
+      "timeOptional": "Time (optional)",
+      "location": "Location",
+      "notes": "Notes",
+      "notesOptional": "Notes (optional)",
+      "saving": "Saving…",
+      "update": "Update",
+      "save": "Save",
+      "tapToAddDetails": "Tap to add details",
+      "teething": "Baby is teething",
+      "sick": "Baby is sick",
+      "yes": "Yes"
+    },
+    "diaperForm": {
+      "contents": "Contents",
+      "wet": "Wet",
+      "bowel": "Bowel movement",
+      "anythingElse": "Anything else",
+      "brand": "Diaper brand",
+      "size": "Size",
+      "cream": "Diaper cream used"
+    },
+    "feedingForm": {
+      "type": "Type",
+      "when": "When",
+      "amountOz": "Amount (oz), optional",
+      "durationMin": "Duration (min), optional",
+      "breast": "Breastfeed",
+      "bottle": "Bottle",
+      "solids": "Solids",
+      "snack": "Snack"
+    },
+    "sleepForm": {
+      "start": "Sleep start",
+      "end": "Sleep end",
+      "type": "Sleep type",
+      "quality": "Sleep quality",
+      "howFellAsleep": "How fell asleep",
+      "wakeUps": "Wake-ups during sleep",
+      "fragmented": "Night sleep was fragmented",
+      "location": "Where baby slept",
+      "environment": "Environment",
+      "preSleep": "Before sleep",
+      "tags": "Tags",
+      "moodBefore": "Mood before sleep",
+      "moodAfter": "Mood after waking",
+      "nap": "Nap"
+    },
+    "sleepOptions": {
+      "types": {
+        "nap": "Nap",
+        "night": "Night sleep",
+        "mixed": "Mixed"
+      },
+      "quality": {
+        "poor": "Poor",
+        "fair": "Fair",
+        "good": "Good",
+        "excellent": "Excellent"
+      },
+      "how": {
+        "breastfeeding": "Breastfeeding",
+        "bottle": "Bottle",
+        "rocked": "Rocked",
+        "self-soothed": "Self-soothed",
+        "stroller": "Stroller",
+        "car": "Car",
+        "other": "Other"
+      },
+      "wakeReasons": {
+        "diaper": "Diaper",
+        "hunger": "Hunger",
+        "unknown": "Unknown",
+        "noise": "Noise",
+        "teething": "Teething"
+      },
+      "locations": {
+        "crib": "Crib",
+        "bed": "Bed",
+        "stroller": "Stroller",
+        "car": "Car",
+        "contact": "Contact / held",
+        "daycare": "Daycare",
+        "other": "Other"
+      },
+      "envLight": {
+        "dark": "Dark",
+        "dim": "Dim",
+        "bright": "Bright"
+      },
+      "envNoise": {
+        "quiet": "Quiet",
+        "white_noise": "White noise",
+        "tv": "TV",
+        "noisy": "Noisy"
+      },
+      "envTemp": {
+        "cold": "Cold",
+        "comfortable": "Comfortable",
+        "warm": "Warm"
+      },
+      "preSleep": {
+        "bath": "Bath",
+        "book": "Book",
+        "feeding": "Feeding",
+        "play": "Play",
+        "screen_time": "Screen time"
+      },
+      "tags": {
+        "teething": "Teething",
+        "travel": "Travel",
+        "sick": "Sick",
+        "growth_spurt": "Growth spurt"
+      },
+      "moodBefore": {
+        "calm": "Calm",
+        "fussy": "Fussy",
+        "crying": "Crying",
+        "energetic": "Energetic",
+        "sleepy": "Sleepy"
+      },
+      "moodAfter": {
+        "happy": "Happy",
+        "crying": "Crying",
+        "groggy": "Groggy",
+        "calm": "Calm"
+      }
+    },
+    "pottyForm": {
+      "whatHappened": "What happened?",
+      "where": "Where?",
+      "results": {
+        "success": "Success",
+        "pee": "Pee",
+        "poop": "Poop",
+        "both": "Pee & poop",
+        "accident": "Accident",
+        "dry_attempt": "Dry attempt"
+      },
+      "locations": {
+        "potty-chair": "Potty chair",
+        "toilet": "Toilet",
+        "training-seat": "Training seat",
+        "other": "Other"
+      }
+    },
+    "behaviorForm": {
+      "label": "Behavior",
+      "customTag": "Add a custom tag",
+      "customTagAria": "Custom behavior tag",
+      "add": "Add",
+      "resolution": "What resolved it? (optional)",
+      "resolutionPlaceholder": "What helped calm or resolve the situation?",
+      "notesPlaceholder": "Triggers, duration, anything else worth noting",
+      "locationPlaceholder": "Home, school, car…",
+      "metaWhere": "Where",
+      "metaResolution": "Resolution",
+      "metaNotes": "Notes",
+      "tags": {
+        "Tantrum": "Tantrum",
+        "Yelling": "Yelling",
+        "Not listening": "Not listening",
+        "Daydreaming": "Daydreaming",
+        "Hitting": "Hitting",
+        "Aggression": "Aggression",
+        "Whining": "Whining"
+      }
+    }
+  },
+  "profile": {
+    "thisMonth": "This month",
+    "yourBabies": "Your babies",
+    "addBaby": "Add baby",
+    "editProfile": "Edit profile",
+    "noBabies": "No babies linked to this account yet.",
+    "addBabyPrompt": "Add a baby to start tracking diapers, sleep, naps, feeding, potty, growth, milestones, and health.",
+    "downloadPdf": "Download PDF",
+    "preparingPdf": "Preparing PDF…",
+    "upgradePdf": "Upgrade for PDF export",
+    "changePhoto": "Change photo",
+    "removePhoto": "Remove photo",
+    "uploading": "Uploading…",
+    "pages": {
+      "diapers": "Diapers",
+      "sleep": "Sleep",
+      "feeding": "Feeding",
+      "potty": "Potty",
+      "growth": "Growth",
+      "health": "Health"
+    },
+    "avgPerDay": "{{value}} avg / day",
+    "napsAvg": "{{value}} avg / day · Naps",
+    "openPage": "Open {{page}}"
+  },
+  "community": {
+    "parentsCorner": {
+      "title": "Parents Corner",
+      "liveFeed": "Live feed",
+      "signUpToPost": "Sign up to post",
+      "noPosts": "No posts yet",
+      "deletePost": "Delete post?",
+      "deletePostBody": "This cannot be undone.",
+      "writeSomething": "Write something…",
+      "post": "Post",
+      "posting": "Posting…"
+    },
+    "solutionBoard": {
+      "title": "Solution Board",
+      "shareChallenge": "Share a challenge",
+      "empty": "The board is empty",
+      "noMatching": "No matching challenges",
+      "search": "Search challenges",
+      "pinToBoard": "Pin to board",
+      "postSolution": "Post solution"
+    },
+    "reviews": {
+      "title": "Product Reviews",
+      "addBrand": "Add a brand",
+      "noReviews": "No reviews yet",
+      "writeReview": "Write a review",
+      "postReview": "Post review"
+    },
+    "consultants": {
+      "title": "Consultants",
+      "empty": "No consultants are listed yet",
+      "openEmail": "Open email",
+      "preparing": "Preparing…"
+    },
+    "goToFeed": "Go to feed",
+    "writePost": "Write a post",
+    "noPosts": "You haven't shared anything in Parents Corner yet."
+  },
+  "reports": {
+    "title": "Reports",
+    "subtitle": "Patterns across diapers, feeding, sleep, and more.",
+    "downloadPdf": "Download PDF",
+    "preparingPdf": "Preparing PDF…",
+    "emptyChart": "Not enough data for this chart yet.",
+    "tabs": {
+      "overview": "Overview",
+      "sleep": "Sleep & naps",
+      "diapers": "Diapers",
+      "feeding": "Feeding",
+      "potty": "Potty",
+      "behavior": "Behavior",
+      "growth": "Growth & milestones",
+      "health": "Health"
+    },
+    "allTime": "All time",
+    "days": "{{count}} days",
+    "totalLogs": "Total logs",
+    "activeDays": "Active days",
+    "dailyAverage": "Daily average",
+    "noLogs": "No logs in this period yet.",
+    "detailedAnalysis": "Detailed analysis",
+    "noSleep": "No sleep yet",
+    "logSleepHint": "Log sleep to see trends",
+    "measurements": "Measurements",
+    "weightTrend": "Weight trend",
+    "sicknessLogs": "Sickness logs",
+    "pediatricianVisits": "Pediatrician visits",
+    "tabsAria": "Report sections"
+  },
+  "errors": {
+    "generic": "Something went wrong",
+    "network": "Could not reach the server",
+    "saveFailed": "Could not save",
+    "loadFailed": "Could not load",
+    "apiRequired": "Set the API URL in .env to connect to the API."
+  },
+  "home": {
+    "badge": "Baby Pattern",
+    "line1": "Every moment",
+    "line2": "tracked.",
+    "line3": "Every milestone",
+    "line4": "remembered.",
+    "ctaSignup": "Sign up – It’s free",
+    "ctaLogin": "Log in",
+    "ctaPricing": "View pricing",
+    "ctaExplore": "Explore the app"
+  },
+  "pricing": {
+    "badge": "Pricing",
+    "title": "Start free.",
+    "titleAccent": "Go Pro when you’re ready.",
+    "sub": "Track the essentials for free. Unlock reports, exports, and more with Pro.",
+    "bestValue": "Best value",
+    "currentPlan": "Your current plan",
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "forever": "forever",
+    "afterTrial": "after trial",
+    "startTrial": "Start {{days}}-day free trial",
+    "signUpTrial": "Sign up for free trial",
+    "comingSoon": "Coming soon",
+    "trialRibbon": "{{days}}-day Pro trial"
+  },
+  "logForm": {
+    "close": "Close",
+    "closeDialog": "Close dialog",
+    "cancel": "Cancel",
+    "save": "Save",
+    "update": "Update",
+    "saving": "Saving…",
+    "baby": "Baby",
+    "selectBaby": "Select baby",
+    "notesOptional": "Notes (optional)"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet.",
+    "clearAll": "Clear all",
+    "clearChecked": "Clear checked",
+    "clearAllConfirm": "Clear all notifications?",
+    "clearAllConfirmBody": "This removes every notification from your list.",
+    "loading": "Loading…",
+    "loadingDetails": "Loading details…",
+    "decline": "Decline",
+    "accept": "Accept",
+    "accepting": "Accepting…",
+    "inviteUnavailable": "That invite is no longer available.",
+    "acceptFailed": "Could not accept invite"
+  },
+  "family": {
+    "title": "Family members",
+    "invitesForYou": "Invites for you",
+    "searchUsernames": "Search usernames…",
+    "inviteSent": "Invite sent",
+    "awaitingAcceptance": "Awaiting acceptance",
+    "cancelInvite": "Cancel invite",
+    "empty": "No family connections yet",
+    "addTag": "Add tag",
+    "editTag": "Edit tag",
+    "removeConfirm": "Remove family member?",
+    "removeConfirmBody": "They will lose access to shared babies from this connection.",
+    "whoIsThis": "Who is this person?",
+    "saveTag": "Save tag",
+    "skip": "Skip for now",
+    "sendInvite": "Send invite",
+    "relationships": {
+      "Parent": "Parent",
+      "Partner": "Partner",
+      "Grandparent": "Grandparent",
+      "Babysitter": "Babysitter",
+      "Nanny": "Nanny",
+      "Relative": "Relative",
+      "Friend": "Friend",
+      "Other": "Other"
+    }
+  },
+  "growth": {
+    "title": "Growth & milestones",
+    "subtitle": "Track measurements and milestones over time.",
+    "addMeasurement": "Add measurement",
+    "editMilestone": "Edit milestone",
+    "addMilestone": "Add milestone",
+    "weight": "Weight",
+    "height": "Height / length",
+    "head": "Head circumference",
+    "noMeasurements": "No measurements yet",
+    "commonMilestones": "Common milestones to log",
+    "measurements": "Measurements",
+    "milestones": "Milestones"
+  },
+  "health": {
+    "title": "Health events",
+    "subtitle": "Log sickness and injuries.",
+    "sickness": "Sickness",
+    "injuries": "Injuries",
+    "logSickness": "Log sickness",
+    "logInjury": "Log injury",
+    "swelling": "Swelling present",
+    "doctorRecs": "Doctor recommendations",
+    "addSymptom": "Add a symptom and press Enter",
+    "symptoms": "Symptoms",
+    "noEvents": "No health events yet"
+  },
+  "pediatrician": {
+    "title": "Pediatrician visits",
+    "subtitle": "Keep a record of checkups and immunizations.",
+    "logVisit": "Log pediatrician visit",
+    "visitHistory": "Visit history",
+    "immunizations": "Immunizations given",
+    "addImmunization": "Add immunization and press Enter",
+    "noVisits": "No visits logged yet"
+  },
+  "memories": {
+    "title": "Daily memories",
+    "subtitle": "Capture moments from each day.",
+    "add": "Add daily memory",
+    "week": "Week",
+    "month": "Month",
+    "day": "Day",
+    "emptyWeek": "No memories this week yet",
+    "save": "Save memory",
+    "gateLogin": "Log in to view daily memories.",
+    "gateBaby": "Add a baby to start saving memories."
+  },
+  "weekly": {
+    "title": "Weekly summary",
+    "lastWeek": "Last week",
+    "thisWeek": "This week",
+    "inReview": "Your week in review",
+    "proOnly": "Weekly summaries are a Pro feature",
+    "copy": "Copy summary",
+    "copied": "Copied",
+    "noSleep": "No sleep logged this week",
+    "busiestWeekday": "Busiest weekday",
+    "upgrade": "Upgrade to Pro"
+  },
+  "legal": {
+    "termsTitle": "Terms of Use",
+    "privacyTitle": "Privacy Policy",
+    "termsIntro": "Please read these terms carefully before using Baby Pattern.",
+    "privacyIntro": "This policy describes how Baby Pattern handles your information.",
+    "lastUpdated": "Last updated:",
+    "support": "Support",
+    "supportWithEmail": "Support: {{email}}",
+    "privacyLink": "Privacy Policy",
+    "termsLink": "Terms of Use",
+    "back": "Back",
+    "viewOnline": "View online: {{url}}"
+  },
+  "pdf": {
+    "pageOf": "Page {{current}} of {{total}}",
+    "preparedFor": "Prepared for {{name}}",
+    "notesAppendix": "Notes appendix",
+    "notesAppendixHint": "Full notes for rows truncated in weekly tables.",
+    "notesAppendixHintBehavior": "Full resolution and notes for rows truncated in monthly tables.",
+    "date": "Date",
+    "time": "Time",
+    "notes": "Notes",
+    "location": "Location",
+    "behaviors": "Behaviors",
+    "resolution": "Resolution",
+    "sleep": "Sleep",
+    "quality": "Quality",
+    "fellAsleep": "Fell Asleep",
+    "wakeUps": "Wake-ups",
+    "contents": "Contents",
+    "brandSize": "Brand/Size",
+    "cream": "Cream",
+    "status": "Status",
+    "other": "Other",
+    "type": "Type",
+    "amount": "Amount",
+    "duration": "Duration",
+    "result": "Result",
+    "reportHighlights": "Report highlights",
+    "weekHighlights": "Week highlights",
+    "emptySleep": "No sleep logs to include in this report.",
+    "emptyDiaper": "No diaper logs to include in this report.",
+    "emptyFeeding": "No feeding logs to include in this report.",
+    "emptyPotty": "No potty logs to include in this report.",
+    "emptyBehavior": "No behavior logs to include in this report.",
+    "footerSleep": "Baby Pattern — Sleep Report",
+    "footerDiaper": "Baby Pattern — Diaper Report",
+    "footerFeeding": "Baby Pattern — Feeding Report",
+    "footerPotty": "Baby Pattern — Potty Report",
+    "footerBehavior": "Baby Pattern — Behavior Report",
+    "footerPediatric": "Baby Pattern — Pediatric Care Report",
+    "titleSleep": "{{name}} — Sleep Report",
+    "titleDiaper": "{{name}} — Diaper Report",
+    "titleFeeding": "{{name}} — Feeding Report",
+    "titlePotty": "{{name}} — Potty Report",
+    "titleBehavior": "{{name}} — Behavior Report",
+    "dailySleepLog": "Daily sleep log",
+    "dailyDiaperLog": "Daily diaper log",
+    "dailyFeedingLog": "Daily feeding log",
+    "dailyPottyLog": "Daily potty log",
+    "leastSleep": "Least sleep",
+    "mostSleep": "Most sleep",
+    "leastNapDays": "Least nap days",
+    "mostNapDays": "Most nap days",
+    "leastChanges": "Least changes",
+    "mostChanges": "Most changes",
+    "leastBmDays": "Least BM days",
+    "mostBmDays": "Most BM days",
+    "leastFeeds": "Least feeds",
+    "mostFeeds": "Most feeds",
+    "leastBottleDays": "Least bottle days",
+    "mostBottleDays": "Most bottle days",
+    "leastVisits": "Least visits",
+    "mostVisits": "Most visits",
+    "leastSuccessDays": "Least success days",
+    "mostSuccessDays": "Most success days",
+    "report": {
+      "period": {
+        "allTime": "All time",
+        "last7": "Last 7 days",
+        "last30": "Last 30 days",
+        "last90": "Last 90 days"
+      },
+      "timeOfDay": {
+        "morning": "Morning",
+        "afternoon": "Afternoon",
+        "evening": "Evening",
+        "night": "Night"
+      },
+      "feedingType": {
+        "breast": "Breastfeed",
+        "bottle": "Bottle",
+        "solids": "Solids",
+        "snack": "Snack",
+        "feed": "Feed"
+      },
+      "timeline": {
+        "nap": "Nap",
+        "sleep": "Sleep",
+        "sleepDuration": "{{kind}} · {{duration}}",
+        "amountOz": "{{amount}} oz",
+        "wetDiaper": "Wet diaper",
+        "dirtyDiaper": "Dirty diaper",
+        "mixedDiaper": "Mixed diaper",
+        "diaperChange": "Diaper change",
+        "sleeping": "Sleeping",
+        "wakeNap": "Wake (nap)",
+        "wake": "Wake",
+        "pottyVisit": "Visit"
+      },
+      "pottyResult": {
+        "success": "Success",
+        "pee": "Pee",
+        "poop": "Poop",
+        "both": "Pee & poop",
+        "accident": "Accident",
+        "dry_attempt": "Dry attempt"
+      },
+      "sleepSummary": {
+        "avgDaily": "Average daily sleep",
+        "nightSleep": "Night sleep",
+        "daySleep": "Day sleep",
+        "avgBedtime": "Average bedtime",
+        "avgWakeTime": "Average wake time",
+        "avgNightWakings": "Avg night wakings",
+        "longestStretch": "Longest sleep stretch"
+      },
+      "sleepInsight": {
+        "noLogs": "No sleep logs recorded in this period.",
+        "bedtimeConsistent": "Bedtime is becoming more consistent.",
+        "bedtimeVaries": "Bedtime varies across nights — a steady routine may help.",
+        "wakingsLow": "Night wakings remain relatively low for this period.",
+        "afternoonNaps": "Afternoon naps account for a large share of daytime sleep.",
+        "averagesSummary": "Sleep averages are summarized from caregiver-entered logs."
+      },
+      "feedingSummary": {
+        "avgOunces": "Average ounces",
+        "largestBottle": "Largest bottle",
+        "smallestBottle": "Smallest bottle",
+        "dailyIntakeAvg": "Daily intake (avg)",
+        "avgSessionLength": "Avg session length",
+        "oz": "{{count}} oz",
+        "ozPerDay": "{{count}} oz/day",
+        "perDay": "{{count}}/day",
+        "logCount": "{{count}} log",
+        "logCountPlural": "{{count}} logs"
+      },
+      "feedingInsight": {
+        "noLogs": "No feeding logs in this period.",
+        "solidsOutnumberBottle": "Solid food logs outnumber bottle feeds in this period.",
+        "bottleDecreasing": "Bottle intake appears to be decreasing over the period.",
+        "bottleIncreasing": "Bottle intake appears to be increasing over the period.",
+        "patternsSummary": "Feeding patterns are based on caregiver-entered logs."
+      },
+      "diaperSummary": {
+        "wet": "Wet",
+        "dirty": "Dirty",
+        "mixed": "Mixed",
+        "wetAvgDay": "Wet (avg/day)",
+        "dirtyAvgDay": "Dirty (avg/day)"
+      },
+      "diaperInsight": {
+        "noLogs": "No diaper logs in this period.",
+        "countsSummary": "Wet and dirty counts reflect caregiver-entered diaper changes.",
+        "dirtyLow": "Dirty diaper frequency is on the lower side for this period."
+      },
+      "pottySummary": {
+        "attempts": "Attempts",
+        "successful": "Successful",
+        "accidents": "Accidents",
+        "successRate": "Success rate",
+        "week": "Week {{n}}"
+      },
+      "pottyInsight": {
+        "noLogs": "No potty logs in this period.",
+        "successStrong": "Potty success rate is strong for this period.",
+        "accidentsLater": "Most accidents may cluster later in the day — extra reminders before bedtime can help.",
+        "successImproved": "Success rate improved from about {{first}}% to {{last}}% across recent weeks."
+      },
+      "health": {
+        "fever": "Fever",
+        "feverTemp": "Fever {{temp}}°F",
+        "medicine": "Medicine: {{name}}",
+        "recovered": "Recovered {{when}}",
+        "asLogged": "As logged",
+        "noReactions": "No reactions noted in log",
+        "swellingNoted": "Swelling noted"
+      },
+      "healthSummary": {
+        "illnesses": "Illnesses",
+        "doctorVisits": "Doctor visits",
+        "medicineDays": "Medicine days",
+        "feverEpisodes": "Fever episodes",
+        "injuries": "Injuries"
+      },
+      "healthInsight": {
+        "noLogs": "No health events logged in this period.",
+        "feverLogged": "Fever episodes were logged — monitor recovery and contact your pediatrician if concerned.",
+        "ongoing": "{{count}} health event(s) were still ongoing at report time.",
+        "notMedical": "Health observations are caregiver-entered and not medical conclusions."
+      },
+      "growth": {
+        "lb": "{{value}} lb",
+        "in": "{{value}} in"
+      },
+      "growthSummary": {
+        "latestWeight": "Latest weight",
+        "latestHeight": "Latest height",
+        "latestHead": "Latest head",
+        "weightChange": "Weight change",
+        "heightChange": "Height change",
+        "milestones": "Milestones"
+      },
+      "growthInsight": {
+        "noLogs": "No growth measurements or milestones in this period.",
+        "weightChange": "Weight change in period: {{change}}.",
+        "heightChange": "Height change in period: {{change}}.",
+        "trendsSummary": "Growth trends follow caregiver-entered measurements."
+      },
+      "correlation": {
+        "napsAndNight": "Longer afternoon naps may be associated with nighttime sleep patterns — review sleep logs for your child.",
+        "milkAndSolids": "Reduced daytime milk intake often corresponds with changing solid food patterns in this period.",
+        "illnessSleep": "Illness periods may coincide with changes in sleep and appetite — compare health and feeding sections.",
+        "diaperFeeding": "Diaper and feeding frequency can shift together — review fluid intake on lower-output days.",
+        "pottyReminders": "Potty training success often improves with consistent bathroom reminders and routine.",
+        "needMoreData": "Log more data across categories to surface cross-activity patterns in future reports.",
+        "observationSuffix": "{{line}} (Observation — not a medical conclusion.)"
+      },
+      "ai": {
+        "perDaySuffix": " per day",
+        "feedingShifts": "with some shifts in bottle and solid intake",
+        "feedingStable": "remained relatively stable",
+        "diaperWithinRange": "Diaper frequency stayed within the range recorded in your logs",
+        "diaperLight": "Diaper logging was light in this period",
+        "illnessNoted": "while {{count}} illness log(s) were noted",
+        "noIllness": "with no illness logs recorded",
+        "pottySuccess": "Potty training shows a {{rate}} success rate in this period.",
+        "summary": "Over {{range}}, {{childName}} averaged {{sleepAvg}}. Feeding patterns {{feedingStable}}, {{diaperNote}}, {{illnessNote}}. {{pottyNote}} Overall, routines and development are summarized from caregiver-entered data for discussion with your pediatrician."
+      },
+      "cover": {
+        "yourChild": "Your child",
+        "yourChildren": "Your children",
+        "multipleChildren": "Multiple children"
+      },
+      "dashboard": {
+        "avgSleep": "Average sleep",
+        "feedings": "Feedings",
+        "wetDiapers": "Wet diapers",
+        "dirtyDiapers": "Dirty diapers",
+        "healthEvents": "Health events",
+        "growth": "Growth",
+        "pottySuccess": "Potty success",
+        "perDayShort": "/day",
+        "valuePerDay": "{{value}}/day"
+      }
+    }
+  }
+}

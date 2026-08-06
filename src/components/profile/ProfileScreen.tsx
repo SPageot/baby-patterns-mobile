@@ -1,6 +1,7 @@
 import { Pressable, ScrollView, Text, View } from 'react-native'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { BabyDetailsModal } from '@/components/baby/BabyDetailsModal'
 import { FamilyMembersSection } from '@/components/profile/FamilyMembersSection'
@@ -238,6 +239,7 @@ const createStyles = (t: AppPalette) => ({
 })
 
 export function ProfileScreen() {
+  const { t } = useTranslation()
   const router = useRouter()
   const { user, authReady, loadBabiesForCurrentUser, setUser, addBaby } = useApp()
   const confirm = useConfirmAction()
@@ -394,7 +396,7 @@ export function ProfileScreen() {
               <View style={styles.stat}>
                 <View style={styles.statHead}>
                   <NavIcon name="diaper" size={18} color={colors.text} />
-                  <Text style={styles.statPage}>Diapers</Text>
+                  <Text style={styles.statPage}>{t('profile.pages.diapers')}</Text>
                 </View>
                 <Text style={styles.statValue}>{profile.monthStats.diapers}</Text>
                 <Text style={styles.statAvg}>{profile.formatAvgPerDay(profile.monthAverages.diapers)} avg / day</Text>
@@ -404,13 +406,13 @@ export function ProfileScreen() {
                   onPress={() => router.push('/diapers')}
                   style={({ pressed }) => [styles.statAction, pressed && styles.statPressed]}
                 >
-                  <Text style={styles.statActionText}>Open</Text>
+                  <Text style={styles.statActionText}>{t('common.open')}</Text>
                 </Pressable>
               </View>
               <View style={styles.stat}>
                 <View style={styles.statHead}>
                   <NavIcon name="moon" size={18} color={colors.text} />
-                  <Text style={styles.statPage}>Sleep</Text>
+                  <Text style={styles.statPage}>{t('profile.pages.sleep')}</Text>
                 </View>
                 <Text style={styles.statValue}>
                   {profile.formatSleepDurationShort(profile.monthSleepStats.totalMinutes)}
@@ -424,13 +426,13 @@ export function ProfileScreen() {
                   onPress={() => router.push('/sleep')}
                   style={({ pressed }) => [styles.statAction, pressed && styles.statPressed]}
                 >
-                  <Text style={styles.statActionText}>Open</Text>
+                  <Text style={styles.statActionText}>{t('common.open')}</Text>
                 </Pressable>
               </View>
               <View style={styles.stat}>
                 <View style={styles.statHead}>
                   <NavIcon name="bottle" size={18} color={colors.text} />
-                  <Text style={styles.statPage}>Feeding</Text>
+                  <Text style={styles.statPage}>{t('profile.pages.feeding')}</Text>
                 </View>
                 <Text style={styles.statValue}>{profile.monthStats.feeding}</Text>
                 <Text style={styles.statAvg}>{profile.formatAvgPerDay(profile.monthAverages.feeding)} avg / day</Text>
@@ -440,13 +442,13 @@ export function ProfileScreen() {
                   onPress={() => router.push('/feeding')}
                   style={({ pressed }) => [styles.statAction, pressed && styles.statPressed]}
                 >
-                  <Text style={styles.statActionText}>Open</Text>
+                  <Text style={styles.statActionText}>{t('common.open')}</Text>
                 </Pressable>
               </View>
               <View style={styles.stat}>
                 <View style={styles.statHead}>
                   <NavIcon name="potty" size={18} color={colors.text} />
-                  <Text style={styles.statPage}>Potty</Text>
+                  <Text style={styles.statPage}>{t('profile.pages.potty')}</Text>
                 </View>
                 <Text style={styles.statValue}>{profile.monthStats.potty}</Text>
                 <Text style={styles.statAvg}>{profile.formatAvgPerDay(profile.monthAverages.potty)} avg / day</Text>
@@ -456,13 +458,13 @@ export function ProfileScreen() {
                   onPress={() => router.push('/potty')}
                   style={({ pressed }) => [styles.statAction, pressed && styles.statPressed]}
                 >
-                  <Text style={styles.statActionText}>Open</Text>
+                  <Text style={styles.statActionText}>{t('common.open')}</Text>
                 </Pressable>
               </View>
               <View style={styles.stat}>
                 <View style={styles.statHead}>
                   <NavIcon name="growth" size={18} color={colors.text} />
-                  <Text style={styles.statPage}>Growth</Text>
+                  <Text style={styles.statPage}>{t('profile.pages.growth')}</Text>
                 </View>
                 <Text style={styles.statValue}>{profile.monthExtendedStats.growth}</Text>
                 <Text style={styles.statAvg}>{profile.monthExtendedStats.growthDetail}</Text>
@@ -472,13 +474,13 @@ export function ProfileScreen() {
                   onPress={() => router.push('/growth')}
                   style={({ pressed }) => [styles.statAction, pressed && styles.statPressed]}
                 >
-                  <Text style={styles.statActionText}>Open</Text>
+                  <Text style={styles.statActionText}>{t('common.open')}</Text>
                 </Pressable>
               </View>
               <View style={styles.stat}>
                 <View style={styles.statHead}>
                   <NavIcon name="star" size={18} color={colors.text} />
-                  <Text style={styles.statPage}>Growth</Text>
+                  <Text style={styles.statPage}>{t('profile.pages.growth')}</Text>
                 </View>
                 <Text style={styles.statValue}>{profile.monthExtendedStats.milestones}</Text>
                 <Text style={styles.statAvg}>{profile.monthExtendedStats.milestoneDetail}</Text>
@@ -488,13 +490,13 @@ export function ProfileScreen() {
                   onPress={() => router.push('/growth')}
                   style={({ pressed }) => [styles.statAction, pressed && styles.statPressed]}
                 >
-                  <Text style={styles.statActionText}>Open</Text>
+                  <Text style={styles.statActionText}>{t('common.open')}</Text>
                 </Pressable>
               </View>
               <View style={styles.stat}>
                 <View style={styles.statHead}>
                   <NavIcon name="health" size={18} color={colors.text} />
-                  <Text style={styles.statPage}>Health</Text>
+                  <Text style={styles.statPage}>{t('profile.pages.health')}</Text>
                 </View>
                 <Text style={styles.statValue}>{profile.monthExtendedStats.health}</Text>
                 <Text style={styles.statAvg}>{profile.monthExtendedStats.healthDetail}</Text>
@@ -504,7 +506,7 @@ export function ProfileScreen() {
                   onPress={() => router.push('/health')}
                   style={({ pressed }) => [styles.statAction, pressed && styles.statPressed]}
                 >
-                  <Text style={styles.statActionText}>Open</Text>
+                  <Text style={styles.statActionText}>{t('common.open')}</Text>
                 </Pressable>
               </View>
             </View>

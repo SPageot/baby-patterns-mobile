@@ -3,6 +3,7 @@ import autoTable from 'jspdf-autotable'
 import type { Baby } from '@/schemas/user'
 import type { LogRecord } from '@/types/babyLog'
 import { PDF_KIND_COLORS } from './pdfChartDrawing'
+import { pdfT } from './pdfUi'
 import { sharePdfDocument } from '@/lib/sharePdfDocument'
 import {
   buildSleepPdfContent,
@@ -28,8 +29,8 @@ function addPageFooter(doc: jsPDF) {
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(7.5)
     doc.setTextColor(150, 146, 162)
-    doc.text('Baby Pattern — Sleep Report', MARGIN, FOOTER_Y)
-    doc.text(`Page ${i} of ${pages}`, PAGE_W - MARGIN, FOOTER_Y, { align: 'right' })
+    doc.text(pdfT('footerSleep'), MARGIN, FOOTER_Y)
+    doc.text(pdfT('pageOf', { current: i, total: pages }), PAGE_W - MARGIN, FOOTER_Y, { align: 'right' })
   }
 }
 
@@ -57,7 +58,7 @@ function addHighlightsTable(
   autoTable(doc, {
     startY: y,
     margin: { left: MARGIN, right: MARGIN },
-    head: [['Least sleep', 'Most sleep', 'Least nap days', 'Most nap days']],
+    head: [[pdfT('leastSleep'), pdfT('mostSleep'), pdfT('leastNapDays'), pdfT('mostNapDays')]],
     body: [[highlights.leastSleep, highlights.mostSleep, highlights.leastNapDays, highlights.mostNapDays]],
     theme: 'grid',
     styles: {
@@ -95,10 +96,17 @@ function addSleepLogTable(doc: jsPDF, y: number, week: SleepWeekPdf): void {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8.5)
   doc.setTextColor(...TEXT)
-  doc.text('Daily sleep log', MARGIN, y)
+  doc.text(pdfT('dailySleepLog'), MARGIN, y)
   y += 4
 
-  const headers = ['Date', 'Sleep', 'Quality', 'Fell Asleep', 'Wake-ups', 'Notes']
+  const headers = [
+    pdfT('date'),
+    pdfT('sleep'),
+    pdfT('quality'),
+    pdfT('fellAsleep'),
+    pdfT('wakeUps'),
+    pdfT('notes'),
+  ]
 
   const body = week.rows.map((row) => [
     row.dateShort,
@@ -158,7 +166,7 @@ function addWeekPage(
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(isFirst ? 13 : 11)
   doc.setTextColor(255, 255, 255)
-  const title = isFirst ? `${content.babyName} — Sleep Report` : content.babyName
+  const title = isFirst ? pdfT('titleSleep', { name: content.babyName }) : content.babyName
   doc.text(title, MARGIN, isFirst ? 10 : 9)
 
   if (isFirst) {
@@ -187,12 +195,12 @@ function addWeekPage(
   y += 6
 
   if (isFirst) {
-    y = addHighlightsTable(doc, y, 'Report highlights', content.highlights)
+    y = addHighlightsTable(doc, y, pdfT('reportHighlights'), content.highlights)
     if (!highlightsEqual(content.highlights, week.highlights)) {
-      y = addHighlightsTable(doc, y, 'Week highlights', week.highlights)
+      y = addHighlightsTable(doc, y, pdfT('weekHighlights'), week.highlights)
     }
   } else {
-    y = addHighlightsTable(doc, y, 'Week highlights', week.highlights)
+    y = addHighlightsTable(doc, y, pdfT('weekHighlights'), week.highlights)
   }
 
   addSleepLogTable(doc, y, week)
@@ -209,13 +217,13 @@ function addNotesAppendix(doc: jsPDF, content: SleepPdfContent): void {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(11)
   doc.setTextColor(...TEXT)
-  doc.text('Notes appendix', MARGIN, y)
+  doc.text(pdfT('notesAppendix'), MARGIN, y)
   y += 6
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
   doc.setTextColor(...MUTED)
-  doc.text('Full notes for rows truncated in weekly tables.', MARGIN, y)
+  doc.text(pdfT('notesAppendixHint'), MARGIN, y)
   y += 8
 
   for (const entry of entries) {
@@ -258,11 +266,11 @@ function buildSleepReportPdf(content: SleepPdfContent): jsPDF {
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(14)
     doc.setTextColor(...TEXT)
-    doc.text(`${content.babyName} — Sleep Report`, MARGIN, 24)
+    doc.text(pdfT('titleSleep', { name: content.babyName }), MARGIN, 24)
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(10)
     doc.setTextColor(...MUTED)
-    doc.text('No sleep logs to include in this report.', MARGIN, 34)
+    doc.text(pdfT('emptySleep'), MARGIN, 34)
     addPageFooter(doc)
     return doc
   }

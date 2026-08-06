@@ -1,4 +1,5 @@
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { Pressable, ScrollView, Text } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
@@ -30,15 +31,15 @@ export function isSettingsTabId(value: string): value is SettingsTabId {
   return SETTINGS_TAB_IDS.includes(value as SettingsTabId)
 }
 
-const TABS: { id: SettingsTabId; label: string }[] = [
-  { id: 'email', label: 'Email' },
-  { id: 'password', label: 'Password' },
-  { id: 'security', label: 'Security' },
-  { id: 'subscription', label: 'Subscription' },
-  { id: 'notifications', label: 'Notifications' },
-  { id: 'weekly-summary', label: 'Weekly summary' },
-  { id: 'appearance', label: 'Appearance' },
-  { id: 'account', label: 'Account' },
+const TABS: { id: SettingsTabId; labelKey: string }[] = [
+  { id: 'email', labelKey: 'settings.tabs.email' },
+  { id: 'password', labelKey: 'settings.tabs.password' },
+  { id: 'security', labelKey: 'settings.tabs.security' },
+  { id: 'subscription', labelKey: 'settings.tabs.subscription' },
+  { id: 'notifications', labelKey: 'settings.tabs.notifications' },
+  { id: 'weekly-summary', labelKey: 'settings.tabs.weeklySummary' },
+  { id: 'appearance', labelKey: 'settings.tabs.appearance' },
+  { id: 'account', labelKey: 'settings.tabs.account' },
 ]
 
 const createStyles = (t: AppPalette) => ({
@@ -78,6 +79,7 @@ type Props = {
 }
 
 export function SettingsTabs({ active, onChange }: Props) {
+  const { t } = useTranslation()
   const styles = useThemedStyles(createStyles)
 
   return (
@@ -86,6 +88,7 @@ export function SettingsTabs({ active, onChange }: Props) {
       showsHorizontalScrollIndicator={false}
       style={styles.scroll}
       contentContainerStyle={styles.row}
+      accessibilityLabel={t('settings.tabsAria')}
     >
       {TABS.map((tab) => {
         const isActive = active === tab.id
@@ -97,7 +100,7 @@ export function SettingsTabs({ active, onChange }: Props) {
             onPress={() => onChange(tab.id)}
             style={[styles.btn, isActive && styles.btnActive]}
           >
-            <Text style={[styles.label, isActive && styles.labelActive]}>{tab.label}</Text>
+            <Text style={[styles.label, isActive && styles.labelActive]}>{t(tab.labelKey)}</Text>
           </Pressable>
         )
       })}

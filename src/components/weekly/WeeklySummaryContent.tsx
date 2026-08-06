@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import { GrowthTrendChart } from '@/components/growth/GrowthTrendChart'
 import { TrendLineChart } from '@/components/reports/ReportCharts'
@@ -513,6 +514,7 @@ export function WeeklySummaryContent({
   onCopy,
 }: Props) {
   const styles = useThemedStyles(createStyles)
+  const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
 
   const onCopyClick = async () => {
@@ -541,9 +543,9 @@ export function WeeklySummaryContent({
     <View style={styles.root}>
       <View style={styles.narrativeSection}>
         <View style={styles.narrativeHead}>
-          <Text style={styles.narrativeTitle}>Your week at a glance</Text>
+          <Text style={styles.narrativeTitle}>{t('weekly.inReview')}</Text>
           <Button
-            title={copied ? 'Copied!' : 'Copy summary'}
+            title={copied ? t('weekly.copied') : t('weekly.copy')}
             variant="secondary"
             onPress={() => void onCopyClick()}
           />

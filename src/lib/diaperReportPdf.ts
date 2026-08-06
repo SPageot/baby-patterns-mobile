@@ -3,6 +3,7 @@ import autoTable from 'jspdf-autotable'
 import type { Baby } from '@/schemas/user'
 import type { LogRecord } from '@/types/babyLog'
 import { PDF_KIND_COLORS } from './pdfChartDrawing'
+import { pdfT } from './pdfUi'
 import { sharePdfDocument } from '@/lib/sharePdfDocument'
 import {
   buildDiaperPdfContent,
@@ -28,8 +29,8 @@ function addPageFooter(doc: jsPDF) {
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(7.5)
     doc.setTextColor(150, 146, 162)
-    doc.text('Baby Pattern — Diaper Report', MARGIN, FOOTER_Y)
-    doc.text(`Page ${i} of ${pages}`, PAGE_W - MARGIN, FOOTER_Y, { align: 'right' })
+    doc.text(pdfT('footerDiaper'), MARGIN, FOOTER_Y)
+    doc.text(pdfT('pageOf', { current: i, total: pages }), PAGE_W - MARGIN, FOOTER_Y, { align: 'right' })
   }
 }
 
@@ -57,7 +58,7 @@ function addHighlightsTable(
   autoTable(doc, {
     startY: y,
     margin: { left: MARGIN, right: MARGIN },
-    head: [['Least changes', 'Most changes', 'Least BM days', 'Most BM days']],
+    head: [[pdfT('leastChanges'), pdfT('mostChanges'), pdfT('leastBmDays'), pdfT('mostBmDays')]],
     body: [[
       highlights.leastChanges,
       highlights.mostChanges,
@@ -100,10 +101,18 @@ function addDiaperLogTable(doc: jsPDF, y: number, week: DiaperWeekPdf): void {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8.5)
   doc.setTextColor(...TEXT)
-  doc.text('Daily diaper log', MARGIN, y)
+  doc.text(pdfT('dailyDiaperLog'), MARGIN, y)
   y += 4
 
-  const headers = ['Date', 'Time', 'Contents', 'Brand/Size', 'Cream', 'Status', 'Other']
+  const headers = [
+    pdfT('date'),
+    pdfT('time'),
+    pdfT('contents'),
+    pdfT('brandSize'),
+    pdfT('cream'),
+    pdfT('status'),
+    pdfT('other'),
+  ]
 
   const body = week.rows.map((row) => [
     row.dateShort,
@@ -165,7 +174,7 @@ function addWeekPage(
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(isFirst ? 13 : 11)
   doc.setTextColor(255, 255, 255)
-  const title = isFirst ? `${content.babyName} — Diaper Report` : content.babyName
+  const title = isFirst ? pdfT('titleDiaper', { name: content.babyName }) : content.babyName
   doc.text(title, MARGIN, isFirst ? 10 : 9)
 
   if (isFirst) {
@@ -194,12 +203,12 @@ function addWeekPage(
   y += 6
 
   if (isFirst) {
-    y = addHighlightsTable(doc, y, 'Report highlights', content.highlights)
+    y = addHighlightsTable(doc, y, pdfT('reportHighlights'), content.highlights)
     if (!highlightsEqual(content.highlights, week.highlights)) {
-      y = addHighlightsTable(doc, y, 'Week highlights', week.highlights)
+      y = addHighlightsTable(doc, y, pdfT('weekHighlights'), week.highlights)
     }
   } else {
-    y = addHighlightsTable(doc, y, 'Week highlights', week.highlights)
+    y = addHighlightsTable(doc, y, pdfT('weekHighlights'), week.highlights)
   }
 
   addDiaperLogTable(doc, y, week)
@@ -216,13 +225,13 @@ function addNotesAppendix(doc: jsPDF, content: DiaperPdfContent): void {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(11)
   doc.setTextColor(...TEXT)
-  doc.text('Notes appendix', MARGIN, y)
+  doc.text(pdfT('notesAppendix'), MARGIN, y)
   y += 6
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
   doc.setTextColor(...MUTED)
-  doc.text('Full notes for rows truncated in weekly tables.', MARGIN, y)
+  doc.text(pdfT('notesAppendixHint'), MARGIN, y)
   y += 8
 
   for (const entry of entries) {
@@ -265,11 +274,11 @@ function buildDiaperReportPdf(content: DiaperPdfContent): jsPDF {
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(14)
     doc.setTextColor(...TEXT)
-    doc.text(`${content.babyName} — Diaper Report`, MARGIN, 24)
+    doc.text(pdfT('titleDiaper', { name: content.babyName }), MARGIN, 24)
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(10)
     doc.setTextColor(...MUTED)
-    doc.text('No diaper logs to include in this report.', MARGIN, 34)
+    doc.text(pdfT('emptyDiaper'), MARGIN, 34)
     addPageFooter(doc)
     return doc
   }

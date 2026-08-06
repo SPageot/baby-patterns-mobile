@@ -1,5 +1,6 @@
 import { Link } from 'expo-router'
 import { Pressable, ScrollView, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import { BabyChipBar } from '@/components/BabyChipBar'
 import { HealthDisclaimer } from '@/components/health/HealthDisclaimer'
@@ -88,17 +89,18 @@ function formatStamp(iso: string) {
 export function PediatricianTrackScreen() {
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
+  const { t } = useTranslation()
   const { user, authReady } = useApp()
   const page = usePediatricianVisitsPage()
 
   if (!authReady) {
-    return <PageLoadingScreen label="Loading…" />
+    return <PageLoadingScreen label={t('common.loading')} />
   }
 
   if (!isApiConfigured()) {
     return (
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <ErrorText>Set EXPO_PUBLIC_API_URL in .env to connect to the API.</ErrorText>
+        <ErrorText>{t('errors.apiRequired')}</ErrorText>
       </ScrollView>
     )
   }
@@ -110,10 +112,10 @@ export function PediatricianTrackScreen() {
           <View style={styles.iconWrap}>
             <NavIcon name="hospital" size={22} color={HEALTH_ACCENT} />
           </View>
-          <Text style={styles.gateTitle}>Pediatrician visits</Text>
+          <Text style={styles.gateTitle}>{t('pediatrician.title')}</Text>
           <Text style={styles.gateText}>
             <Link href="/login" style={styles.loginLink}>
-              Log in
+              {t('common.logIn')}
             </Link>{' '}
             to track pediatrician visits, recommendations, and immunizations.
           </Text>
@@ -123,7 +125,7 @@ export function PediatricianTrackScreen() {
   }
 
   if (page.loading || page.babiesLoading) {
-    return <PageLoadingScreen label="Loading pediatrician visits…" />
+    return <PageLoadingScreen label={t('common.loading')} />
   }
 
   return (
@@ -135,16 +137,14 @@ export function PediatricianTrackScreen() {
               <NavIcon name="hospital" size={22} color={HEALTH_ACCENT} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.title}>Pediatrician visits</Text>
-              <Text style={styles.sub}>
-                Track hospital, pediatrician, recommendations, and immunizations given at each visit.
-              </Text>
+              <Text style={styles.title}>{t('pediatrician.title')}</Text>
+              <Text style={styles.sub}>{t('pediatrician.subtitle')}</Text>
             </View>
           </View>
           <View style={styles.statsRow}>
             <View style={styles.stat}>
               <Text style={styles.statN}>{page.visitCount}</Text>
-              <Text style={styles.statLabel}>visits logged</Text>
+              <Text style={styles.statLabel}>{t('pediatrician.visitHistory')}</Text>
             </View>
           </View>
         </View>
@@ -158,15 +158,13 @@ export function PediatricianTrackScreen() {
         <Card>
           <View style={styles.sectionHead}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.sectionTitle}>Visit history</Text>
-              <Text style={styles.sectionSub}>
-                Hospital or clinic, doctor name, recommendations, and shots given.
-              </Text>
+              <Text style={styles.sectionTitle}>{t('pediatrician.visitHistory')}</Text>
+              <Text style={styles.sectionSub}>{t('pediatrician.subtitle')}</Text>
             </View>
-            <Button title="Log visit" onPress={page.openForm} />
+            <Button title={t('pediatrician.logVisit')} onPress={page.openForm} />
           </View>
           {page.visibleVisits.length === 0 ? (
-            <Text style={styles.empty}>No pediatrician visits yet.</Text>
+            <Text style={styles.empty}>{t('pediatrician.noVisits')}</Text>
           ) : (
             page.visibleVisits.map((row) => (
               <Card key={row.id} style={styles.card}>

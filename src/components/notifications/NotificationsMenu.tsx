@@ -1,6 +1,7 @@
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useTranslation } from 'react-i18next'
 
 import { NavIcon } from '@/components/icons/NavIcon'
 import { LoadingState } from '@/components/ui/Loading'
@@ -145,15 +146,16 @@ export function NotificationsMenu({ enabled }: Props) {
   const insets = useSafeAreaInsets()
   const colors = useHomeTheme()
   const styles = useThemedStyles(createStyles)
+  const { t } = useTranslation()
   const confirm = useConfirmAction()
   const { items, unreadCount, loading, clearing, open, setOpen, markRead, markAllRead, clearAll } =
     useNotifications(enabled)
 
   const onClearAll = () => {
     confirm({
-      title: 'Clear all notifications?',
-      message: 'Remove every notification from your list? This cannot be undone.',
-      confirmLabel: 'Clear all',
+      title: t('notifications.clearAllConfirm'),
+      message: t('notifications.clearAllConfirmBody'),
+      confirmLabel: t('notifications.clearAll'),
       onConfirm: () => clearAll(),
     })
   }
@@ -169,7 +171,7 @@ export function NotificationsMenu({ enabled }: Props) {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={
-          unreadCount > 0 ? `${unreadCount} unread notifications` : 'Notifications'
+          unreadCount > 0 ? `${unreadCount} unread notifications` : t('notifications.title')
         }
         onPress={() => setOpen(true)}
         style={({ pressed }) => [styles.bellBtn, pressed && styles.pressed]}
@@ -189,7 +191,7 @@ export function NotificationsMenu({ enabled }: Props) {
             onPress={(e) => e.stopPropagation()}
           >
             <View style={styles.head}>
-              <Text style={styles.title}>Notifications</Text>
+              <Text style={styles.title}>{t('notifications.title')}</Text>
               {(unreadCount > 0 || items.length > 0) && (
                 <View style={styles.actions}>
                   {unreadCount > 0 ? (
@@ -210,7 +212,7 @@ export function NotificationsMenu({ enabled }: Props) {
                       style={({ pressed }) => [styles.action, pressed && styles.pressed]}
                     >
                       <Text style={[styles.actionText, styles.actionDanger]}>
-                        {clearing ? 'Clearing…' : 'Clear all'}
+                        {clearing ? t('common.loading') : t('notifications.clearAll')}
                       </Text>
                     </Pressable>
                   ) : null}
@@ -220,7 +222,7 @@ export function NotificationsMenu({ enabled }: Props) {
 
             {loading ? <LoadingState label="Loading…" size="sm" inline compact /> : null}
             {!loading && items.length === 0 ? (
-              <Text style={styles.status}>No notifications yet.</Text>
+              <Text style={styles.status}>{t('notifications.empty')}</Text>
             ) : null}
 
             <ScrollView contentContainerStyle={styles.list} showsVerticalScrollIndicator={false}>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import { LogToggleRow } from '@/components/track/LogToggleRow'
 import { useApp } from '@/context/AppContext'
@@ -25,6 +26,7 @@ const createStyles = (t: AppPalette) => ({
 })
 
 export function PushNotificationSettingsSection() {
+  const { t } = useTranslation()
   const { user } = useApp()
   const push = usePushNotifications(Boolean(user))
   const palette = useHomeTheme()
@@ -35,11 +37,7 @@ export function PushNotificationSettingsSection() {
     setSuccess(null)
     try {
       await push.setEnabled(next)
-      setSuccess(
-        next
-          ? 'Notification alerts are on for this device.'
-          : 'Notification alerts are off for this device.',
-      )
+      setSuccess(next ? t('settings.notifications.successOn') : t('settings.notifications.successOff'))
     } catch {
       /* error shown by hook */
     }
@@ -47,28 +45,25 @@ export function PushNotificationSettingsSection() {
 
   return (
     <View style={styles.section}>
-      <SectionTitle>Notifications</SectionTitle>
-      <Subtitle style={styles.copy}>
-        Get alerts on this phone when someone mentions you, likes your post, or logs family tracking
-        activity.
-      </Subtitle>
+      <SectionTitle>{t('settings.notifications.title')}</SectionTitle>
+      <Subtitle style={styles.copy}>{t('settings.notifications.subtitle')}</Subtitle>
 
       {!push.supported ? (
-        <Subtitle>Push notifications require a physical iOS or Android device.</Subtitle>
+        <Subtitle>{t('settings.notifications.unsupported')}</Subtitle>
       ) : null}
 
       {push.error ? <ErrorText>{push.error}</ErrorText> : null}
       {success ? <Text style={styles.success}>{success}</Text> : null}
 
       <LogToggleRow
-        label="Notification alerts"
+        label={t('settings.notifications.alerts')}
         value={push.active}
         onChange={(next) => void onToggle(next)}
         accent={palette.accentDeep}
         stroke={palette.stroke}
         disabled={push.busy || !push.supported}
       />
-      {push.busy ? <Subtitle>Saving…</Subtitle> : null}
+      {push.busy ? <Subtitle>{t('track.fields.saving')}</Subtitle> : null}
     </View>
   )
 }

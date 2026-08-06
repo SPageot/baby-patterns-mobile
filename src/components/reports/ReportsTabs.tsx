@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react'
 import { Pressable, ScrollView, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import { NavIcon } from '@/components/icons/NavIcon'
 import type { AppPalette } from '@/constants/homeTheme'
@@ -11,13 +12,13 @@ import { Spacing } from '@/constants/theme'
 
 export type ReportsTabId = 'overview' | 'sleep' | 'diapers' | 'feeding' | 'growth' | 'health'
 
-const TABS: { id: ReportsTabId; label: string; icon: NavIconName }[] = [
-  { id: 'overview', label: 'Overview', icon: 'chart' },
-  { id: 'sleep', label: 'Sleep & naps', icon: 'moon' },
-  { id: 'diapers', label: 'Diapers', icon: 'diaper' },
-  { id: 'feeding', label: 'Feeding', icon: 'bottle' },
-  { id: 'growth', label: 'Growth & milestones', icon: 'growth' },
-  { id: 'health', label: 'Health', icon: 'health' },
+const TABS: { id: ReportsTabId; icon: NavIconName }[] = [
+  { id: 'overview', icon: 'chart' },
+  { id: 'sleep', icon: 'moon' },
+  { id: 'diapers', icon: 'diaper' },
+  { id: 'feeding', icon: 'bottle' },
+  { id: 'growth', icon: 'growth' },
+  { id: 'health', icon: 'health' },
 ]
 
 const createStyles = (t: AppPalette) => ({
@@ -64,6 +65,7 @@ type Props = {
 export function ReportsTabs({ active, onChange }: Props) {
   const palette = useHomeTheme()
   const styles = useThemedStyles(createStyles)
+  const { t } = useTranslation()
 
   return (
     <ScrollView
@@ -83,7 +85,7 @@ export function ReportsTabs({ active, onChange }: Props) {
             style={[styles.btn, isActive && styles.btnActive]}
           >
             <NavIcon name={tab.icon} size={15} color={isActive ? palette.accentDeep : palette.textMuted} />
-            <Text style={[styles.label, isActive && styles.labelActive]}>{tab.label}</Text>
+            <Text style={[styles.label, isActive && styles.labelActive]}>{t(`reports.tabs.${tab.id}`)}</Text>
           </Pressable>
         )
       })}

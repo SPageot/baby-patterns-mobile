@@ -17,6 +17,7 @@ export type User = UserAccountFields & {
   avatarUrl?: string
   pendingEmail?: string | null
   weeklySummaryEmailEnabled?: boolean
+  preferredLocale?: string
   isPro?: boolean
   isSiteDeveloper?: boolean
   hasProAccess?: boolean
@@ -55,6 +56,7 @@ export type UserUpdate = {
   location?: string
   avatarUrl?: string
   weeklySummaryEmailEnabled?: boolean
+  preferredLocale?: string
 }
 
 export type LoginCredentials = {

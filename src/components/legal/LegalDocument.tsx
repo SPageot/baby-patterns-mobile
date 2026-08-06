@@ -1,12 +1,17 @@
 import { Link, useRouter } from 'expo-router'
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useTranslation } from 'react-i18next'
 
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { heading } from '@/constants/typography'
 import { LegalParagraph } from '@/components/legal/LegalParagraph'
-import { LEGAL_LAST_UPDATED, SUPPORT_EMAIL, supportEmailMailto, type LegalSection } from '@/lib/legalContent'
+import {
+  supportEmailMailto,
+  getLegalLastUpdated,
+  type LegalSection,
+} from '@/lib/legalContent'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
 
@@ -14,6 +19,7 @@ type Props = {
   title: string
   intro: string
   sections: LegalSection[]
+  lastUpdated?: string
   /** Public HTTPS URL for Play Console / app store listings. */
   publicWebUrl?: string
 }
@@ -131,10 +137,12 @@ const createStyles = (t: AppPalette) => ({
   },
 })
 
-export function LegalDocument({ title, intro, sections, publicWebUrl }: Props) {
+export function LegalDocument({ title, intro, sections, lastUpdated, publicWebUrl }: Props) {
   const insets = useSafeAreaInsets()
   const router = useRouter()
   const styles = useThemedStyles(createStyles)
+  const { t, i18n } = useTranslation()
+  const updated = lastUpdated ?? getLegalLastUpdated(i18n.language)
 
   return (
     <View style={styles.screen}>
@@ -144,7 +152,7 @@ export function LegalDocument({ title, intro, sections, publicWebUrl }: Props) {
           onPress={() => router.back()}
           style={({ pressed }) => [styles.backBtn, pressed && styles.pressed]}
         >
-          <Text style={styles.backText}>← Back</Text>
+          <Text style={styles.backText}>← {t('legal.back')}</Text>
         </Pressable>
         <Text style={[styles.backText, { flex: 1 }]} numberOfLines={1}>
           {title}
@@ -153,10 +161,12 @@ export function LegalDocument({ title, intro, sections, publicWebUrl }: Props) {
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.docTitle}>{title}</Text>
-        <Text style={styles.meta}>Last updated: {LEGAL_LAST_UPDATED}</Text>
+        <Text style={styles.meta}>
+          {t('legal.lastUpdated')} {updated}
+        </Text>
         {publicWebUrl ? (
           <Pressable onPress={() => void Linking.openURL(publicWebUrl)}>
-            <Text style={styles.webLink}>View online: {publicWebUrl}</Text>
+            <Text style={styles.webLink}>{t('legal.viewOnline', { url: publicWebUrl })}</Text>
           </Pressable>
         ) : null}
         <Text style={styles.intro}>{intro}</Text>
@@ -182,18 +192,18 @@ export function LegalDocument({ title, intro, sections, publicWebUrl }: Props) {
 
         <View style={styles.footer}>
           <Pressable onPress={() => void Linking.openURL(supportEmailMailto())}>
-            <Text style={styles.footerLink}>Support</Text>
+            <Text style={styles.footerLink}>{t('legal.support')}</Text>
           </Pressable>
           <Text style={styles.footerDot}>·</Text>
           <Link href="/privacy" asChild>
             <Pressable>
-              <Text style={styles.footerLink}>Privacy Policy</Text>
+              <Text style={styles.footerLink}>{t('legal.privacyLink')}</Text>
             </Pressable>
           </Link>
           <Text style={styles.footerDot}>·</Text>
           <Link href="/terms" asChild>
             <Pressable>
-              <Text style={styles.footerLink}>Terms of Use</Text>
+              <Text style={styles.footerLink}>{t('legal.termsLink')}</Text>
             </Pressable>
           </Link>
         </View>
