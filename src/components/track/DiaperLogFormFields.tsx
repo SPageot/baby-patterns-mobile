@@ -4,6 +4,7 @@ import { Button, Input, Label } from '@/components/ui/primitives'
 import { BrandNameInput } from '@/components/track/BrandNameInput'
 import { DateTimeField } from '@/components/ui/DateTimeField'
 import { LogToggleRow } from '@/components/track/LogToggleRow'
+import { TourTarget } from '@/components/onboarding/TourTarget'
 import type { DiaperLogCreate } from '@/types/babyLog'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
@@ -106,10 +107,12 @@ export function DiaperLogFormFields({ state, setState, accent, stroke, disabled 
 
   return (
     <>
-      <Label>Contents</Label>
-      <LogToggleRow label="Wet" value={state.diaperPee} onChange={(v) => set({ diaperPee: v })} accent={accent} stroke={stroke} />
-      <LogToggleRow label="Bowel movement" value={state.diaperPoop} onChange={(v) => set({ diaperPoop: v })} accent={accent} stroke={stroke} />
-      <LogToggleRow label="Anything else" value={state.diaperAnythingElse} onChange={(v) => set({ diaperAnythingElse: v })} accent={accent} stroke={stroke} />
+      <TourTarget id="diaper-contents">
+        <Label>Contents</Label>
+        <LogToggleRow label="Wet" value={state.diaperPee} onChange={(v) => set({ diaperPee: v })} accent={accent} stroke={stroke} />
+        <LogToggleRow label="Bowel movement" value={state.diaperPoop} onChange={(v) => set({ diaperPoop: v })} accent={accent} stroke={stroke} />
+        <LogToggleRow label="Anything else" value={state.diaperAnythingElse} onChange={(v) => set({ diaperAnythingElse: v })} accent={accent} stroke={stroke} />
+      </TourTarget>
 
       {state.diaperAnythingElse ? (
         <>

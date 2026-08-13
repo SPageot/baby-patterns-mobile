@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { Link, useRouter } from 'expo-router'
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
+
+import { TourScrollView } from '@/components/onboarding/TourScrollView'
+import { TourTarget } from '@/components/onboarding/TourTarget'
 
 import { KindReportPanel } from '@/components/reports/KindReportPanel'
 import { HealthDisclaimer } from '@/components/health/HealthDisclaimer'
@@ -136,7 +139,7 @@ export function ReportsScreen() {
 
   if (!user) {
     return (
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <TourScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <View style={styles.gate}>
           <View style={styles.iconWrap}>
             <NavIcon name="chart" size={22} color={palette.accentDeep} />
@@ -149,25 +152,25 @@ export function ReportsScreen() {
             Log in
           </Link>
         </View>
-      </ScrollView>
+      </TourScrollView>
     )
   }
 
   if (!isApiConfigured()) {
     return (
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <TourScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <View style={styles.hero}>
           <Eyebrow>Advanced reports</Eyebrow>
           <Text style={styles.title}>Reports</Text>
         </View>
         <ErrorText>Set EXPO_PUBLIC_API_URL in .env to load reports.</ErrorText>
-      </ScrollView>
+      </TourScrollView>
     )
   }
 
   if (!reports.hasBaby) {
     return (
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <TourScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <View style={styles.gate}>
           <View style={styles.iconWrap}>
             <NavIcon name="chart" size={22} color={palette.accentDeep} />
@@ -178,7 +181,7 @@ export function ReportsScreen() {
           </Text>
           <Button title="Add a baby" onPress={() => router.push('/add-baby')} />
         </View>
-      </ScrollView>
+      </TourScrollView>
     )
   }
 
@@ -187,45 +190,53 @@ export function ReportsScreen() {
   }
 
   return (
-    <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <View style={styles.hero}>
-        <View style={styles.iconWrap}>
-          <NavIcon name="chart" size={22} color={palette.accentDeep} />
+    <TourScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <TourTarget id="page-reports-content">
+        <View style={styles.hero}>
+          <View style={styles.iconWrap}>
+            <NavIcon name="chart" size={22} color={palette.accentDeep} />
+          </View>
+          <Eyebrow>Advanced reports</Eyebrow>
+          <Text style={styles.title}>Patterns, trends & insights</Text>
+          <Text style={styles.subtitle}>
+            Deep analysis of sleep, naps, diapers, feeding, growth, and milestones — including best and worst days and times.
+          </Text>
         </View>
-        <Eyebrow>Advanced reports</Eyebrow>
-        <Text style={styles.title}>Patterns, trends & insights</Text>
-        <Text style={styles.subtitle}>
-          Deep analysis of sleep, naps, diapers, feeding, growth, and milestones — including best and worst days and times.
-        </Text>
-      </View>
+      </TourTarget>
 
-      <View style={styles.rangeRow}>
-        {(reports.isPro ? RANGE_OPTIONS_PRO : rangeOptions).map((option) => {
-          const active = reports.rangeDays === option.value
-          return (
-            <Pressable
-              key={option.value}
-              accessibilityRole="button"
-              accessibilityState={{ selected: active }}
-              onPress={() => reports.setRangeDays(option.value)}
-              style={[styles.rangeBtn, active && styles.rangeBtnActive]}
-            >
-              <Text style={[styles.rangeLabel, active && styles.rangeLabelActive]}>{option.label}</Text>
-            </Pressable>
-          )
-        })}
-      </View>
+      <TourTarget id="reports-range">
+        <View style={styles.rangeRow}>
+          {(reports.isPro ? RANGE_OPTIONS_PRO : rangeOptions).map((option) => {
+            const active = reports.rangeDays === option.value
+            return (
+              <Pressable
+                key={option.value}
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
+                onPress={() => reports.setRangeDays(option.value)}
+                style={[styles.rangeBtn, active && styles.rangeBtnActive]}
+              >
+                <Text style={[styles.rangeLabel, active && styles.rangeLabelActive]}>{option.label}</Text>
+              </Pressable>
+            )
+          })}
+        </View>
+      </TourTarget>
 
-      <Button
-        title={reports.exportingPdf ? 'Preparing PDF…' : 'Download PDF'}
-        variant="secondary"
-        onPress={() => void reports.downloadPdf()}
-        disabled={!reports.isPro || reports.exportingPdf}
-      />
+      <TourTarget id="reports-download-pdf">
+        <Button
+          title={reports.exportingPdf ? 'Preparing PDF…' : 'Download PDF'}
+          variant="secondary"
+          onPress={() => void reports.downloadPdf()}
+          disabled={!reports.isPro || reports.exportingPdf}
+        />
+      </TourTarget>
       {reports.isPro ? (
         <Button title="Weekly summary" variant="ghost" onPress={() => router.push('/weekly-summary')} />
       ) : (
-        <Button title="Upgrade for full history" variant="ghost" onPress={() => router.push('/pricing')} />
+        <TourTarget id="reports-upgrade">
+          <Button title="Upgrade for full history" variant="ghost" onPress={() => router.push('/pricing')} />
+        </TourTarget>
       )}
 
       {reports.error ? <ErrorText>{reports.error}</ErrorText> : null}
@@ -262,6 +273,6 @@ export function ReportsScreen() {
           </ReportsTabPanel>
 
       <HealthDisclaimer />
-    </ScrollView>
+    </TourScrollView>
   )
 }

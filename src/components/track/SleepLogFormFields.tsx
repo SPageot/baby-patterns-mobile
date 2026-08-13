@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Input, Label } from '@/components/ui/primitives'
 import { DateTimeField } from '@/components/ui/DateTimeField'
 import { LogToggleRow } from '@/components/track/LogToggleRow'
+import { TourTarget } from '@/components/onboarding/TourTarget'
 import { sleepFieldsToUtc } from '@/api/sleepApi'
 import type { SleepLogCreate, SleepWakeUp } from '@/types/babyLog'
 import { sleepLogFromDetails } from '@/types/babyLog'
@@ -392,13 +393,15 @@ export function SleepLogFormFields({ state, setState, accent, stroke, disabled }
         zone="utc"
       />
 
-      <DateTimeField
-        label={t('track.sleepForm.start')}
-        value={state.sleepStart}
-        onChange={(v) => set({ sleepStart: v })}
-        mode="time"
-        zone="utc"
-      />
+      <TourTarget id="sleep-start">
+        <DateTimeField
+          label={t('track.sleepForm.start')}
+          value={state.sleepStart}
+          onChange={(v) => set({ sleepStart: v })}
+          mode="time"
+          zone="utc"
+        />
+      </TourTarget>
 
       <View style={styles.endLabelRow}>
         <Label>{t('track.sleepForm.end')}</Label>

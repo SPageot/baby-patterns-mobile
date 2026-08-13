@@ -1,6 +1,7 @@
 import { View } from 'react-native'
 
 import { Button } from '@/components/ui/primitives'
+import { TourTarget } from '@/components/onboarding/TourTarget'
 import { TrackLogModalShell } from '@/components/track/TrackLogModalShell'
 import { MultiBabyLogReview } from '@/components/track/MultiBabyLogReview'
 import { MultiBabySelectField } from '@/components/track/MultiBabySelectField'
@@ -135,20 +136,21 @@ export function SleepLogModal({
 
           <View style={styles.actions}>
             <Button title="Cancel" variant="secondary" onPress={onClose} disabled={saving} style={styles.actionBtn} />
-            <Button
-              title={
-                saving
-                  ? 'Saving…'
-                  : isEdit
-                    ? 'Save changes'
-                    : isMultiCreate
-                      ? 'Review & save'
-                      : 'Save log'
-              }
-              loading={saving}
-              onPress={onSave}
-              style={styles.actionBtn}
-            />
+            <TourTarget id="log-form-save" style={styles.actionBtn}>
+              <Button
+                title={
+                  saving
+                    ? 'Saving…'
+                    : isEdit
+                      ? 'Save changes'
+                      : isMultiCreate
+                        ? 'Review & save'
+                        : 'Save log'
+                }
+                loading={saving}
+                onPress={onSave}
+              />
+            </TourTarget>
           </View>
         </>
       )}

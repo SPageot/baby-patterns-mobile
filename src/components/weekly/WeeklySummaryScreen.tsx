@@ -1,5 +1,8 @@
 import { useRouter } from 'expo-router'
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
+
+import { TourScrollView } from '@/components/onboarding/TourScrollView'
+import { TourTarget } from '@/components/onboarding/TourTarget'
 import { useTranslation } from 'react-i18next'
 
 import { NavIcon } from '@/components/icons/NavIcon'
@@ -174,7 +177,7 @@ export function WeeklySummaryScreen() {
 
   if (!user) {
     return (
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <TourScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <View style={styles.gate}>
           <View style={styles.gateIcon}>
             <NavIcon name="calendar" size={24} color={palette.accentDeep} />
@@ -188,13 +191,13 @@ export function WeeklySummaryScreen() {
             <Button title={t('common.signUp')} variant="secondary" onPress={() => router.push('/signup')} />
           </View>
         </View>
-      </ScrollView>
+      </TourScrollView>
     )
   }
 
   if (!summary.hasBaby) {
     return (
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <TourScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <View style={styles.gate}>
           <View style={styles.gateIcon}>
             <NavIcon name="calendar" size={24} color={palette.accentDeep} />
@@ -205,13 +208,13 @@ export function WeeklySummaryScreen() {
           </Text>
           <Button title={t('common.addBaby')} onPress={() => router.push('/add-baby')} />
         </View>
-      </ScrollView>
+      </TourScrollView>
     )
   }
 
   if (!userIsPro) {
     return (
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <TourScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <View style={styles.gate}>
           <View style={styles.gateIcon}>
             <NavIcon name="calendar" size={24} color={palette.accentDeep} />
@@ -220,7 +223,7 @@ export function WeeklySummaryScreen() {
           <Text style={styles.gateText}>{t('weekly.upgrade')}</Text>
           <Button title={t('weekly.upgrade')} onPress={() => router.push('/pricing')} />
         </View>
-      </ScrollView>
+      </TourScrollView>
     )
   }
 
@@ -229,14 +232,16 @@ export function WeeklySummaryScreen() {
   }
 
   return (
-    <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <TourScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={styles.hero}>
         <View style={styles.badge}>
           <NavIcon name="calendar" size={16} color={palette.accentDeep} />
           <Text style={styles.badgeText}>{t('weekly.title')}</Text>
         </View>
         <Eyebrow>Digest</Eyebrow>
-        <Text style={styles.title}>{t('weekly.inReview')}</Text>
+        <TourTarget id="weekly-summary-heading">
+          <Text style={styles.title}>{t('weekly.inReview')}</Text>
+        </TourTarget>
         <Text style={styles.subtitle}>
           A readable digest of sleep, naps, diapers, feeding, growth, and milestones — perfect for catching up with
           your partner or pediatrician.
@@ -300,6 +305,6 @@ export function WeeklySummaryScreen() {
       />
 
       <HealthDisclaimer />
-    </ScrollView>
+    </TourScrollView>
   )
 }

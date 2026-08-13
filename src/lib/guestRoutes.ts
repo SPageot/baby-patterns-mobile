@@ -12,6 +12,7 @@ const GUEST_ALLOWED_PATHS = new Set([
   '/solution-board',
   '/reviews',
   '/consultants',
+  '/feedback',
   '/why',
   '/terms',
   '/privacy',

@@ -15,6 +15,12 @@ import type { Baby } from '@/schemas/user'
 import { feedingLogFromDetails, type FeedingLogCreate, type LogRecord } from '@/types/babyLog'
 import { useDeferredEffect } from '@/lib/scheduleEffect'
 import { isoToDatetimeLocalValue, nowLocalInputValue, todayCount } from '@/lib/trackUtils'
+import {
+  cacheFirstLoad,
+  LOGS_TTL_MS,
+  logsCacheKey,
+  peekCachedData,
+} from '@/lib/dataCache'
 import { useMultiBabyLogFlow } from '@/hooks/useMultiBabyLogFlow'
 import {
   feedingFormStateToCreate,
@@ -84,24 +90,32 @@ export function useFeedingLogs() {
     [babies],
   )
 
-  const syncLogs = useCallback(async (babyList: Baby[]) => {
+  const syncLogs = useCallback(async (babyList: Baby[], options?: { showLoading?: boolean }) => {
     if (!isApiConfigured() || !babyList.length) {
       setFeedingLogs([])
       setLoading(false)
       return
     }
 
-    setLoading(true)
+    const showLoading = options?.showLoading ?? true
+    const key = logsCacheKey(
+      'feeding',
+      babyList.map((b) => b.id),
+    )
     setError(null)
+
     try {
-      const rows = await loadFeedingLogsForBabies(
-        babyList.map((b) => ({ id: b.id, fullName: b.fullName })),
-      )
-      setFeedingLogs(dedupeFeedingLogs(rows))
+      await cacheFirstLoad({
+        key,
+        ttlMs: LOGS_TTL_MS,
+        showLoading,
+        setLoading,
+        apply: (rows) => setFeedingLogs(dedupeFeedingLogs(rows)),
+        fetcher: () =>
+          loadFeedingLogsForBabies(babyList.map((b) => ({ id: b.id, fullName: b.fullName }))),
+      })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load feeding logs')
-    } finally {
-      setLoading(false)
     }
   }, [])
 
@@ -131,7 +145,15 @@ export function useFeedingLogs() {
       if (!babiesLoading) setLoading(false)
       return
     }
-    void syncLogs(babies)
+
+    const key = logsCacheKey(
+      'feeding',
+      babies.map((b) => b.id),
+    )
+    const cached = peekCachedData<LogRecord[]>(key)
+    if (cached) setFeedingLogs(dedupeFeedingLogs(cached.data))
+
+    void syncLogs(babies, { showLoading: !cached })
   }, [user?.id, babyIdsKey, babiesLoading, babies, syncLogs])
 
   const resetForm = () => {

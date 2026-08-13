@@ -25,6 +25,12 @@ import type { ValidationIssue } from '@/schemas/user'
 import type { TrackingMediaType } from '@/types/growth'
 import type { TrackingMediaUploadPayload } from '@/lib/trackingMediaUpload'
 import { nowLocalDateValue, ymdFromDate } from '@/lib/trackUtils'
+import {
+  cacheFirstLoad,
+  LOGS_TTL_MS,
+  logsCacheKey,
+  peekCachedData,
+} from '@/lib/dataCache'
 
 export function useDailyMemories() {
   const confirm = useConfirmAction()
@@ -90,28 +96,43 @@ export function useDailyMemories() {
     setRemoveMedia(false)
   }, [])
 
-  const syncAll = useCallback(async () => {
-    if (!isApiConfigured() || !babies.length) {
-      setMemoryRows([])
-      setLoading(false)
-      return
-    }
-
-    const gen = ++syncGen.current
-    setLoading(true)
-    setError(null)
-    try {
-      const refs = babies.map((b) => ({ id: b.id, fullName: b.fullName }))
-      const rows = await loadDailyMemoriesForBabies(refs)
-      if (gen === syncGen.current) setMemoryRows(rows)
-    } catch (e) {
-      if (gen === syncGen.current) {
-        setError(e instanceof Error ? e.message : 'Failed to load daily memories')
+  const syncAll = useCallback(
+    async (options?: { showLoading?: boolean }) => {
+      if (!isApiConfigured() || !babies.length) {
+        setMemoryRows([])
+        setLoading(false)
+        return
       }
-    } finally {
-      if (gen === syncGen.current) setLoading(false)
-    }
-  }, [babies])
+
+      const showLoading = options?.showLoading ?? true
+      const gen = ++syncGen.current
+      const key = logsCacheKey(
+        'memories',
+        babies.map((b) => b.id),
+      )
+      setError(null)
+
+      try {
+        await cacheFirstLoad({
+          key,
+          ttlMs: LOGS_TTL_MS,
+          showLoading,
+          setLoading,
+          isCancelled: () => gen !== syncGen.current,
+          apply: (rows) => setMemoryRows(rows),
+          fetcher: () => {
+            const refs = babies.map((b) => ({ id: b.id, fullName: b.fullName }))
+            return loadDailyMemoriesForBabies(refs)
+          },
+        })
+      } catch (e) {
+        if (gen === syncGen.current) {
+          setError(e instanceof Error ? e.message : 'Failed to load daily memories')
+        }
+      }
+    },
+    [babies],
+  )
 
   useFocusEffect(
     useCallback(() => {
@@ -140,7 +161,15 @@ export function useDailyMemories() {
         }
         return
       }
-      void syncAll()
+
+      const key = logsCacheKey(
+        'memories',
+        babies.map((b) => b.id),
+      )
+      const cached = peekCachedData<(DailyMemory & { babyName: string })[]>(key)
+      if (cached) setMemoryRows(cached.data)
+
+      void syncAll({ showLoading: !cached })
     }, [user?.id, babyIdsKey, babiesLoading, babies, syncAll]),
   )
 

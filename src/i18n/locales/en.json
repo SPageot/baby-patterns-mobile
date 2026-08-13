@@ -29,6 +29,7 @@
     "menuTitle": "Menu",
     "closeMenu": "Close menu",
     "openMenu": "Open menu",
+    "language": "Language",
     "primary": "Primary",
     "groups": {
       "daily": "Daily care",
@@ -51,9 +52,10 @@
       "weeklySummary": "Weekly summary",
       "dailyMemories": "Daily memories",
       "parentsCorner": "Parents Corner",
-      "solutionBoard": "Solution Board",
+      "solutionBoard": "Parent Solutions Board",
       "reviews": "Reviews",
       "consultants": "Consultants",
+      "feedback": "Feedback",
       "pricing": "Pricing",
       "why": "Why track",
       "profile": "Profile",
@@ -144,7 +146,7 @@
     },
     "appearance": {
       "title": "Appearance",
-      "subtitle": "Choose language and how the main menu behaves on this device.",
+      "subtitle": "Choose how the main menu behaves on this device.",
       "language": "Language",
       "languageSub": "Applies to the app interface on this device.",
       "expandGroups": "Expand menu groups by default",
@@ -159,6 +161,10 @@
       "title": "Notifications",
       "subtitle": "Get alerts when someone mentions you, likes your post, or logs family tracking activity.",
       "alerts": "Notification alerts",
+      "alertsOnSub": "You will receive notification alerts on this device when new activity arrives.",
+      "alertsOffSub": "Turn on to allow Baby Pattern to send notification alerts to this device.",
+      "blockedSub": "Browser notifications are blocked for this site. Use your browser site settings to allow notifications, then refresh this page.",
+      "permissionDenied": "Browser notifications are blocked for Baby Pattern. In your browser address bar, open site settings (lock or tune icon) → Notifications → Allow, then refresh and try again.",
       "successOn": "Notification alerts are on for this device.",
       "successOff": "Notification alerts are off for this device.",
       "unsupported": "Push notifications require a physical iOS or Android device."
@@ -463,13 +469,54 @@
       "posting": "Posting…"
     },
     "solutionBoard": {
-      "title": "Solution Board",
-      "shareChallenge": "Share a challenge",
-      "empty": "The board is empty",
-      "noMatching": "No matching challenges",
-      "search": "Search challenges",
+      "title": "Parent Solutions Board",
+      "subtitle": "One problem at a time on the corkboard — pin what’s hard, and pin what helped. Browse freely; sign in to share.",
+      "shareChallenge": "Pin a problem",
+      "pinProblem": "Pin a problem",
+      "pinSolution": "Pin a solution",
       "pinToBoard": "Pin to board",
-      "postSolution": "Post solution"
+      "postSolution": "Post solution",
+      "empty": "The corkboard is waiting",
+      "emptyLoggedIn": "Be the first to pin a problem — another parent is probably facing the same thing tonight.",
+      "emptyGuest": "Check back soon, or sign up and share what worked for your family.",
+      "noMatching": "Nothing in this category yet",
+      "search": "Search challenges",
+      "signInHint": "Log in to pin a problem, say Me too, or upvote a solution that helped.",
+      "apiMissing": "Set VITE_API_URL in .env to use the Parent Solutions Board.",
+      "apiMissingMobile": "Set EXPO_PUBLIC_API_URL in .env to use the Parent Solutions Board.",
+      "allCategories": "All",
+      "category": "Category",
+      "problemTitle": "What’s the problem?",
+      "problemDescription": "A little more context",
+      "solutionBody": "What helped?",
+      "solutionPlaceholder": "Share the fix that worked for your family…",
+      "postAnonymously": "Post as Anonymous parent",
+      "anonymousParent": "Anonymous parent",
+      "formRequired": "Please fill in the required fields.",
+      "meToo": "Me too",
+      "upvote": "Upvote",
+      "badgeNew": "New",
+      "badgeTrending": "Trending",
+      "mostUpvoted": "Most upvoted",
+      "helpedSomeone": "Helped someone",
+      "solutionsHeading": "Pinned solutions",
+      "noSolutionsYet": "No solutions yet — be the first to pin one.",
+      "solutionCount": "{{count}} solutions",
+      "prev": "Previous problem",
+      "next": "Next problem",
+      "counter": "{{current}} of {{total}}",
+      "removeProblemTitle": "Take this problem off the board?",
+      "removeProblemBody": "Its pinned solutions will be removed too.",
+      "removeSolutionTitle": "Remove this solution?",
+      "removeSolutionBody": "It will be taken off the board.",
+      "categories": {
+        "sleep_bedtime": "Sleep & Bedtime",
+        "money_budgeting": "Money & Budgeting",
+        "co_parenting": "Co-Parenting",
+        "self_care_burnout": "Self-Care & Burnout",
+        "single_parent_corner": "Single Parent Corner",
+        "other": "Other"
+      }
     },
     "reviews": {
       "title": "Product Reviews",
@@ -483,6 +530,31 @@
       "empty": "No consultants are listed yet",
       "openEmail": "Open email",
       "preparing": "Preparing…"
+    },
+    "feedback": {
+      "title": "Feedback",
+      "subtitle": "You’re messaging the Baby Pattern development team directly. Share ideas, questions, or anything that isn’t working.",
+      "formHeading": "Send a message",
+      "subject": "Subject",
+      "message": "Message",
+      "email": "Your email",
+      "emailGuestHint": "We’ll use this so the team can reply to you.",
+      "emailLockedHint": "Using the email on your account so the team can reply.",
+      "photo": "Photo (optional)",
+      "photoHint": "JPG, PNG, GIF, or WEBP up to 10 MB.",
+      "choosePhoto": "Choose photo",
+      "changePhoto": "Change photo",
+      "removePhoto": "Remove photo",
+      "photoPermission": "Photo library permission is required to attach a photo.",
+      "send": "Send feedback",
+      "sending": "Sending…",
+      "success": "Thanks — your feedback was sent to the development team.",
+      "sendFailed": "Could not send your feedback. Please try again.",
+      "subjectRequired": "Enter a subject.",
+      "messageRequired": "Enter a message.",
+      "emailRequired": "Enter your email address.",
+      "photoTooLarge": "Photo must be 10 MB or smaller.",
+      "photoType": "Photo must be JPG, PNG, GIF, or WEBP."
     },
     "goToFeed": "Go to feed",
     "writePost": "Write a post",
@@ -920,6 +992,247 @@
         "pottySuccess": "Potty success",
         "perDayShort": "/day",
         "valuePerDay": "{{value}}/day"
+      }
+    }
+  },
+  "onboarding": {
+    "offer": {
+      "title": "Welcome to Baby Pattern",
+      "body": "We'll walk you through the app together — highlight each area, explain what it does, and let you try it. You can skip anytime and replay later from Settings → Account.",
+      "start": "Start tour",
+      "skip": "Skip"
+    },
+    "skipHint": {
+      "title": "You can take it later",
+      "body": "No problem. You can take the tour anytime from Settings → Account → Take the tour.",
+      "gotIt": "Got it"
+    },
+    "tour": {
+      "stepOf": "Step {{current}} of {{total}}",
+      "skip": "Skip tour",
+      "back": "Back",
+      "next": "Next",
+      "finish": "Finish",
+      "doAction": "Complete the highlighted action to continue"
+    },
+    "complete": {
+      "title": "You're all set",
+      "bodyFree": "You now know how to track diapers, feeding, and sleep, check growth, review reports (last 7 days on Free), and manage settings. Record activities as they happen — Baby Pattern organizes them for you. Upgrade anytime from Pricing if you want longer history, PDF reports, and weekly summaries.",
+      "bodyPro": "You now know how to track care, growth, and pediatrician visits, review long-range reports and PDFs, use weekly summaries, invite family, and manage Pro settings. Record activities as they happen — Baby Pattern organizes them so you can look back with confidence.",
+      "startTracking": "Start tracking now",
+      "explore": "Explore on my own",
+      "restart": "Restart tour",
+      "dontShow": "Don't show again"
+    },
+    "settings": {
+      "title": "App tour",
+      "subtitle": "Learn the main features of Baby Pattern.",
+      "takeTour": "Take the tour"
+    },
+    "steps": {
+      "welcome": {
+        "title": "Your Profile page",
+        "body": "This whole Profile page is your overview. You’ll see This month stats (diapers, feeding, sleep, and more), your activity calendar, your babies, and family members. We’ll walk through the main parts next. You can skip the tour anytime."
+      },
+      "historyCalendar": {
+        "title": "Activity calendar",
+        "body": "This calendar is one part of Profile. Days with logs are marked so you can look back quickly. Each care page also keeps today’s entries in its own history list."
+      },
+      "babyProfile": {
+        "title": "Your babies",
+        "body": "Another part of Profile is Your babies. Add a name and birthdate (and optional details), or edit a baby later. When you log activities, make sure the correct baby is selected if you track more than one."
+      },
+      "familyInvite": {
+        "title": "Invite family",
+        "body": "As a Pro member, you can invite someone by username so you share tracking together. Relationship tags help you keep caregivers organized."
+      },
+      "openMenuDiapers": {
+        "title": "Open the menu",
+        "body": "Tap the menu button to reach Daily care — Diapers, Feeding, Sleep, and more."
+      },
+      "goDiapers": {
+        "title": "Open Diapers",
+        "body": "Tap Diapers. Recording changes helps you see patterns over time."
+      },
+      "logDiaper": {
+        "title": "Open the diaper form",
+        "body": "Tap Log diaper change to open the full form for this page."
+      },
+      "openMenuFeeding": {
+        "title": "Next: Feeding",
+        "body": "If the form is still open, close it first. Then open the menu to go to Feeding."
+      },
+      "goFeeding": {
+        "title": "Open Feeding",
+        "body": "Tap Feeding to track when and how your baby eats."
+      },
+      "logFeeding": {
+        "title": "Open the feeding form",
+        "body": "Tap Log a feed to open the full feeding form."
+      },
+      "openMenuSleep": {
+        "title": "Next: Sleep",
+        "body": "Close the form if it's open, then open the menu for Sleep."
+      },
+      "goSleep": {
+        "title": "Open Sleep",
+        "body": "Tap Sleep to record naps and night sleep."
+      },
+      "logSleep": {
+        "title": "Open the sleep form",
+        "body": "Tap Log sleep to open the full sleep form."
+      },
+      "openMenuGrowth": {
+        "title": "Next: Growth",
+        "body": "Close any open form, then open the menu for Growth."
+      },
+      "goGrowth": {
+        "title": "Growth & milestones",
+        "body": "Tap Growth to record measurements and developmental milestones."
+      },
+      "growthMeasure": {
+        "title": "Add a measurement",
+        "body": "Add measurement opens a form for weight, height/length, head circumference, date, and optional notes. Charts on this page show how those measurements change over time."
+      },
+      "growthMilestone": {
+        "title": "Add a milestone",
+        "body": "Add milestone opens a form for title, category (Motor, Social, Language, Cognitive, or Other), date achieved, and notes. It’s a positive record—not a diagnosis."
+      },
+      "openMenuReports": {
+        "title": "Open the menu",
+        "body": "Close any form if needed, then open the menu for Insights."
+      },
+      "goReports": {
+        "title": "Open Reports",
+        "body": "Open Reports to see summaries built from what you've logged — Overview, Sleep, Diapers, Feeding, Growth, and Health."
+      },
+      "reportsRangeFree": {
+        "title": "Your report range",
+        "body": "On Free, reports cover the last 7 days. Baby Pattern helps you see patterns in what you've recorded — it doesn't prove health or replace medical care."
+      },
+      "reportsUpgrade": {
+        "title": "Longer history on Pro",
+        "body": "Want 30 or 90 days, all-time views, or PDF export? Those are Pro features. You can upgrade anytime from Pricing or Settings → Subscription."
+      },
+      "reportsRangePro": {
+        "title": "Choose a timeframe",
+        "body": "With Pro you can view 30 days, 90 days, or All time. Pick a range that helps you prepare questions for your pediatrician."
+      },
+      "reportsPdf": {
+        "title": "Download a PDF",
+        "body": "Download PDF creates an organized report from your tracked information. Use it as a reference — it isn't a medical diagnosis."
+      },
+      "openMenuWeekly": {
+        "title": "Weekly summary",
+        "body": "Open the menu again to visit Weekly summary."
+      },
+      "goWeeklySummary": {
+        "title": "Open Weekly summary",
+        "body": "Tap Weekly summary for a digest of recent activity."
+      },
+      "weeklyOverview": {
+        "title": "Your weekly digest",
+        "body": "This page organizes last week's logs into a readable summary. You can also turn on a weekly email later in Settings."
+      },
+      "openMenuPediatrician": {
+        "title": "Pediatrician visits",
+        "body": "Open the menu to find Pediatrician under Health & growth."
+      },
+      "goPediatrician": {
+        "title": "Open Pediatrician",
+        "body": "Tap Pediatrician to keep visit notes in one place."
+      },
+      "pediatricianLog": {
+        "title": "Log a visit",
+        "body": "Log pediatrician visit opens a form for date, pediatrician name, clinic, recommendations, immunizations, and notes. Saved visits appear in Visit history on this page."
+      },
+      "openMenuParents": {
+        "title": "Parents Corner",
+        "body": "Open the menu to visit the community."
+      },
+      "goParents": {
+        "title": "Open Parents Corner",
+        "body": "Open Parents Corner to browse and share with other parents."
+      },
+      "parentsCompose": {
+        "title": "Parents Corner",
+        "body": "This community page lets you browse posts and share with other parents using the composer. Content is informational—it shouldn’t replace advice from a qualified healthcare professional."
+      },
+      "openMenuPricing": {
+        "title": "See what's in Pro",
+        "body": "Open the menu and tap Pricing for a friendly look at Pro features."
+      },
+      "goPricing": {
+        "title": "Open Pricing",
+        "body": "Tap Pricing to compare plans."
+      },
+      "pricingOverview": {
+        "title": "Upgrade when you're ready",
+        "body": "Free covers everyday logging and 7-day reports. Pro adds longer history, PDF export, weekly summaries, and family invites. No pressure — upgrade only if it helps your family."
+      },
+      "openAccountSettings": {
+        "title": "Account menu",
+        "body": "Tap your avatar to open Profile, Settings, and more."
+      },
+      "goSettings": {
+        "title": "Open Settings",
+        "body": "Open Settings to manage your account. You can replay this tour anytime under Account."
+      },
+      "settingsSubscriptionFree": {
+        "title": "Your plan",
+        "body": "Subscription shows your Free plan and how to upgrade if you want Pro features."
+      },
+      "settingsSubscriptionPro": {
+        "title": "Your Pro plan",
+        "body": "Subscription is where you review Pro access and manage billing."
+      },
+      "settingsWeeklyEmail": {
+        "title": "Weekly email",
+        "body": "Under Weekly summary, you can choose to receive the digest by email."
+      },
+      "settingsAccount": {
+        "title": "Account & tour",
+        "body": "Account is where you can Take the tour again anytime. Theme lives in the side menu, not here."
+      },
+      "done": {
+        "title": "Nice work",
+        "body": "The most important thing is to record activities when you can. Over time, Baby Pattern organizes that information so you can look back on routines and patterns. Finish when you're ready."
+      },
+      "diapersPage": {
+        "title": "The Diapers page",
+        "body": "This page has a few parts: the title and description at the top, today’s count, the Log diaper change button, and today’s diaper history below. Daily care also includes Potty and Behavior in the menu if you need them later."
+      },
+      "diaperForm": {
+        "title": "The diaper form",
+        "body": "This whole form is where you record a change. Choose contents (Wet, Bowel movement, or Anything else), set the time, and optionally add brand, size, teething/sick, or cream. Tap Save when you’re ready—or Next to continue without saving."
+      },
+      "feedingPage": {
+        "title": "The Feeding page",
+        "body": "Like Diapers, this page has a header, today’s count, a Log a feed button, and today’s feeding history underneath."
+      },
+      "feedingForm": {
+        "title": "The feeding form",
+        "body": "Use this form to record a feed. Choose Breastfeed, Bottle, Solids, or Snack, then When, and optionally Amount (oz), Duration (min), notes, and teething/sick. Save when you’re ready, or Next to continue."
+      },
+      "sleepPage": {
+        "title": "The Sleep page",
+        "body": "This page shows sleep tracking at a glance: header, today’s count, Log sleep, and today’s sleep history."
+      },
+      "sleepForm": {
+        "title": "The sleep form",
+        "body": "This form covers a whole sleep session—nap toggle, start and end times, optional mood, quality, environment, wake-ups, and notes. Leave end empty if baby is still sleeping. Save when ready, or Next to continue."
+      },
+      "growthPage": {
+        "title": "Growth & milestones page",
+        "body": "This page has two main areas: measurements (with charts over time) and milestones. You’ll also see counts at the top. Baby Pattern is for tracking—it doesn’t replace advice from your pediatrician."
+      },
+      "reportsPage": {
+        "title": "The Reports page",
+        "body": "Reports brings your logs together. You’ll see a header, a date range, tabs (Overview, Sleep, Diapers, Feeding, Growth, Health), and charts or summaries for the selected tab. This helps you spot patterns—not medical conclusions."
+      },
+      "pediatricianPage": {
+        "title": "The Pediatrician page",
+        "body": "This page stores visit history: a header with visit counts, Log pediatrician visit, and the list of past visits below."
       }
     }
   }

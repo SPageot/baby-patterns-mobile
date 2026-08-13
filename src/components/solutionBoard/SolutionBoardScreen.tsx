@@ -1,33 +1,37 @@
-import { useState, useMemo, useEffect } from 'react'
-import { ScrollView, Text, View } from 'react-native'
-import { Link } from 'expo-router'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  PanResponder,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native'
+import { Link, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 
-import { ChallengeBoardCard } from '@/components/solutionBoard/ChallengeBoardCard'
-import { ChallengeBoardSearch } from '@/components/solutionBoard/ChallengeBoardSearch'
-import { ChallengeResponseStackModal } from '@/components/solutionBoard/ChallengeResponseStackModal'
-import { PinStickyNoteModal } from '@/components/solutionBoard/PinStickyNoteModal'
-import { Button, Eyebrow, ErrorText } from '@/components/ui/primitives'
+import { PinProblemModal } from '@/components/solutionBoard/PinProblemModal'
+import { PinSolutionModal } from '@/components/solutionBoard/PinSolutionModal'
+import { Button, ErrorText } from '@/components/ui/primitives'
 import { PageLoadingScreen } from '@/components/ui/Loading'
-import { NavIcon } from '@/components/icons/NavIcon'
 import { isApiConfigured } from '@/api/config'
 import { useApp } from '@/context/AppContext'
 import { useConfirmAction } from '@/context/ConfirmContext'
 import { useModeration } from '@/context/ModerationContext'
-import { useSolutionBoard } from '@/hooks/useSolutionBoard'
-import { useSolutionBoardSeen } from '@/hooks/useSolutionBoardSeen'
-import { groupSolutionNotesByChallenge, filterChallengeGroupsByQuery } from '@/lib/solutionBoardGroups'
+import { useParentSolutionBoard } from '@/hooks/useParentSolutionBoard'
+import {
+  PARENT_PROBLEM_CATEGORIES,
+  type ParentProblem,
+} from '@/schemas/parentSolutionBoard'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { heading } from '@/constants/typography'
-import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
 
 const createStyles = (t: AppPalette) => ({
   scroll: {
     flex: 1,
-    backgroundColor: '#eef2f9',
+    backgroundColor: t.background,
   },
   content: {
     paddingHorizontal: Spacing.three,
@@ -36,38 +40,35 @@ const createStyles = (t: AppPalette) => ({
   },
   hero: {
     marginBottom: Spacing.three,
+    alignItems: 'flex-start' as const,
   },
-  iconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    backgroundColor: t.accentSoft,
-    borderWidth: 1,
-    borderColor: t.strokeSubtle,
+  eyebrow: {
+    alignSelf: 'flex-start' as const,
+    color: t.accentDeep,
+    fontSize: 11,
+    fontWeight: '800' as const,
+    letterSpacing: 1,
+    textTransform: 'uppercase' as const,
     marginBottom: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: t.stroke,
+    backgroundColor: t.card2,
   },
   title: {
-    ...heading(28, { weight: '700' }),
+    ...heading(32, { weight: '700' }),
     color: t.text,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
     lineHeight: 22,
     color: t.textMuted,
   },
-  pinRow: {
-    marginBottom: Spacing.three,
-  },
-  joinBar: {
-    borderRadius: HomeRadius.xl,
-    borderWidth: 1,
-    borderColor: t.strokeSubtle,
-    backgroundColor: 'rgba(255,255,255,0.65)',
-    padding: Spacing.three,
-    marginBottom: Spacing.three,
+  toolbar: {
+    marginBottom: Spacing.two,
     gap: Spacing.two,
   },
   joinText: {
@@ -80,21 +81,74 @@ const createStyles = (t: AppPalette) => ({
     flexWrap: 'wrap' as const,
     gap: 10,
   },
-  status: {
-    color: t.textMuted,
-    fontSize: 14,
-    paddingVertical: Spacing.two,
+  chips: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    gap: 8,
+    marginBottom: Spacing.three,
   },
-  empty: {
+  chip: {
+    borderWidth: 1,
+    borderColor: t.stroke,
+    backgroundColor: t.card,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  chipActive: {
+    backgroundColor: t.accentSoft,
+    borderColor: t.accentLavender,
+  },
+  chipText: {
+    fontSize: 13,
+    color: t.text,
+    fontWeight: '600' as const,
+  },
+  chipTextActive: {
+    color: t.accentDeep,
+    fontWeight: '700' as const,
+  },
+  panel: {
     borderRadius: HomeRadius.xl,
     borderWidth: 1,
-    borderColor: t.strokeSubtle,
-    backgroundColor: t.cardTranslucent,
+    borderColor: t.stroke,
+    backgroundColor: t.card2,
+    padding: Spacing.two,
+    marginBottom: Spacing.two,
+  },
+  carousel: {
+    gap: Spacing.two,
+  },
+  navRow: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    gap: 12,
+  },
+  navBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 999,
+    backgroundColor: t.card,
+    borderWidth: 1,
+    borderColor: t.stroke,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  navBtnText: {
+    fontSize: 26,
+    lineHeight: 30,
+    color: t.text,
+  },
+  empty: {
+    backgroundColor: t.card,
+    borderRadius: HomeRadius.lg,
+    borderWidth: 1,
+    borderColor: t.stroke,
     padding: Spacing.four,
     alignItems: 'center' as const,
   },
   emptyTitle: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '700' as const,
     color: t.text,
     marginBottom: 6,
@@ -104,179 +158,456 @@ const createStyles = (t: AppPalette) => ({
     lineHeight: 22,
     color: t.textMuted,
     textAlign: 'center' as const,
+    marginBottom: 12,
   },
-  board: {
-    gap: Spacing.two,
-    alignItems: 'flex-start' as const,
+  card: {
+    backgroundColor: t.card,
+    borderRadius: HomeRadius.lg,
+    borderWidth: 1,
+    borderColor: t.stroke,
+    padding: Spacing.three,
+    shadowColor: '#644f78',
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
+  },
+  cardSage: {
+    backgroundColor: t.mode === 'dark' ? 'rgba(90,140,110,0.12)' : '#eef9f2',
+  },
+  badges: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    gap: 6,
+    marginBottom: 10,
+  },
+  badge: {
+    fontSize: 11,
+    fontWeight: '700' as const,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase' as const,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
+    overflow: 'hidden' as const,
+    backgroundColor: t.card2,
+    color: t.textMuted,
+    borderWidth: 1,
+    borderColor: t.strokeSubtle,
+  },
+  badgeNew: {
+    backgroundColor: t.accentSoft,
+    color: t.accentDeep,
+    borderColor: t.accentLavender,
+  },
+  badgeTrending: {
+    backgroundColor: t.mode === 'dark' ? 'rgba(199,160,140,0.18)' : '#fff5ee',
+    color: t.mode === 'dark' ? '#e1c2b2' : '#9a5a32',
+  },
+  problemTitle: {
+    fontSize: 22,
+    fontWeight: '700' as const,
+    color: t.text,
+    marginBottom: 8,
+  },
+  problemBody: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: t.textMuted,
+    marginBottom: 12,
+  },
+  meta: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    justifyContent: 'space-between' as const,
+    gap: 8,
+    marginBottom: 12,
+  },
+  metaText: {
+    fontSize: 13,
+    color: t.textMuted,
+  },
+  actions: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    gap: 8,
+    marginBottom: 14,
+  },
+  solutionsHeading: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: t.text,
+    marginBottom: 8,
+  },
+  solutionNote: {
+    backgroundColor: t.card2,
+    borderRadius: HomeRadius.md,
+    borderWidth: 1,
+    borderColor: t.strokeSubtle,
+    padding: 12,
+    marginBottom: 10,
+  },
+  solutionBody: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: t.text,
+    marginBottom: 8,
+  },
+  solutionFoot: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+    gap: 8,
+  },
+  counter: {
+    textAlign: 'center' as const,
+    marginTop: 12,
+    color: t.textMuted,
+    fontSize: 13,
+  },
+  status: {
+    color: t.textMuted,
+    fontSize: 14,
+    paddingVertical: Spacing.two,
   },
 })
 
+function categoryLabel(category: string, t: (key: string, opts?: { defaultValue?: string }) => string) {
+  const found = PARENT_PROBLEM_CATEGORIES.find((c) => c.id === category)
+  return t(`community.solutionBoard.categories.${category}`, {
+    defaultValue: found?.label ?? category,
+  })
+}
+
+function authorLabel(problem: ParentProblem, t: (key: string) => string) {
+  if (problem.isAnonymous || !problem.author) {
+    return t('community.solutionBoard.anonymousParent')
+  }
+  return problem.author.fullName || problem.author.username || t('community.solutionBoard.anonymousParent')
+}
+
 export function SolutionBoardScreen() {
-  const theme = useHomeTheme()
   const styles = useThemedStyles(createStyles)
   const { t } = useTranslation()
+  const router = useRouter()
   const { user, authReady } = useApp()
   const confirm = useConfirmAction()
   const { isBlocked } = useModeration()
   const isLoggedIn = Boolean(user?.id)
-  const board = useSolutionBoard(authReady && isApiConfigured())
-  const seen = useSolutionBoardSeen()
-  const [pinOpen, setPinOpen] = useState(false)
-  const [addSolutionChallenge, setAddSolutionChallenge] = useState<string | null>(null)
-  const [openGroupKey, setOpenGroupKey] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const visibleNotes = useMemo(
-    () => board.notes.filter((note) => !isBlocked(note.author.id)),
-    [board.notes, isBlocked],
-  )
-  const challengeGroups = useMemo(
-    () => groupSolutionNotesByChallenge(visibleNotes),
-    [visibleNotes],
-  )
-  const filteredGroups = useMemo(
-    () => filterChallengeGroupsByQuery(challengeGroups, searchQuery),
-    [challengeGroups, searchQuery],
-  )
-  const openGroup = challengeGroups.find((group) => group.key === openGroupKey) ?? null
+  const [category, setCategory] = useState('all')
+  const [pinProblemOpen, setPinProblemOpen] = useState(false)
+  const [pinSolutionOpen, setPinSolutionOpen] = useState(false)
+  const board = useParentSolutionBoard(authReady && isApiConfigured(), category)
 
-  const openAddSolution = (challenge: string) => {
-    setAddSolutionChallenge(challenge)
-  }
+  const visibleProblems = useMemo(
+    () =>
+      board.problems.filter((p) => {
+        if (!p.author || p.isAnonymous) return true
+        return !isBlocked(p.author.id)
+      }),
+    [board.problems, isBlocked],
+  )
 
-  const closeAddSolution = () => {
-    setAddSolutionChallenge(null)
-  }
+  const active =
+    board.activeDetail && visibleProblems.some((p) => p.id === board.activeDetail?.id)
+      ? board.activeDetail
+      : visibleProblems.find((p) => p.id === board.activeId) ?? null
+
+  const activeIndex = active ? visibleProblems.findIndex((p) => p.id === active.id) : -1
+  const solutions = (active?.solutions ?? []).filter((s) => !isBlocked(s.author.id))
 
   useEffect(() => {
-    if (!openGroup || !seen.ready) return
-    seen.markSeen(openGroup)
-  }, [openGroup, seen.ready, seen.markSeen, openGroup?.notes.map((note) => note.id).join('|')])
+    if (visibleProblems.length === 0) return
+    if (board.activeId && visibleProblems.some((p) => p.id === board.activeId)) return
+    board.setActiveId(visibleProblems[0].id)
+  }, [visibleProblems, board.activeId, board.setActiveId])
+
+  const goPrevVisible = useCallback(() => {
+    if (visibleProblems.length === 0) return
+    const idx = Math.max(0, activeIndex)
+    const prev = visibleProblems[(idx - 1 + visibleProblems.length) % visibleProblems.length]
+    if (prev) board.setActiveId(prev.id)
+  }, [visibleProblems, activeIndex, board.setActiveId])
+
+  const goNextVisible = useCallback(() => {
+    if (visibleProblems.length === 0) return
+    const idx = Math.max(0, activeIndex)
+    const next = visibleProblems[(idx + 1) % visibleProblems.length]
+    if (next) board.setActiveId(next.id)
+  }, [visibleProblems, activeIndex, board.setActiveId])
+
+  const swipeHandlers = useRef({ goPrevVisible, goNextVisible })
+  swipeHandlers.current = { goPrevVisible, goNextVisible }
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 24 && Math.abs(g.dx) > Math.abs(g.dy),
+        onPanResponderRelease: (_, g) => {
+          if (g.dx <= -48) swipeHandlers.current.goNextVisible()
+          else if (g.dx >= 48) swipeHandlers.current.goPrevVisible()
+        },
+      }),
+    [],
+  )
+
+  const requireAuth = (action: () => void) => {
+    if (!isLoggedIn) {
+      router.push('/login')
+      return
+    }
+    action()
+  }
 
   if (!authReady) {
-    return <PageLoadingScreen label="Loading…" />
+    return <PageLoadingScreen label={t('common.loading')} />
   }
 
   if (!isApiConfigured()) {
     return (
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <Text style={styles.status}>Set EXPO_PUBLIC_API_URL in .env to use the Solution Board.</Text>
+        <Text style={styles.status}>{t('community.solutionBoard.apiMissingMobile')}</Text>
       </ScrollView>
     )
   }
 
   if (board.loading) {
-    return <PageLoadingScreen label="Loading board…" />
+    return <PageLoadingScreen label={t('common.loading')} />
   }
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={styles.hero}>
-        <View style={styles.iconWrap}>
-          <NavIcon name="star" size={24} color={theme.accent} />
-        </View>
-        <Eyebrow>Community board</Eyebrow>
+        <Text style={styles.eyebrow}>{t('nav.groups.community')}</Text>
         <Text style={styles.title}>{t('community.solutionBoard.title')}</Text>
-        <Text style={styles.subtitle}>
-          Real challenges from parents — tap a bubble to scroll through what worked for each family. Sign in to share your own.
-        </Text>
+        <Text style={styles.subtitle}>{t('community.solutionBoard.subtitle')}</Text>
       </View>
 
-      {isLoggedIn ? (
-        <View style={styles.pinRow}>
-          <Button title={t('community.solutionBoard.shareChallenge')} onPress={() => setPinOpen(true)} />
-          <PinStickyNoteModal
-            open={pinOpen}
-            saving={board.saving}
-            onClose={() => setPinOpen(false)}
-            onSubmit={board.addNote}
-          />
-          <PinStickyNoteModal
-            open={Boolean(addSolutionChallenge)}
-            challenge={addSolutionChallenge ?? undefined}
-            saving={board.saving}
-            onClose={closeAddSolution}
-            onSubmit={board.addNote}
-          />
+      <View style={styles.toolbar}>
+        {isLoggedIn ? (
+          <Button title={t('community.solutionBoard.pinProblem')} onPress={() => setPinProblemOpen(true)} />
+        ) : (
+          <View style={{ gap: 10 }}>
+            <Text style={styles.joinText}>{t('community.solutionBoard.signInHint')}</Text>
+            <View style={styles.joinActions}>
+              <Link href="/signup" asChild>
+                <Button title={t('community.parentsCorner.signUpToPost')} />
+              </Link>
+              <Link href="/login" asChild>
+                <Button title={t('common.logIn')} variant="secondary" />
+              </Link>
+            </View>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.chips}>
+        <Pressable
+          style={[styles.chip, category === 'all' ? styles.chipActive : null]}
+          onPress={() => setCategory('all')}
+        >
+          <Text style={[styles.chipText, category === 'all' ? styles.chipTextActive : null]}>
+            {t('community.solutionBoard.allCategories')}
+          </Text>
+        </Pressable>
+        {PARENT_PROBLEM_CATEGORIES.map((c) => {
+          const activeChip = category === c.id
+          return (
+            <Pressable
+              key={c.id}
+              style={[styles.chip, activeChip ? styles.chipActive : null]}
+              onPress={() => setCategory(c.id)}
+            >
+              <Text style={[styles.chipText, activeChip ? styles.chipTextActive : null]}>
+                {categoryLabel(c.id, t)}
+              </Text>
+            </Pressable>
+          )
+        })}
+      </View>
+
+      {board.error ? <ErrorText>{board.error}</ErrorText> : null}
+
+      {visibleProblems.length === 0 ? (
+        <View style={styles.panel}>
+          <View style={styles.empty}>
+            <Text style={styles.emptyTitle}>{t('community.solutionBoard.empty')}</Text>
+            <Text style={styles.emptyBody}>
+              {isLoggedIn
+                ? t('community.solutionBoard.emptyLoggedIn')
+                : t('community.solutionBoard.emptyGuest')}
+            </Text>
+            {isLoggedIn ? (
+              <Button title={t('community.solutionBoard.pinProblem')} onPress={() => setPinProblemOpen(true)} />
+            ) : null}
+          </View>
         </View>
       ) : (
-        <View style={styles.joinBar}>
-          <Text style={styles.joinText}>Log in to share a challenge and the solution that helped your family.</Text>
-          <View style={styles.joinActions}>
-            <Link href="/signup" asChild>
-              <Button title="Sign up to post" />
-            </Link>
-            <Link href="/login" asChild>
-              <Button title="Log in" variant="secondary" />
-            </Link>
+        <View style={styles.panel}>
+          <View style={styles.carousel}>
+          <View style={styles.navRow}>
+            <Pressable
+              style={styles.navBtn}
+              onPress={goPrevVisible}
+              disabled={visibleProblems.length < 2}
+              accessibilityLabel={t('community.solutionBoard.prev')}
+            >
+              <Text style={styles.navBtnText}>‹</Text>
+            </Pressable>
+            <Pressable
+              style={styles.navBtn}
+              onPress={goNextVisible}
+              disabled={visibleProblems.length < 2}
+              accessibilityLabel={t('community.solutionBoard.next')}
+            >
+              <Text style={styles.navBtnText}>›</Text>
+            </Pressable>
+          </View>
+
+          {active ? (
+            <View
+              {...panResponder.panHandlers}
+              style={[
+                styles.card,
+                active.colorIndex % 2 === 1 ? styles.cardSage : null,
+                {
+                  transform: [
+                    {
+                      rotate: `${Math.max(-2.5, Math.min(2.5, active.rotationDeg || -1))}deg`,
+                    },
+                  ],
+                },
+              ]}
+            >
+              <View style={styles.badges}>
+                <Text style={styles.badge}>{categoryLabel(active.category, t)}</Text>
+                {active.isNew ? (
+                  <Text style={[styles.badge, styles.badgeNew]}>{t('community.solutionBoard.badgeNew')}</Text>
+                ) : null}
+                {active.isTrending ? (
+                  <Text style={[styles.badge, styles.badgeTrending]}>
+                    {t('community.solutionBoard.badgeTrending')}
+                  </Text>
+                ) : null}
+              </View>
+
+              <Text style={styles.problemTitle}>{active.title}</Text>
+              <Text style={styles.problemBody}>{active.description}</Text>
+
+              <View style={styles.meta}>
+                <Text style={styles.metaText}>{authorLabel(active, t)}</Text>
+                <Text style={styles.metaText}>
+                  {t('community.solutionBoard.solutionCount', { count: active.solutionCount })}
+                </Text>
+              </View>
+
+              <View style={styles.actions}>
+                <Button
+                  title={`${t('community.solutionBoard.meToo')} · ${active.meTooCount}`}
+                  variant={active.meTooByMe ? 'primary' : 'secondary'}
+                  onPress={() => requireAuth(() => void board.meToo())}
+                />
+                <Button
+                  title={t('community.solutionBoard.pinSolution')}
+                  onPress={() => requireAuth(() => setPinSolutionOpen(true))}
+                />
+                {active.isMine ? (
+                  <Button
+                    title={t('common.delete')}
+                    variant="ghost"
+                    onPress={() =>
+                      confirm({
+                        title: t('community.solutionBoard.removeProblemTitle'),
+                        message: t('community.solutionBoard.removeProblemBody'),
+                        onConfirm: async () => {
+                          await board.removeProblem(active.id)
+                        },
+                      })
+                    }
+                  />
+                ) : null}
+              </View>
+
+              <Text style={styles.solutionsHeading}>{t('community.solutionBoard.solutionsHeading')}</Text>
+              {solutions.length === 0 ? (
+                <Text style={styles.emptyBody}>{t('community.solutionBoard.noSolutionsYet')}</Text>
+              ) : (
+                solutions.map((sol) => (
+                  <View
+                    key={sol.id}
+                    style={[
+                      styles.solutionNote,
+                      { transform: [{ rotate: `${sol.rotationDeg || 0}deg` }] },
+                    ]}
+                  >
+                    <View style={styles.badges}>
+                      {sol.isMostUpvoted ? (
+                        <Text style={[styles.badge, styles.badgeTrending]}>
+                          {t('community.solutionBoard.mostUpvoted')}
+                        </Text>
+                      ) : null}
+                      {sol.helpedSomeone ? (
+                        <Text style={[styles.badge, styles.badgeNew]}>
+                          {t('community.solutionBoard.helpedSomeone')}
+                        </Text>
+                      ) : null}
+                    </View>
+                    <Text style={styles.solutionBody}>{sol.body}</Text>
+                    <View style={styles.solutionFoot}>
+                      <Text style={styles.metaText}>{sol.author.fullName || sol.author.username}</Text>
+                      <View style={styles.actions}>
+                        <Button
+                          title={`${t('community.solutionBoard.upvote')} · ${sol.upvoteCount}`}
+                          variant={sol.upvotedByMe ? 'primary' : 'secondary'}
+                          onPress={() => requireAuth(() => void board.upvote(sol.id))}
+                        />
+                        {sol.isMine ? (
+                          <Button
+                            title={t('common.delete')}
+                            variant="ghost"
+                            onPress={() =>
+                              confirm({
+                                title: t('community.solutionBoard.removeSolutionTitle'),
+                                message: t('community.solutionBoard.removeSolutionBody'),
+                                onConfirm: async () => {
+                                  await board.removeSolution(sol.id)
+                                },
+                              })
+                            }
+                          />
+                        ) : null}
+                      </View>
+                    </View>
+                  </View>
+                ))
+              )}
+            </View>
+          ) : null}
+
+          {activeIndex >= 0 ? (
+            <Text style={styles.counter}>
+              {t('community.solutionBoard.counter', {
+                current: activeIndex + 1,
+                total: visibleProblems.length,
+              })}
+            </Text>
+          ) : null}
           </View>
         </View>
       )}
 
-      {board.error ? <ErrorText>{board.error}</ErrorText> : null}
-
-      {visibleNotes.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={styles.emptyTitle}>{t('community.solutionBoard.empty')}</Text>
-          <Text style={styles.emptyBody}>
-            {isLoggedIn
-              ? 'Be the first to share a challenge — someone else is probably facing the same thing.'
-              : 'Check back soon, or sign up and share what worked for you.'}
-          </Text>
-        </View>
-      ) : (
-        <>
-          <ChallengeBoardSearch value={searchQuery} onChange={setSearchQuery} />
-          {filteredGroups.length === 0 ? (
-            <View style={styles.empty}>
-              <Text style={styles.emptyTitle}>{t('community.solutionBoard.noMatching')}</Text>
-              <Text style={styles.emptyBody}>Try a different search term.</Text>
-            </View>
-          ) : (
-            <View style={styles.board}>
-              {filteredGroups.map((group) => (
-                <ChallengeBoardCard
-                  key={group.key}
-                  group={group}
-                  onPress={() => setOpenGroupKey(group.key)}
-                  canAddSolution={isLoggedIn}
-                  onAddSolution={() => openAddSolution(group.challenge)}
-                  hasNew={seen.ready && seen.hasUnseen(group)}
-                />
-              ))}
-            </View>
-          )}
-        </>
-      )}
-
-      <ChallengeResponseStackModal
-        open={Boolean(openGroupKey)}
-        groups={challengeGroups}
-        groupKey={openGroupKey}
-        onGroupChange={setOpenGroupKey}
-        onClose={() => {
-          setOpenGroupKey(null)
-          board.setEditingNoteId(null)
-        }}
-        moderationEnabled={isLoggedIn}
-        editingNoteId={board.editingNoteId}
+      <PinProblemModal
+        open={pinProblemOpen}
         saving={board.saving}
-        onEdit={(noteId) => board.setEditingNoteId(noteId)}
-        onCancelEdit={() => board.setEditingNoteId(null)}
-        onSaveEdit={board.saveNoteEdit}
-        onDelete={(noteId) => {
-          confirm({
-            title: 'Remove this story?',
-            message: 'It will be taken off the board.',
-            onConfirm: async () => {
-              await board.removeNote(noteId)
-              if (openGroup && openGroup.notes.length <= 1) {
-                setOpenGroupKey(null)
-              }
-            },
-          })
-        }}
-        canAddSolution={isLoggedIn}
-        onAddSolution={openGroup ? () => openAddSolution(openGroup.challenge) : undefined}
+        onClose={() => setPinProblemOpen(false)}
+        onSubmit={board.pinProblem}
+      />
+      <PinSolutionModal
+        open={pinSolutionOpen}
+        saving={board.saving}
+        onClose={() => setPinSolutionOpen(false)}
+        onSubmit={board.pinSolution}
       />
     </ScrollView>
   )

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { NavIcon } from '@/components/icons/NavIcon'
+import { TourTarget } from '@/components/onboarding/TourTarget'
 import { useApp } from '@/context/AppContext'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
@@ -18,6 +19,7 @@ import {
   getStoredMenuGroupsDefault,
   menuGroupsExpandedMap,
 } from '@/lib/menuGroupsPreference'
+import { isTourRunning } from '@/lib/onboardingSession'
 import { userPlanLabel } from '@/lib/subscription'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
@@ -181,6 +183,15 @@ export function AppMenu({ open, onClose }: Props) {
     }
     let cancelled = false
     void (async () => {
+      if (isTourRunning()) {
+        if (cancelled) return
+        setExpanded(
+          Object.fromEntries(sections.map((section) => [section.id, true])) as Partial<
+            Record<NavGroupId, boolean>
+          >,
+        )
+        return
+      }
       const preference = await getStoredMenuGroupsDefault()
       if (cancelled) return
       setExpanded(
@@ -256,37 +267,52 @@ export function AppMenu({ open, onClose }: Props) {
                   <Text style={styles.sectionChevron}>{isOpen ? '▾' : '▸'}</Text>
                 </Pressable>
                 {isOpen
-                  ? section.links.map((link) => (
-                      <Pressable
-                        key={link.href}
-                        accessibilityRole="menuitem"
-                        onPress={() => navigate(link.href)}
-                        style={({ pressed }) => [styles.item, pressed && styles.pressed]}
-                      >
-                        <NavIcon name={link.icon} size={18} color={colors.accentDeep} />
-                        <Text style={styles.itemText}>
-                          {t(navLinkI18nKey(link.href), { defaultValue: link.label })}
-                        </Text>
-                      </Pressable>
-                    ))
+                  ? section.links.map((link) => {
+                      const tourId = `nav-link-${link.href.replace(/^\//, '').replace(/\//g, '-') || 'home'}`
+                      return (
+                        <TourTarget key={link.href} id={tourId}>
+                          <Pressable
+                            accessibilityRole="menuitem"
+                            onPress={() => navigate(link.href)}
+                            style={({ pressed }) => [styles.item, pressed && styles.pressed]}
+                          >
+                            <NavIcon name={link.icon} size={18} color={colors.accentDeep} />
+                            <Text style={styles.itemText}>
+                              {t(navLinkI18nKey(link.href), { defaultValue: link.label })}
+                            </Text>
+                          </Pressable>
+                        </TourTarget>
+                      )
+                    })
                   : null}
               </View>
             )
           })}
 
+          <View style={styles.divider} />
+          <Pressable
+            accessibilityRole="menuitem"
+            onPress={() => navigate('/feedback')}
+            style={({ pressed }) => [styles.item, pressed && styles.pressed]}
+          >
+            <NavIcon name="edit" size={18} color={colors.accentDeep} />
+            <Text style={styles.itemText}>{t('nav.links.feedback')}</Text>
+          </Pressable>
+
           {user ? (
             <>
               <View style={styles.divider} />
               {ACCOUNT_LINKS.filter((link) => link.href === '/add-baby').map((link) => (
-                <Pressable
-                  key={link.href}
-                  accessibilityRole="menuitem"
-                  onPress={() => navigate(link.href)}
-                  style={({ pressed }) => [styles.item, pressed && styles.pressed]}
-                >
-                  <NavIcon name="heart" size={18} color={colors.accentDeep} />
-                  <Text style={styles.itemText}>{t('common.addBaby')}</Text>
-                </Pressable>
+                <TourTarget key={link.href} id="add-baby-btn">
+                  <Pressable
+                    accessibilityRole="menuitem"
+                    onPress={() => navigate(link.href)}
+                    style={({ pressed }) => [styles.item, pressed && styles.pressed]}
+                  >
+                    <NavIcon name="heart" size={18} color={colors.accentDeep} />
+                    <Text style={styles.itemText}>{t('common.addBaby')}</Text>
+                  </Pressable>
+                </TourTarget>
               ))}
               <Pressable
                 accessibilityRole="menuitem"

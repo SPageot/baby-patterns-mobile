@@ -3,6 +3,7 @@ import { View } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 
 import { LegalAcceptModal } from '@/components/auth/LegalAcceptModal'
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour'
 import { PushNotificationHandler } from '@/components/notifications/PushNotificationHandler'
 import { SplashController } from '@/components/SplashController'
 import { useAppFonts } from '@/hooks/useAppFonts'
@@ -73,12 +74,15 @@ function RootWithLocale({ fontsLoaded }: { fontsLoaded: boolean }) {
     <AppProvider>
       <ModerationProvider>
         <ConfirmProvider>
-          <SplashController fontsReady={fontsLoaded} />
-          <BillingReturnHandler />
-          <ConfirmEmailLinkHandler />
-          <PushNotificationHandler />
-          <LegalAcceptModal />
-          <AppShellWithTabs />
+          <View style={{ flex: 1 }}>
+            <SplashController fontsReady={fontsLoaded} />
+            <BillingReturnHandler />
+            <ConfirmEmailLinkHandler />
+            <PushNotificationHandler />
+            <LegalAcceptModal />
+            <AppShellWithTabs />
+            <OnboardingTour />
+          </View>
         </ConfirmProvider>
       </ModerationProvider>
     </AppProvider>

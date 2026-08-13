@@ -117,7 +117,7 @@ export function AddBabyScreen() {
         if (!baby.id?.trim()) {
           throw new Error('Baby was created but the server did not return a baby id.')
         }
-        const list = await loadBabiesForCurrentUser()
+        const list = await loadBabiesForCurrentUser({ force: true })
         const saved =
           list.find((b) => b.id === baby.id) ??
           list.find(

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { NavIcon } from '@/components/icons/NavIcon'
+import { TourTarget } from '@/components/onboarding/TourTarget'
 import { useApp } from '@/context/AppContext'
 import { useTabNav } from '@/context/TabNavContext'
 import type { AppPalette } from '@/constants/homeTheme'
@@ -111,19 +112,20 @@ export function BottomTabNav() {
           const iconColor = active ? colors.text : colors.textMuted
           const label = t(TAB_LABEL_KEYS[tab.id], { defaultValue: tab.shortLabel })
           return (
-            <Pressable
-              key={tab.id}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: active }}
-              accessibilityLabel={label}
-              onPress={() => onTabPress(tab, router, user)}
-              style={({ pressed }) => [styles.tab, active && styles.tabActive, pressed && styles.pressed]}
-            >
-              <NavIcon name={tab.icon} size={16} color={iconColor} />
-              <Text style={[styles.label, active && styles.labelActive]} numberOfLines={1}>
-                {label}
-              </Text>
-            </Pressable>
+            <TourTarget key={tab.id} id={`tab-${tab.id}`} style={{ flex: 1 }}>
+              <Pressable
+                accessibilityRole="tab"
+                accessibilityState={{ selected: active }}
+                accessibilityLabel={label}
+                onPress={() => onTabPress(tab, router, user)}
+                style={({ pressed }) => [styles.tab, active && styles.tabActive, pressed && styles.pressed]}
+              >
+                <NavIcon name={tab.icon} size={16} color={iconColor} />
+                <Text style={[styles.label, active && styles.labelActive]} numberOfLines={1}>
+                  {label}
+                </Text>
+              </Pressable>
+            </TourTarget>
           )
         })}
       </View>

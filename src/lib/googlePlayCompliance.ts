@@ -145,7 +145,7 @@ export const GOOGLE_PLAY_HEALTH_AND_FAMILIES = {
     ],
   },
   contentRatingHints: [
-    'User-generated content (posts, reviews, Solution Board) — disclose in questionnaire',
+    'User-generated content (posts, reviews, Parent Solutions Board) — disclose in questionnaire',
     'Health logging is caregiver-entered notes, not clinical decision support',
     'No simulated gambling, violence, or mature themes in core tracking features',
   ],
@@ -162,7 +162,7 @@ export const GOOGLE_PLAY_CONSOLE_CHECKLIST = [
   'Complete Data safety using GOOGLE_PLAY_DATA_SAFETY in googlePlayCompliance.ts',
   'Target audience: parents/adults — see GOOGLE_PLAY_TARGET_AUDIENCE and GOOGLE_PLAY_HEALTH_AND_FAMILIES',
   'Complete content rating questionnaire — see GOOGLE_PLAY_HEALTH_AND_FAMILIES.contentRatingHints',
-  'Declare UGC: Parents Corner, reviews, Solution Board — report and block in app; Terms section 5 describes moderation',
+  'Declare UGC: Parents Corner, reviews, Parent Solutions Board — report and block in app; Terms section 5 describes moderation',
   'Declare health features as caregiver logging only (not a medical device)',
   'Upload store listing graphics, screenshots, and short + full description',
   'Complete production app signing and upload AAB via EAS Submit or Play Console',

@@ -16,7 +16,20 @@ import type { FamilyMember, FamilyShareRequest } from '@/schemas/familyMember'
 import type { UserSearchResult } from '@/api/userApi'
 import { searchUsers } from '@/api/userApi'
 import { useDeferredEffect } from '@/lib/scheduleEffect'
+import {
+  cacheFirstLoad,
+  FAMILY_TTL_MS,
+  familyCacheKey,
+  invalidateCachedData,
+  peekCachedData,
+} from '@/lib/dataCache'
 import { useApp } from '@/context/AppContext'
+
+type FamilyCachePayload = {
+  members: FamilyMember[]
+  incoming: FamilyShareRequest[]
+  outgoing: FamilyShareRequest[]
+}
 
 export function useFamilyMembers(enabled: boolean) {
   const { loadBabiesForCurrentUser } = useApp()
@@ -32,29 +45,54 @@ export function useFamilyMembers(enabled: boolean) {
   const [suggestions, setSuggestions] = useState<UserSearchResult[]>([])
   const [searching, setSearching] = useState(false)
 
-  const loadAll = useCallback(async () => {
-    if (!enabled || !isApiConfigured()) return
-    setLoading(true)
-    setError(null)
-    try {
-      const [memberList, incoming, outgoing] = await Promise.all([
-        fetchFamilyMembers(),
-        fetchIncomingFamilyRequests(),
-        fetchOutgoingFamilyRequests(),
-      ])
-      setMembers(memberList)
-      setIncomingRequests(incoming)
-      setOutgoingRequests(outgoing)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not load family sharing')
-    } finally {
-      setLoading(false)
-    }
-  }, [enabled])
+  const applyFamilyCache = useCallback((data: FamilyCachePayload) => {
+    setMembers(data.members)
+    setIncomingRequests(data.incoming)
+    setOutgoingRequests(data.outgoing)
+  }, [])
+
+  const loadAll = useCallback(
+    async (options?: { showLoading?: boolean; forceNetwork?: boolean }) => {
+      if (!enabled || !isApiConfigured()) return
+
+      const key = familyCacheKey()
+      if (options?.forceNetwork) {
+        invalidateCachedData(key)
+      }
+
+      const showLoading = options?.showLoading ?? true
+      setError(null)
+
+      try {
+        await cacheFirstLoad({
+          key,
+          ttlMs: FAMILY_TTL_MS,
+          showLoading,
+          setLoading,
+          apply: applyFamilyCache,
+          fetcher: async () => {
+            const [memberList, incoming, outgoing] = await Promise.all([
+              fetchFamilyMembers(),
+              fetchIncomingFamilyRequests(),
+              fetchOutgoingFamilyRequests(),
+            ])
+            return { members: memberList, incoming, outgoing }
+          },
+        })
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Could not load family sharing')
+      }
+    },
+    [enabled, applyFamilyCache],
+  )
 
   useDeferredEffect(() => {
-    void loadAll()
-  }, [loadAll])
+    if (!enabled || !isApiConfigured()) return
+
+    const cached = peekCachedData<FamilyCachePayload>(familyCacheKey())
+    if (cached) applyFamilyCache(cached.data)
+    void loadAll({ showLoading: !cached })
+  }, [enabled, loadAll, applyFamilyCache])
 
   useDeferredEffect(() => {
     const query = searchQuery.trim()
@@ -139,7 +177,9 @@ export function useFamilyMembers(enabled: boolean) {
           }
           return [member, ...prev]
         })
-        await loadBabiesForCurrentUser()
+        await loadBabiesForCurrentUser({ force: true })
+        invalidateCachedData(familyCacheKey())
+        await loadAll({ showLoading: false, forceNetwork: true })
         return member
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Could not accept invite')
@@ -148,7 +188,7 @@ export function useFamilyMembers(enabled: boolean) {
         setRespondingRequestId(null)
       }
     },
-    [loadBabiesForCurrentUser],
+    [loadBabiesForCurrentUser, loadAll],
   )
 
   const updateMemberTag = useCallback(async (memberUserId: string, relationshipTag: string | null) => {
@@ -203,7 +243,9 @@ export function useFamilyMembers(enabled: boolean) {
       try {
         await removeFamilyMember(id)
         setMembers((prev) => prev.filter((m) => m.memberUserId !== id))
-        await loadBabiesForCurrentUser()
+        await loadBabiesForCurrentUser({ force: true })
+        invalidateCachedData(familyCacheKey())
+        await loadAll({ showLoading: false, forceNetwork: true })
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Could not remove family member')
         throw e
@@ -211,7 +253,7 @@ export function useFamilyMembers(enabled: boolean) {
         setRemovingMemberUserId(null)
       }
     },
-    [loadBabiesForCurrentUser],
+    [loadBabiesForCurrentUser, loadAll],
   )
 
   return {

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Button, ErrorText, Input, Label } from '@/components/ui/primitives'
 import { LoadingState } from '@/components/ui/Loading'
+import { TourTarget } from '@/components/onboarding/TourTarget'
 import { FamilyMemberTagModal } from '@/components/profile/FamilyMemberTagModal'
 import { useFamilyMembers } from '@/hooks/useFamilyMembers'
 import { useConfirmAction } from '@/context/ConfirmContext'
@@ -277,6 +278,7 @@ export function FamilyMembersSection({ enabled, user }: Props) {
   const memberLabel = (member: FamilyMember) => member.fullName?.trim() || member.username
 
   return (
+    <TourTarget id="family-invite-section">
     <View style={styles.section}>
       <View style={styles.head}>
         <Text style={styles.title}>{t('family.title')}</Text>
@@ -334,17 +336,19 @@ export function FamilyMembersSection({ enabled, user }: Props) {
 
       <View style={styles.add}>
         <Label>Invite by username</Label>
-        <View style={styles.searchWrap}>
-          <Input
-            placeholder="Search usernames…"
-            value={family.searchQuery}
-            onChangeText={family.setSearchQuery}
-            editable={enabled && !family.adding && userIsPro}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          {family.searching ? <Text style={styles.searchStatus}>Searching…</Text> : null}
-        </View>
+        <TourTarget id="family-invite-search">
+          <View style={styles.searchWrap}>
+            <Input
+              placeholder="Search usernames…"
+              value={family.searchQuery}
+              onChangeText={family.setSearchQuery}
+              editable={enabled && !family.adding && userIsPro}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            {family.searching ? <Text style={styles.searchStatus}>Searching…</Text> : null}
+          </View>
+        </TourTarget>
 
         {family.suggestions.length > 0 ? (
           <View style={styles.suggestions}>
@@ -483,5 +487,6 @@ export function FamilyMembersSection({ enabled, user }: Props) {
         }}
       />
     </View>
+    </TourTarget>
   )
 }

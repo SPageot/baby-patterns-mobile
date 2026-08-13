@@ -2,7 +2,6 @@ import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 
 import en from './locales/en.json'
-import es from './locales/es.json'
 import { resolveInitialLocale, storeLocale, type AppLocale } from './localePreference'
 
 let initPromise: Promise<void> | null = null
@@ -16,7 +15,6 @@ export function initI18n(): Promise<void> {
       await i18n.use(initReactI18next).init({
         resources: {
           en: { translation: en },
-          es: { translation: es },
         },
         lng: initial,
         fallbackLng: 'en',
@@ -27,6 +25,7 @@ export function initI18n(): Promise<void> {
     } else {
       await i18n.changeLanguage(initial)
     }
+    await storeLocale('en')
   })()
 
   return initPromise
@@ -38,12 +37,11 @@ export async function setAppLocale(locale: AppLocale) {
 }
 
 export function getAppLocale(): AppLocale {
-  const lng = i18n.language?.split('-')[0]
-  return lng === 'es' ? 'es' : 'en'
+  return 'en'
 }
 
 export function getDateLocale(): string {
-  return getAppLocale() === 'es' ? 'es' : 'en-US'
+  return 'en-US'
 }
 
 export default i18n

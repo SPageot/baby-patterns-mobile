@@ -18,6 +18,7 @@ export type NavIconName =
   | 'info'
   | 'check'
   | 'apple'
+  | 'edit'
 
 export type NavGroupId = 'daily' | 'health' | 'insights' | 'community' | 'plan'
 
@@ -60,7 +61,7 @@ export const NAV_LINKS: NavLink[] = [
   { label: 'Weekly summary', href: '/weekly-summary', requiresBaby: true, icon: 'calendar', group: 'insights' },
   { label: 'Daily memories', href: '/daily-memories', requiresBaby: true, icon: 'memories', group: 'insights' },
   { label: 'Parents Corner', href: '/parents-corner', requiresBaby: false, icon: 'users', group: 'community' },
-  { label: 'Solution Board', href: '/solution-board', requiresBaby: false, icon: 'check', group: 'community' },
+  { label: 'Parent Solutions Board', href: '/solution-board', requiresBaby: false, icon: 'check', group: 'community' },
   { label: 'Reviews', href: '/reviews', requiresBaby: false, icon: 'star', group: 'community' },
   { label: 'Consultants', href: '/consultants', requiresBaby: false, icon: 'info', group: 'community' },
   { label: 'Pricing', href: '/pricing', requiresBaby: false, icon: 'apple', group: 'plan' },
@@ -84,6 +85,7 @@ const GUEST_HREFS = new Set<string>([
   '/solution-board',
   '/reviews',
   '/consultants',
+  '/feedback',
   '/why',
 ])
 

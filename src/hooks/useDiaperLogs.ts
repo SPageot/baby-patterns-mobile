@@ -15,6 +15,12 @@ import type { Baby } from '@/schemas/user'
 import { diaperLogFromDetails, type DiaperLogCreate, type LogRecord } from '@/types/babyLog'
 import { useDeferredEffect } from '@/lib/scheduleEffect'
 import { isoToDatetimeLocalValue, nowLocalInputValue, todayCount } from '@/lib/trackUtils'
+import {
+  cacheFirstLoad,
+  LOGS_TTL_MS,
+  logsCacheKey,
+  peekCachedData,
+} from '@/lib/dataCache'
 import { useMultiBabyLogFlow } from '@/hooks/useMultiBabyLogFlow'
 import {
   diaperFormStateToCreate,
@@ -104,24 +110,32 @@ export function useDiaperLogs() {
     [babies],
   )
 
-  const syncLogs = useCallback(async (babyList: Baby[]) => {
+  const syncLogs = useCallback(async (babyList: Baby[], options?: { showLoading?: boolean }) => {
     if (!isApiConfigured() || !babyList.length) {
       setDiaperLogs([])
       setLoading(false)
       return
     }
 
-    setLoading(true)
+    const showLoading = options?.showLoading ?? true
+    const key = logsCacheKey(
+      'diapers',
+      babyList.map((b) => b.id),
+    )
     setError(null)
+
     try {
-      const rows = await loadDiaperLogsForBabies(
-        babyList.map((b) => ({ id: b.id, fullName: b.fullName })),
-      )
-      setDiaperLogs(dedupeDiaperLogs(rows))
+      await cacheFirstLoad({
+        key,
+        ttlMs: LOGS_TTL_MS,
+        showLoading,
+        setLoading,
+        apply: (rows) => setDiaperLogs(dedupeDiaperLogs(rows)),
+        fetcher: () =>
+          loadDiaperLogsForBabies(babyList.map((b) => ({ id: b.id, fullName: b.fullName }))),
+      })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load diaper logs')
-    } finally {
-      setLoading(false)
     }
   }, [])
 
@@ -151,7 +165,15 @@ export function useDiaperLogs() {
       if (!babiesLoading) setLoading(false)
       return
     }
-    void syncLogs(babies)
+
+    const key = logsCacheKey(
+      'diapers',
+      babies.map((b) => b.id),
+    )
+    const cached = peekCachedData<LogRecord[]>(key)
+    if (cached) setDiaperLogs(dedupeDiaperLogs(cached.data))
+
+    void syncLogs(babies, { showLoading: !cached })
   }, [user?.id, babyIdsKey, babiesLoading, babies, syncLogs])
 
   const resetForm = () => {

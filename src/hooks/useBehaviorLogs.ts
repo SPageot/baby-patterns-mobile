@@ -15,6 +15,12 @@ import type { Baby } from '@/schemas/user'
 import { behaviorLogFromDetails, type BehaviorLogCreate, type LogRecord } from '@/types/babyLog'
 import { useDeferredEffect } from '@/lib/scheduleEffect'
 import { todayCount } from '@/lib/trackUtils'
+import {
+  cacheFirstLoad,
+  LOGS_TTL_MS,
+  logsCacheKey,
+  peekCachedData,
+} from '@/lib/dataCache'
 import { useMultiBabyLogFlow } from '@/hooks/useMultiBabyLogFlow'
 import {
   behaviorFormStateToCreate,
@@ -89,24 +95,32 @@ export function useBehaviorLogs() {
     [babies],
   )
 
-  const syncLogs = useCallback(async (babyList: Baby[]) => {
+  const syncLogs = useCallback(async (babyList: Baby[], options?: { showLoading?: boolean }) => {
     if (!isApiConfigured() || !babyList.length) {
       setBehaviorLogs([])
       setLoading(false)
       return
     }
 
-    setLoading(true)
+    const showLoading = options?.showLoading ?? true
+    const key = logsCacheKey(
+      'behavior',
+      babyList.map((b) => b.id),
+    )
     setError(null)
+
     try {
-      const rows = await loadBehaviorLogsForBabies(
-        babyList.map((b) => ({ id: b.id, fullName: b.fullName })),
-      )
-      setBehaviorLogs(dedupeBehaviorLogs(rows))
+      await cacheFirstLoad({
+        key,
+        ttlMs: LOGS_TTL_MS,
+        showLoading,
+        setLoading,
+        apply: (rows) => setBehaviorLogs(dedupeBehaviorLogs(rows)),
+        fetcher: () =>
+          loadBehaviorLogsForBabies(babyList.map((b) => ({ id: b.id, fullName: b.fullName }))),
+      })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load behavior logs')
-    } finally {
-      setLoading(false)
     }
   }, [])
 
@@ -136,7 +150,15 @@ export function useBehaviorLogs() {
       if (!babiesLoading) setLoading(false)
       return
     }
-    void syncLogs(babies)
+
+    const key = logsCacheKey(
+      'behavior',
+      babies.map((b) => b.id),
+    )
+    const cached = peekCachedData<LogRecord[]>(key)
+    if (cached) setBehaviorLogs(dedupeBehaviorLogs(cached.data))
+
+    void syncLogs(babies, { showLoading: !cached })
   }, [user?.id, babyIdsKey, babiesLoading, babies, syncLogs])
 
   const resetForm = () => {

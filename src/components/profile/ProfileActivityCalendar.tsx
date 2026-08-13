@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Pressable, Text, View } from 'react-native'
 
 import { NavIcon } from '@/components/icons/NavIcon'
+import { TourTarget } from '@/components/onboarding/TourTarget'
 import type { LogRecord } from '@/types/babyLog'
 import type { InjuryEventDto } from '@/types/health'
 import type { PediatricianVisitDto } from '@/types/pediatrician'
@@ -469,6 +470,7 @@ export function ProfileActivityCalendar({
   }
 
   return (
+    <TourTarget id="profile-activity-calendar">
     <View style={styles.wrap}>
       <View style={styles.head}>
         <Text style={styles.title}>Activity calendar</Text>
@@ -635,5 +637,6 @@ export function ProfileActivityCalendar({
         </View>
       ) : null}
     </View>
+    </TourTarget>
   )
 }

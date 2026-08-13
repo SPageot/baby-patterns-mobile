@@ -23,6 +23,17 @@ import { useConfirmAction } from '@/context/ConfirmContext'
 import type { GrowthMeasurementDto, MilestoneCategory, MilestoneDto, TrackingMediaType } from '@/types/growth'
 import type { TrackingMediaUploadPayload } from '@/lib/trackingMediaUpload'
 import { isoToDatetimeLocalValue, nowLocalInputValue } from '@/lib/trackUtils'
+import {
+  cacheFirstLoad,
+  LOGS_TTL_MS,
+  logsCacheKey,
+  peekCachedData,
+} from '@/lib/dataCache'
+
+type GrowthCachePayload = {
+  measurements: (GrowthMeasurementDto & { babyName: string })[]
+  milestones: (MilestoneDto & { babyName: string })[]
+}
 
 export function useGrowthPage() {
   const { babies, selectedBabyId, selectBaby, user, loadBabiesForCurrentUser } = useApp()
@@ -84,30 +95,49 @@ export function useGrowthPage() {
     return milestones.filter((m) => m.babyId === filterBabyId)
   }, [milestones, filterBabyId])
 
-  const syncAll = useCallback(async () => {
-    if (!isApiConfigured() || !babies.length) {
-      setMeasurements([])
-      setMilestones([])
-      setLoading(false)
-      return
-    }
+  const applyGrowthCache = useCallback((data: GrowthCachePayload) => {
+    setMeasurements(data.measurements)
+    setMilestones(data.milestones)
+  }, [])
 
-    setLoading(true)
-    setError(null)
-    try {
-      const refs = babies.map((b) => ({ id: b.id, fullName: b.fullName }))
-      const [growthRows, milestoneRows] = await Promise.all([
-        loadGrowthForBabies(refs),
-        loadMilestonesForBabies(refs),
-      ])
-      setMeasurements(growthRows)
-      setMilestones(milestoneRows)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load growth data')
-    } finally {
-      setLoading(false)
-    }
-  }, [babies])
+  const syncAll = useCallback(
+    async (options?: { showLoading?: boolean }) => {
+      if (!isApiConfigured() || !babies.length) {
+        setMeasurements([])
+        setMilestones([])
+        setLoading(false)
+        return
+      }
+
+      const showLoading = options?.showLoading ?? true
+      const key = logsCacheKey(
+        'growth',
+        babies.map((b) => b.id),
+      )
+      setError(null)
+
+      try {
+        await cacheFirstLoad({
+          key,
+          ttlMs: LOGS_TTL_MS,
+          showLoading,
+          setLoading,
+          apply: applyGrowthCache,
+          fetcher: async () => {
+            const refs = babies.map((b) => ({ id: b.id, fullName: b.fullName }))
+            const [growthRows, milestoneRows] = await Promise.all([
+              loadGrowthForBabies(refs),
+              loadMilestonesForBabies(refs),
+            ])
+            return { measurements: growthRows, milestones: milestoneRows }
+          },
+        })
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Failed to load growth data')
+      }
+    },
+    [babies, applyGrowthCache],
+  )
 
   useFocusEffect(
     useCallback(() => {
@@ -137,8 +167,16 @@ export function useGrowthPage() {
         }
         return
       }
-      void syncAll()
-    }, [user?.id, babyIdsKey, babiesLoading, babies, syncAll]),
+
+      const key = logsCacheKey(
+        'growth',
+        babies.map((b) => b.id),
+      )
+      const cached = peekCachedData<GrowthCachePayload>(key)
+      if (cached) applyGrowthCache(cached.data)
+
+      void syncAll({ showLoading: !cached })
+    }, [user?.id, babyIdsKey, babiesLoading, babies, syncAll, applyGrowthCache]),
   )
 
   const resetGrowthForm = () => {

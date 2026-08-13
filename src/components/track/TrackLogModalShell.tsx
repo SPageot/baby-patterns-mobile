@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
+import { TourTarget } from '@/components/onboarding/TourTarget'
 import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
@@ -103,23 +104,27 @@ export function TrackLogModalShell({
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <View style={styles.overlay}>
           <Pressable style={styles.backdrop} onPress={onClose} accessibilityLabel="Close" />
-          <View style={styles.panel}>
-            <View style={[styles.panelAccent, { backgroundColor: accentColor }]} />
-            <View style={[styles.header, { borderBottomColor: accentBorder, backgroundColor: accentSoft }]}>
-              <Text style={styles.headerTitle}>{title}</Text>
-              <Pressable onPress={onClose} style={styles.closeBtn} accessibilityLabel="Close">
-                <Text style={styles.closeText}>×</Text>
-              </Pressable>
-            </View>
+          <View style={[styles.panel, { borderColor: accentBorder }]}>
+            <TourTarget id="log-form" style={{ flex: 1 }}>
+              <View style={[styles.panelAccent, { backgroundColor: accentColor }]} />
+              <View style={[styles.header, { borderBottomColor: accentBorder, backgroundColor: accentSoft }]}>
+                <Text style={styles.headerTitle}>{title}</Text>
+                <TourTarget id="log-form-close">
+                  <Pressable onPress={onClose} style={styles.closeBtn} accessibilityLabel="Close">
+                    <Text style={styles.closeText}>×</Text>
+                  </Pressable>
+                </TourTarget>
+              </View>
 
-            <ScrollView
-              style={styles.body}
-              contentContainerStyle={styles.bodyContent}
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-            >
-              {children}
-            </ScrollView>
+              <ScrollView
+                style={styles.body}
+                contentContainerStyle={styles.bodyContent}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                {children}
+              </ScrollView>
+            </TourTarget>
           </View>
         </View>
       </SafeAreaView>

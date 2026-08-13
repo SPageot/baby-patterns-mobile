@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { AppMenu, AppMenuButton } from '@/components/nav/AppMenu'
 import { BrandMark } from '@/components/nav/BrandMark'
+import { TourTarget } from '@/components/onboarding/TourTarget'
 import { NotificationsMenu } from '@/components/notifications/NotificationsMenu'
 import { Button } from '@/components/ui/primitives'
 import { useApp } from '@/context/AppContext'
@@ -12,6 +13,7 @@ import type { AppPalette } from '@/constants/homeTheme'
 import { heading } from '@/constants/typography'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
+import { emitTourAction } from '@/lib/onboardingActions'
 
 const createStyles = (t: AppPalette) => ({
   nav: {
@@ -69,9 +71,19 @@ export function Navbar() {
   const styles = useThemedStyles(createStyles)
   const [menuOpen, setMenuOpen] = useState(false)
 
+  const openMenu = () => {
+    setMenuOpen(true)
+    emitTourAction('menu-open')
+  }
+
+  const closeMenu = () => {
+    setMenuOpen(false)
+    emitTourAction('menu-close')
+  }
+
   return (
     <View style={[styles.nav, { paddingTop: insets.top + 8 }]}>
-      <AppMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <AppMenu open={menuOpen} onClose={closeMenu} />
       <View style={styles.inner}>
         <View style={styles.start}>
           <Pressable
@@ -97,7 +109,9 @@ export function Navbar() {
               </Link>
             </View>
           )}
-          <AppMenuButton onPress={() => setMenuOpen(true)} />
+          <TourTarget id="nav-menu-btn">
+            <AppMenuButton onPress={openMenu} />
+          </TourTarget>
         </View>
       </View>
     </View>

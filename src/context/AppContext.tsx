@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react'
@@ -16,8 +17,20 @@ import { syncAppStore } from '@/lib/appStore'
 import { applyAccountLocale } from '@/lib/applyAccountLocale'
 import { hydrateAvatarCache } from '@/lib/avatarCache'
 import { clearAuthSession, getAccessToken, hydrateAuthSession } from '@/lib/authSession'
+import {
+  invalidateAllDataCache,
+  invalidateBabiesCache,
+  markBabiesFresh,
+  shouldRefreshBabies,
+} from '@/lib/dataCache'
 import { ensureLiveConnection, stopLiveConnection } from '@/lib/liveHub'
+import {
+  invalidateAllProfileCache,
+  markProfileUserFresh,
+  shouldRefreshProfileUser,
+} from '@/lib/profileCache'
 import type { Baby, User } from '@/schemas/user'
+import { AppState } from 'react-native'
 
 type AppContextValue = {
   user: User | null
@@ -30,7 +43,7 @@ type AppContextValue = {
   selectBaby: (baby: Baby) => void
   addBaby: (baby: Baby) => void
   logout: () => Promise<void>
-  loadBabiesForCurrentUser: () => Promise<Baby[]>
+  loadBabiesForCurrentUser: (options?: { force?: boolean }) => Promise<Baby[]>
 }
 
 const AppContext = createContext<AppContextValue | null>(null)
@@ -40,10 +53,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [babies, setBabiesState] = useState<Baby[]>([])
   const [selectedBabyId, setSelectedBabyId] = useState('')
   const [authReady, setAuthReady] = useState(false)
+  const babiesRef = useRef(babies)
+  babiesRef.current = babies
+  const userIdRef = useRef(user?.id)
+  userIdRef.current = user?.id
 
   useEffect(() => {
     setSessionExpiredHandler(() => {
       void clearAuthSession().then(() => {
+        invalidateAllProfileCache()
+        invalidateAllDataCache()
         setUserState(null)
         setBabiesState([])
         setSelectedBabyId('')
@@ -83,11 +102,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (cancelled) return
         await hydrateAvatarCache(profile.id)
         setUserState(profile)
+        markProfileUserFresh(profile.id)
         void applyAccountLocale(profile.preferredLocale)
 
         const list = await fetchAccessibleBabies()
         if (cancelled) return
         setBabiesState(list)
+        markBabiesFresh()
         setSelectedBabyId((current) => {
           const match = list.find((b) => b.id === current) ?? list[0]
           return match?.id ?? ''
@@ -102,6 +123,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true
     }
+  }, [])
+
+  useEffect(() => {
+    if (!isApiConfigured() || !getAccessToken()) return
+
+    const refreshProfile = () => {
+      const userId = userIdRef.current?.trim()
+      if (!userId || !shouldRefreshProfileUser(userId)) return
+      void fetchCurrentUser()
+        .then((profile) => {
+          setUserState(profile)
+          markProfileUserFresh(profile.id)
+        })
+        .catch(() => {})
+    }
+
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') refreshProfile()
+    })
+    return () => sub.remove()
   }, [])
 
   const setUser = useCallback((next: User | null) => {
@@ -123,6 +164,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const addBaby = useCallback((baby: Baby) => {
     const id = baby.id?.trim()
     if (!id) return
+    invalidateBabiesCache()
     setBabiesState((prev) => {
       const index = prev.findIndex((b) => b.id === id)
       if (index < 0) return [...prev, baby]
@@ -133,24 +175,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSelectedBabyId(id)
   }, [])
 
-  const loadBabiesForCurrentUser = useCallback(async (): Promise<Baby[]> => {
-    if (!user?.id?.trim() || !isApiConfigured()) {
-      setBabiesState([])
-      setSelectedBabyId('')
-      return []
-    }
-    const list = await fetchAccessibleBabies()
-    setBabiesState(list)
-    setSelectedBabyId((current) => {
-      const match = list.find((b) => b.id === current) ?? list[0]
-      return match?.id ?? ''
-    })
-    return list
-  }, [user?.id])
+  const loadBabiesForCurrentUser = useCallback(
+    async (options?: { force?: boolean }): Promise<Baby[]> => {
+      if (!user?.id?.trim() || !isApiConfigured()) {
+        setBabiesState([])
+        setSelectedBabyId('')
+        return []
+      }
+      if (!options?.force && !shouldRefreshBabies()) {
+        return babiesRef.current
+      }
+      const list = await fetchAccessibleBabies()
+      setBabiesState(list)
+      markBabiesFresh()
+      setSelectedBabyId((current) => {
+        const match = list.find((b) => b.id === current) ?? list[0]
+        return match?.id ?? ''
+      })
+      return list
+    },
+    [user?.id],
+  )
 
   const logout = useCallback(async () => {
     await logoutUser()
     await stopLiveConnection()
+    invalidateAllProfileCache()
+    invalidateAllDataCache()
     setUserState(null)
     setBabiesState([])
     setSelectedBabyId('')

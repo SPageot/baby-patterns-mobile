@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -9,6 +9,8 @@ import { ProfileActivityCalendar } from '@/components/profile/ProfileActivityCal
 import { PostCard } from '@/components/parentsCorner/PostCard'
 import { HomeButton } from '@/components/home/HomeButton'
 import { NavIcon } from '@/components/icons/NavIcon'
+import { TourScrollView } from '@/components/onboarding/TourScrollView'
+import { TourTarget } from '@/components/onboarding/TourTarget'
 import { UserAvatar } from '@/components/ui/UserAvatar'
 import {
   Button,
@@ -300,7 +302,7 @@ export function ProfileScreen() {
 
   return (
     <Screen style={{ paddingTop: 0 }}>
-      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+      <TourScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         {profile.profileError ? <ErrorText>{profile.profileError}</ErrorText> : null}
 
         {proWelcome && isPaidPro ? (
@@ -362,6 +364,7 @@ export function ProfileScreen() {
           ) : null}
         </Card>
 
+        <TourTarget id="profile-this-month">
         <Card>
           <View style={styles.monthHead}>
             <View style={styles.monthHeadCopy}>
@@ -520,11 +523,14 @@ export function ProfileScreen() {
             />
           ) : null}
         </Card>
+        </TourTarget>
 
         <Card>
           <View style={styles.babiesHead}>
             <SectionTitle>Your babies</SectionTitle>
-            <Button title="Add baby" variant="ghost" onPress={() => router.push('/add-baby')} />
+            <TourTarget id="profile-add-baby-btn">
+              <Button title="Add baby" variant="ghost" onPress={() => router.push('/add-baby')} />
+            </TourTarget>
           </View>
           {profile.babies.length === 0 ? (
             <Subtitle>No babies yet.</Subtitle>
@@ -542,9 +548,11 @@ export function ProfileScreen() {
                   ) : null}
                 </View>
                 {profile.apiConfigured && !baby.isShared ? (
-                  <Pressable onPress={() => setEditBaby(baby)}>
-                    <Text style={styles.babyEdit}>Edit profile</Text>
-                  </Pressable>
+                  <TourTarget id="edit-baby-btn">
+                    <Pressable onPress={() => setEditBaby(baby)}>
+                      <Text style={styles.babyEdit}>Edit profile</Text>
+                    </Pressable>
+                  </TourTarget>
                 ) : null}
               </View>
             ))
@@ -598,7 +606,7 @@ export function ProfileScreen() {
         <Card>
           <FamilyMembersSection enabled={profile.apiConfigured && Boolean(user.id)} user={user} />
         </Card>
-      </ScrollView>
+      </TourScrollView>
 
       <BabyDetailsModal
         baby={editBaby}

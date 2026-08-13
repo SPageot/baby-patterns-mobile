@@ -1,5 +1,8 @@
 import { Link } from 'expo-router'
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
+
+import { TourScrollView } from '@/components/onboarding/TourScrollView'
+import { TourTarget } from '@/components/onboarding/TourTarget'
 import { useTranslation } from 'react-i18next'
 
 import { BabyChipBar } from '@/components/BabyChipBar'
@@ -99,15 +102,15 @@ export function PediatricianTrackScreen() {
 
   if (!isApiConfigured()) {
     return (
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <TourScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <ErrorText>{t('errors.apiRequired')}</ErrorText>
-      </ScrollView>
+      </TourScrollView>
     )
   }
 
   if (!user) {
     return (
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <TourScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <View style={styles.gate}>
           <View style={styles.iconWrap}>
             <NavIcon name="hospital" size={22} color={HEALTH_ACCENT} />
@@ -120,7 +123,7 @@ export function PediatricianTrackScreen() {
             to track pediatrician visits, recommendations, and immunizations.
           </Text>
         </View>
-      </ScrollView>
+      </TourScrollView>
     )
   }
 
@@ -130,24 +133,26 @@ export function PediatricianTrackScreen() {
 
   return (
     <>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.hero}>
-          <View style={styles.heroMain}>
-            <View style={styles.iconWrap}>
-              <NavIcon name="hospital" size={22} color={HEALTH_ACCENT} />
+      <TourScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <TourTarget id="page-pediatrician-content">
+          <View style={styles.hero}>
+            <View style={styles.heroMain}>
+              <View style={styles.iconWrap}>
+                <NavIcon name="hospital" size={22} color={HEALTH_ACCENT} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.title}>{t('pediatrician.title')}</Text>
+                <Text style={styles.sub}>{t('pediatrician.subtitle')}</Text>
+              </View>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.title}>{t('pediatrician.title')}</Text>
-              <Text style={styles.sub}>{t('pediatrician.subtitle')}</Text>
+            <View style={styles.statsRow}>
+              <View style={styles.stat}>
+                <Text style={styles.statN}>{page.visitCount}</Text>
+                <Text style={styles.statLabel}>{t('pediatrician.visitHistory')}</Text>
+              </View>
             </View>
           </View>
-          <View style={styles.statsRow}>
-            <View style={styles.stat}>
-              <Text style={styles.statN}>{page.visitCount}</Text>
-              <Text style={styles.statLabel}>{t('pediatrician.visitHistory')}</Text>
-            </View>
-          </View>
-        </View>
+        </TourTarget>
 
         {!page.isPro ? <TrackingHistoryBanner /> : null}
 
@@ -161,7 +166,9 @@ export function PediatricianTrackScreen() {
               <Text style={styles.sectionTitle}>{t('pediatrician.visitHistory')}</Text>
               <Text style={styles.sectionSub}>{t('pediatrician.subtitle')}</Text>
             </View>
-            <Button title={t('pediatrician.logVisit')} onPress={page.openForm} />
+            <TourTarget id="pediatrician-log-visit">
+              <Button title={t('pediatrician.logVisit')} onPress={page.openForm} />
+            </TourTarget>
           </View>
           {page.visibleVisits.length === 0 ? (
             <Text style={styles.empty}>{t('pediatrician.noVisits')}</Text>
@@ -199,7 +206,7 @@ export function PediatricianTrackScreen() {
         </Card>
 
         <HealthDisclaimer />
-      </ScrollView>
+      </TourScrollView>
 
       <PediatricianVisitModal page={page} />
     </>

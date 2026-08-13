@@ -1,6 +1,7 @@
 import { refreshAccessToken } from '@/api/authTokens'
 import { getApiBaseUrl } from '@/api/config'
 import { getAccessToken } from '@/lib/authSession'
+import { invalidateDataCacheForMutation } from '@/lib/dataCache'
 
 export class RequestTimeoutError extends Error {
   constructor(message = 'Request timed out') {
@@ -103,6 +104,7 @@ async function executeFetch<T>(
       throw new Error(text || `Request failed (${res.status})`)
     }
 
+    invalidateDataCacheForMutation(path, init?.method ?? 'GET')
     return readResponseBody<T>(res)
   } catch (e) {
     if (controller?.signal.aborted) throw new RequestTimeoutError()

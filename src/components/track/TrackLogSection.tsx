@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react'
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 
 import { NavIcon } from '@/components/icons/NavIcon'
+import { TourScrollView } from '@/components/onboarding/TourScrollView'
+import { TourTarget } from '@/components/onboarding/TourTarget'
 import { LoadingSpinner } from '@/components/ui/Loading'
 import { getTrackThemeFromPalette } from '@/constants/trackTheme'
 import type { AppPalette } from '@/constants/homeTheme'
@@ -12,6 +14,7 @@ import type { LogKind } from '@/types/babyLog'
 import { useHomeTheme } from '@/hooks/useHomeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
+import { emitTourAction } from '@/lib/onboardingActions'
 
 type Props = {
   kind: LogKind
@@ -171,50 +174,57 @@ export function TrackLogSection({
   const storageNote = t(`track.${kind}.storageNote`)
 
   return (
-    <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <View style={styles.hero}>
-        <View style={styles.heroMain}>
-          <View style={[styles.iconWrap, { backgroundColor: theme.accentSoft, borderColor: theme.accentBorder }]}>
-            <NavIcon name={theme.icon} size={22} color={theme.accent} />
+    <TourScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <TourTarget id={`page-${kind}-content`}>
+        <View style={styles.hero}>
+          <View style={styles.heroMain}>
+            <View style={[styles.iconWrap, { backgroundColor: theme.accentSoft, borderColor: theme.accentBorder }]}>
+              <NavIcon name={theme.icon} size={22} color={theme.accent} />
+            </View>
+            <View style={styles.heroCopy}>
+              <Text style={styles.title}>{title}</Text>
+              <Text style={styles.subtitle}>{subtitle}</Text>
+              {storageNote ? <Text style={styles.note}>{storageNote}</Text> : null}
+            </View>
           </View>
-          <View style={styles.heroCopy}>
-            <Text style={styles.title}>{title}</Text>
-            <Text style={styles.subtitle}>{subtitle}</Text>
-            {storageNote ? <Text style={styles.note}>{storageNote}</Text> : null}
-          </View>
-        </View>
 
-        <View style={[styles.stat, { backgroundColor: theme.accentSoft, borderColor: theme.accentBorder }]}>
-          {countLoading ? (
-            <LoadingSpinner size="sm" label={t('track.loadingCount')} />
-          ) : (
-            <Text style={[styles.statN, { color: theme.accent }]}>{todayCount}</Text>
-          )}
-          <Text style={styles.statLabel}>{todayUnit}</Text>
+          <View style={[styles.stat, { backgroundColor: theme.accentSoft, borderColor: theme.accentBorder }]}>
+            {countLoading ? (
+              <LoadingSpinner size="sm" label={t('track.loadingCount')} />
+            ) : (
+              <Text style={[styles.statN, { color: theme.accent }]}>{todayCount}</Text>
+            )}
+            <Text style={styles.statLabel}>{todayUnit}</Text>
+          </View>
         </View>
-      </View>
+      </TourTarget>
 
       {alerts ? <View style={styles.alerts}>{alerts}</View> : null}
 
       {!logFormOpen ? (
-        <Pressable
-          accessibilityRole="button"
-          onPress={onLogClick}
-          style={({ pressed }) => [
-            styles.cta,
-            { backgroundColor: theme.accentSoft, borderColor: theme.accentBorder },
-            pressed && styles.pressed,
-          ]}
-        >
-          <View style={[styles.ctaIcon, { borderColor: theme.accentBorder }]}>
-            <NavIcon name={theme.icon} size={20} color={theme.accent} />
-          </View>
-          <View style={styles.ctaText}>
-            <Text style={styles.ctaLabel}>{ctaLabel}</Text>
-            <Text style={styles.ctaHint}>{ctaHint}</Text>
-          </View>
-          <Text style={[styles.ctaArrow, { color: theme.accent }]}>→</Text>
-        </Pressable>
+        <TourTarget id={`log-cta-${kind}`}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              emitTourAction(`click:log-cta-${kind}`)
+              onLogClick()
+            }}
+            style={({ pressed }) => [
+              styles.cta,
+              { backgroundColor: theme.accentSoft, borderColor: theme.accentBorder },
+              pressed && styles.pressed,
+            ]}
+          >
+            <View style={[styles.ctaIcon, { borderColor: theme.accentBorder }]}>
+              <NavIcon name={theme.icon} size={20} color={theme.accent} />
+            </View>
+            <View style={styles.ctaText}>
+              <Text style={styles.ctaLabel}>{ctaLabel}</Text>
+              <Text style={styles.ctaHint}>{ctaHint}</Text>
+            </View>
+            <Text style={[styles.ctaArrow, { color: theme.accent }]}>→</Text>
+          </Pressable>
+        </TourTarget>
       ) : null}
 
       <View style={styles.panels}>
@@ -224,6 +234,6 @@ export function TrackLogSection({
       </View>
 
       {children}
-    </ScrollView>
+    </TourScrollView>
   )
 }

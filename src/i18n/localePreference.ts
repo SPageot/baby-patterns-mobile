@@ -1,17 +1,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
-import * as Localization from 'expo-localization'
 
-export type AppLocale = 'en' | 'es'
+export type AppLocale = 'en'
 
 export const LOCALE_STORAGE_KEY = 'baby-patterns-locale'
 
 export const APP_LOCALES: { code: AppLocale; label: string; nativeLabel: string }[] = [
   { code: 'en', label: 'English', nativeLabel: 'English' },
-  { code: 'es', label: 'Spanish', nativeLabel: 'Español' },
 ]
 
 export function isAppLocale(value: string | null | undefined): value is AppLocale {
-  return value === 'en' || value === 'es'
+  return value === 'en'
 }
 
 export async function getStoredLocale(): Promise<AppLocale | null> {
@@ -32,15 +30,9 @@ export async function storeLocale(locale: AppLocale): Promise<void> {
 }
 
 export function detectDeviceLocale(): AppLocale {
-  try {
-    const code = Localization.getLocales()[0]?.languageCode?.toLowerCase() ?? 'en'
-    if (code.startsWith('es')) return 'es'
-  } catch {
-    /* ignore */
-  }
   return 'en'
 }
 
 export async function resolveInitialLocale(): Promise<AppLocale> {
-  return (await getStoredLocale()) ?? detectDeviceLocale()
+  return 'en'
 }

@@ -17,6 +17,12 @@ import {
   todayCount,
 } from '@/lib/trackUtils'
 import { useDeferredEffect } from '@/lib/scheduleEffect'
+import {
+  cacheFirstLoad,
+  LOGS_TTL_MS,
+  logsCacheKey,
+  peekCachedData,
+} from '@/lib/dataCache'
 import type { LogRecord, SleepLogCreate } from '@/types/babyLog'
 import { useMultiBabyLogFlow } from '@/hooks/useMultiBabyLogFlow'
 import { sleepLogFromDetails } from '@/types/babyLog'
@@ -89,24 +95,32 @@ export function useSleepLogs() {
     [babies],
   )
 
-  const syncLogs = useCallback(async (babyList: Baby[]) => {
+  const syncLogs = useCallback(async (babyList: Baby[], options?: { showLoading?: boolean }) => {
     if (!isApiConfigured() || !babyList.length) {
       setSleepLogs([])
       setLoading(false)
       return
     }
 
-    setLoading(true)
+    const showLoading = options?.showLoading ?? true
+    const key = logsCacheKey(
+      'sleep',
+      babyList.map((b) => b.id),
+    )
     setError(null)
+
     try {
-      const rows = await loadSleepLogsForBabies(
-        babyList.map((b) => ({ id: b.id, fullName: b.fullName })),
-      )
-      setSleepLogs(rows)
+      await cacheFirstLoad({
+        key,
+        ttlMs: LOGS_TTL_MS,
+        showLoading,
+        setLoading,
+        apply: setSleepLogs,
+        fetcher: () =>
+          loadSleepLogsForBabies(babyList.map((b) => ({ id: b.id, fullName: b.fullName }))),
+      })
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load sleep logs')
-    } finally {
-      setLoading(false)
     }
   }, [])
 
@@ -136,7 +150,15 @@ export function useSleepLogs() {
       if (!babiesLoading) setLoading(false)
       return
     }
-    void syncLogs(babies)
+
+    const key = logsCacheKey(
+      'sleep',
+      babies.map((b) => b.id),
+    )
+    const cached = peekCachedData<LogRecord[]>(key)
+    if (cached) setSleepLogs(cached.data)
+
+    void syncLogs(babies, { showLoading: !cached })
   }, [user?.id, babyIdsKey, babiesLoading, babies, syncLogs])
 
   const resetForm = () => {

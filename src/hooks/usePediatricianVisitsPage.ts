@@ -12,6 +12,12 @@ import { useApp } from '@/context/AppContext'
 import { useConfirmAction } from '@/context/ConfirmContext'
 import type { PediatricianVisitDto } from '@/types/pediatrician'
 import { isoToDatetimeLocalValue, nowLocalInputValue } from '@/lib/trackUtils'
+import {
+  cacheFirstLoad,
+  LOGS_TTL_MS,
+  logsCacheKey,
+  peekCachedData,
+} from '@/lib/dataCache'
 import { filterPediatricianHistoryForUser } from '@/lib/healthAccess'
 import { isProUser } from '@/lib/subscription'
 
@@ -55,25 +61,39 @@ export function usePediatricianVisitsPage() {
     return filterPediatricianHistoryForUser(scoped, user)
   }, [visitRows, filterBabyId, user])
 
-  const syncAll = useCallback(async () => {
-    if (!isApiConfigured() || !babies.length) {
-      setVisitRows([])
-      setLoading(false)
-      return
-    }
+  const syncAll = useCallback(
+    async (options?: { showLoading?: boolean }) => {
+      if (!isApiConfigured() || !babies.length) {
+        setVisitRows([])
+        setLoading(false)
+        return
+      }
 
-    setLoading(true)
-    setError(null)
-    try {
-      const refs = babies.map((b) => ({ id: b.id, fullName: b.fullName }))
-      const rows = await loadPediatricianVisitsForBabies(refs)
-      setVisitRows(rows)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load pediatrician visits')
-    } finally {
-      setLoading(false)
-    }
-  }, [babies])
+      const showLoading = options?.showLoading ?? true
+      const key = logsCacheKey(
+        'pediatrician',
+        babies.map((b) => b.id),
+      )
+      setError(null)
+
+      try {
+        await cacheFirstLoad({
+          key,
+          ttlMs: LOGS_TTL_MS,
+          showLoading,
+          setLoading,
+          apply: setVisitRows,
+          fetcher: () => {
+            const refs = babies.map((b) => ({ id: b.id, fullName: b.fullName }))
+            return loadPediatricianVisitsForBabies(refs)
+          },
+        })
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Failed to load pediatrician visits')
+      }
+    },
+    [babies],
+  )
 
   useFocusEffect(
     useCallback(() => {
@@ -102,7 +122,15 @@ export function usePediatricianVisitsPage() {
         }
         return
       }
-      void syncAll()
+
+      const key = logsCacheKey(
+        'pediatrician',
+        babies.map((b) => b.id),
+      )
+      const cached = peekCachedData<(PediatricianVisitDto & { babyName: string })[]>(key)
+      if (cached) setVisitRows(cached.data)
+
+      void syncAll({ showLoading: !cached })
     }, [user?.id, babyIdsKey, babiesLoading, babies, syncAll]),
   )
 

@@ -1,4 +1,5 @@
 import { PostEditor } from '@/components/parentsCorner/PostEditor'
+import { TourTarget } from '@/components/onboarding/TourTarget'
 import type { PostSubmitInput } from '@/schemas/post'
 
 type Props = {
@@ -9,11 +10,13 @@ type Props = {
 
 export function PostComposer({ posting, isSiteDeveloper = false, onPublish }: Props) {
   return (
-    <PostEditor
-      isSiteDeveloper={isSiteDeveloper}
-      submitting={posting}
-      submitLabel="Post"
-      onSubmit={onPublish}
-    />
+    <TourTarget id="parents-corner-compose">
+      <PostEditor
+        isSiteDeveloper={isSiteDeveloper}
+        submitting={posting}
+        submitLabel="Post"
+        onSubmit={onPublish}
+      />
+    </TourTarget>
   )
 }

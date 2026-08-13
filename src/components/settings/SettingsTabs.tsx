@@ -5,6 +5,7 @@ import type { AppPalette } from '@/constants/homeTheme'
 import { HomeRadius } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
+import { TourTarget } from '@/components/onboarding/TourTarget'
 
 export type SettingsTabId =
   | 'email'
@@ -93,15 +94,16 @@ export function SettingsTabs({ active, onChange }: Props) {
       {TABS.map((tab) => {
         const isActive = active === tab.id
         return (
-          <Pressable
-            key={tab.id}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: isActive }}
-            onPress={() => onChange(tab.id)}
-            style={[styles.btn, isActive && styles.btnActive]}
-          >
-            <Text style={[styles.label, isActive && styles.labelActive]}>{t(tab.labelKey)}</Text>
-          </Pressable>
+          <TourTarget key={tab.id} id={`settings-tab-${tab.id}`}>
+            <Pressable
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              onPress={() => onChange(tab.id)}
+              style={[styles.btn, isActive && styles.btnActive]}
+            >
+              <Text style={[styles.label, isActive && styles.labelActive]}>{t(tab.labelKey)}</Text>
+            </Pressable>
+          </TourTarget>
         )
       })}
     </ScrollView>

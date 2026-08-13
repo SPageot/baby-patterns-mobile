@@ -22,8 +22,19 @@ import type {
 } from '@/types/health'
 import { SICKNESS_TYPE_OPTIONS } from '@/types/health'
 import { isoToDatetimeLocalValue, nowLocalInputValue } from '@/lib/trackUtils'
+import {
+  cacheFirstLoad,
+  LOGS_TTL_MS,
+  logsCacheKey,
+  peekCachedData,
+} from '@/lib/dataCache'
 import { filterInjuryHistoryForUser, filterSicknessHistoryForUser } from '@/lib/healthAccess'
 import { isProUser } from '@/lib/subscription'
+
+type HealthCachePayload = {
+  sicknessRows: (SicknessEventDto & { babyName: string })[]
+  injuryRows: (InjuryEventDto & { babyName: string })[]
+}
 
 export function useHealthEventsPage() {
   const { babies, selectedBabyId, selectBaby, user, loadBabiesForCurrentUser } = useApp()
@@ -96,30 +107,49 @@ export function useHealthEventsPage() {
     return filterInjuryHistoryForUser(scoped, user)
   }, [injuryRows, filterBabyId, user])
 
-  const syncAll = useCallback(async () => {
-    if (!isApiConfigured() || !babies.length) {
-      setSicknessRows([])
-      setInjuryRows([])
-      setLoading(false)
-      return
-    }
+  const applyHealthCache = useCallback((data: HealthCachePayload) => {
+    setSicknessRows(data.sicknessRows)
+    setInjuryRows(data.injuryRows)
+  }, [])
 
-    setLoading(true)
-    setError(null)
-    try {
-      const refs = babies.map((b) => ({ id: b.id, fullName: b.fullName }))
-      const [sickness, injuries] = await Promise.all([
-        loadSicknessForBabies(refs),
-        loadInjuryForBabies(refs),
-      ])
-      setSicknessRows(sickness)
-      setInjuryRows(injuries)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load health events')
-    } finally {
-      setLoading(false)
-    }
-  }, [babies])
+  const syncAll = useCallback(
+    async (options?: { showLoading?: boolean }) => {
+      if (!isApiConfigured() || !babies.length) {
+        setSicknessRows([])
+        setInjuryRows([])
+        setLoading(false)
+        return
+      }
+
+      const showLoading = options?.showLoading ?? true
+      const key = logsCacheKey(
+        'health',
+        babies.map((b) => b.id),
+      )
+      setError(null)
+
+      try {
+        await cacheFirstLoad({
+          key,
+          ttlMs: LOGS_TTL_MS,
+          showLoading,
+          setLoading,
+          apply: applyHealthCache,
+          fetcher: async () => {
+            const refs = babies.map((b) => ({ id: b.id, fullName: b.fullName }))
+            const [sickness, injuries] = await Promise.all([
+              loadSicknessForBabies(refs),
+              loadInjuryForBabies(refs),
+            ])
+            return { sicknessRows: sickness, injuryRows: injuries }
+          },
+        })
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Failed to load health events')
+      }
+    },
+    [babies, applyHealthCache],
+  )
 
   useFocusEffect(
     useCallback(() => {
@@ -149,8 +179,16 @@ export function useHealthEventsPage() {
         }
         return
       }
-      void syncAll()
-    }, [user?.id, babyIdsKey, babiesLoading, babies, syncAll]),
+
+      const key = logsCacheKey(
+        'health',
+        babies.map((b) => b.id),
+      )
+      const cached = peekCachedData<HealthCachePayload>(key)
+      if (cached) applyHealthCache(cached.data)
+
+      void syncAll({ showLoading: !cached })
+    }, [user?.id, babyIdsKey, babiesLoading, babies, syncAll, applyHealthCache]),
   )
 
   const resolveFormBabyId = () =>

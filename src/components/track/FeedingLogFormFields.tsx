@@ -3,6 +3,7 @@ import { Pressable, Text, View } from 'react-native'
 import { Input, Label } from '@/components/ui/primitives'
 import { DateTimeField } from '@/components/ui/DateTimeField'
 import { LogToggleRow } from '@/components/track/LogToggleRow'
+import { TourTarget } from '@/components/onboarding/TourTarget'
 import { toUtcIsoTime } from '@/api/diaperApi'
 import { feedingTypeLabel } from '@/lib/feedingLogUtils'
 import type { FeedingLogCreate } from '@/types/babyLog'
@@ -125,32 +126,34 @@ export function FeedingLogFormFields({
 
   return (
     <>
-      <Label>Type</Label>
-      <View style={styles.typeRow}>
-        {FEEDING_TYPES.map((type) => {
-          const active = state.feedingType === type
-          return (
-            <Pressable
-              key={type}
-              disabled={disabled}
-              onPress={() => set({ feedingType: type })}
-              style={[
-                styles.typeChip,
-                active && { borderColor: accentBorder, backgroundColor: accentSoft },
-              ]}
-            >
-              <Text
+      <TourTarget id="feeding-type">
+        <Label>Type</Label>
+        <View style={styles.typeRow}>
+          {FEEDING_TYPES.map((type) => {
+            const active = state.feedingType === type
+            return (
+              <Pressable
+                key={type}
+                disabled={disabled}
+                onPress={() => set({ feedingType: type })}
                 style={[
-                  styles.typeChipText,
-                  active && { color: accent, fontWeight: '800' as const },
+                  styles.typeChip,
+                  active && { borderColor: accentBorder, backgroundColor: accentSoft },
                 ]}
               >
-                {feedingTypeLabel(type)}
-              </Text>
-            </Pressable>
-          )
-        })}
-      </View>
+                <Text
+                  style={[
+                    styles.typeChipText,
+                    active && { color: accent, fontWeight: '800' as const },
+                  ]}
+                >
+                  {feedingTypeLabel(type)}
+                </Text>
+              </Pressable>
+            )
+          })}
+        </View>
+      </TourTarget>
 
       <DateTimeField
         label="When"

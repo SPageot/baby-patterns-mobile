@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
+
+import { TourScrollView } from '@/components/onboarding/TourScrollView'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { useTranslation } from 'react-i18next'
 
@@ -30,6 +32,7 @@ import type { AppPalette } from '@/constants/homeTheme'
 import { heading } from '@/constants/typography'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
 import { Spacing } from '@/constants/theme'
+import { requestOnboardingTour } from '@/lib/onboardingTourRequest'
 
 const createStyles = (t: AppPalette) => ({
   scroll: {
@@ -170,7 +173,7 @@ export function SettingsScreen() {
 
   return (
     <Screen style={{ paddingTop: 0 }}>
-      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <TourScrollView style={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <SectionTitle>{t('settings.title')}</SectionTitle>
         <Subtitle>{t('settings.subtitle')}</Subtitle>
 
@@ -239,11 +242,26 @@ export function SettingsScreen() {
         ) : null}
 
         {activeTab === 'account' ? (
-          <Card>
-            <SectionTitle>Delete account</SectionTitle>
-            <Subtitle>Permanently remove your account and associated data. This action cannot be undone.</Subtitle>
-            <Button title="Delete account" variant="ghost" onPress={() => setDeleteModalOpen(true)} />
-          </Card>
+          <>
+            <Card>
+              <SectionTitle>{t('onboarding.settings.title')}</SectionTitle>
+              <Subtitle>{t('onboarding.settings.subtitle')}</Subtitle>
+              <Button
+                title={t('onboarding.settings.takeTour')}
+                variant="secondary"
+                onPress={() => requestOnboardingTour()}
+              />
+            </Card>
+            <Card>
+              <SectionTitle>{t('settings.account.title')}</SectionTitle>
+              <Subtitle>{t('settings.account.subtitle')}</Subtitle>
+              <Button
+                title={t('settings.account.delete')}
+                variant="ghost"
+                onPress={() => setDeleteModalOpen(true)}
+              />
+            </Card>
+          </>
         ) : null}
 
         <View style={styles.links}>
@@ -259,7 +277,7 @@ export function SettingsScreen() {
             <Text style={styles.link}>Privacy Policy</Text>
           </Pressable>
         </View>
-      </ScrollView>
+      </TourScrollView>
 
       <DeleteAccountModal
         open={deleteModalOpen}

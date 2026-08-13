@@ -80,7 +80,7 @@ export default function LoginScreen() {
 
   const finishLogin = async (user: Awaited<ReturnType<typeof loginUser>>) => {
     setUser(user)
-    await loadBabiesForCurrentUser()
+    await loadBabiesForCurrentUser({ force: true })
     router.replace('/profile')
   }
 

@@ -1,6 +1,9 @@
 import { useMemo } from 'react'
 import { Link, useRouter } from 'expo-router'
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
+
+import { TourScrollView } from '@/components/onboarding/TourScrollView'
+import { TourTarget } from '@/components/onboarding/TourTarget'
 import { useTranslation } from 'react-i18next'
 
 import { BabyChipBar } from '@/components/BabyChipBar'
@@ -334,15 +337,15 @@ export function GrowthTrackScreen() {
 
   if (!isApiConfigured()) {
     return (
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <TourScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <ErrorText>Set EXPO_PUBLIC_API_URL in .env to connect to the API.</ErrorText>
-      </ScrollView>
+      </TourScrollView>
     )
   }
 
   if (!user) {
     return (
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <TourScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <View style={styles.gate}>
           <View style={styles.iconWrap}>
             <NavIcon name="growth" size={22} color={palette.accentDeep} />
@@ -355,7 +358,7 @@ export function GrowthTrackScreen() {
             to track weight, length, head size, and developmental milestones.
           </Text>
         </View>
-      </ScrollView>
+      </TourScrollView>
     )
   }
 
@@ -365,29 +368,31 @@ export function GrowthTrackScreen() {
 
   return (
     <>
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.hero}>
-          <View style={styles.heroMain}>
-            <View style={styles.iconWrap}>
-              <NavIcon name="growth" size={22} color={palette.accentDeep} />
+      <TourScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <TourTarget id="page-growth-content">
+          <View style={styles.hero}>
+            <View style={styles.heroMain}>
+              <View style={styles.iconWrap}>
+                <NavIcon name="growth" size={22} color={palette.accentDeep} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.title}>{t('growth.title')}</Text>
+                <Text style={styles.subtitle}>{t('growth.subtitle')}</Text>
+              </View>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.title}>{t('growth.title')}</Text>
-              <Text style={styles.subtitle}>{t('growth.subtitle')}</Text>
-            </View>
-          </View>
 
-          <View style={styles.statsRow}>
-            <View style={styles.stat}>
-              <Text style={styles.statN}>{growth.measurementCount}</Text>
-              <Text style={styles.statLabel}>{t('growth.measurements')}</Text>
-            </View>
-            <View style={styles.stat}>
-              <Text style={styles.statN}>{growth.milestoneCount}</Text>
-              <Text style={styles.statLabel}>{t('growth.milestones')}</Text>
+            <View style={styles.statsRow}>
+              <View style={styles.stat}>
+                <Text style={styles.statN}>{growth.measurementCount}</Text>
+                <Text style={styles.statLabel}>{t('growth.measurements')}</Text>
+              </View>
+              <View style={styles.stat}>
+                <Text style={styles.statN}>{growth.milestoneCount}</Text>
+                <Text style={styles.statLabel}>{t('growth.milestones')}</Text>
+              </View>
             </View>
           </View>
-        </View>
+        </TourTarget>
 
         <BabyChipBar />
 
@@ -399,19 +404,23 @@ export function GrowthTrackScreen() {
               <Text style={styles.sectionTitle}>{t('growth.measurements')}</Text>
               <Text style={styles.sectionSub}>{t('growth.subtitle')}</Text>
             </View>
-            <Button title={t('growth.addMeasurement')} onPress={growth.openGrowthForm} />
+            <TourTarget id="growth-add-measurement">
+              <Button title={t('growth.addMeasurement')} onPress={growth.openGrowthForm} />
+            </TourTarget>
           </View>
 
-          <View style={styles.chartCard}>
-            <Text style={styles.chartTitle}>{t('growth.weight')}</Text>
-            <GrowthTrendChart
-              measurements={growth.measurements}
-              metric="weightLbs"
-              title={t('growth.weight')}
-              unit="Pounds (lb)"
-              color={GROWTH_COLORS.weight}
-            />
-          </View>
+          <TourTarget id="growth-chart-weight">
+            <View style={styles.chartCard}>
+              <Text style={styles.chartTitle}>{t('growth.weight')}</Text>
+              <GrowthTrendChart
+                measurements={growth.measurements}
+                metric="weightLbs"
+                title={t('growth.weight')}
+                unit="Pounds (lb)"
+                color={GROWTH_COLORS.weight}
+              />
+            </View>
+          </TourTarget>
 
           <View style={styles.chartCard}>
             <Text style={styles.chartTitle}>{t('growth.height')}</Text>
@@ -476,7 +485,9 @@ export function GrowthTrackScreen() {
               <Text style={styles.sectionTitle}>{t('growth.milestones')}</Text>
               <Text style={styles.sectionSub}>{t('growth.commonMilestones')}</Text>
             </View>
-            <Button title={t('growth.addMilestone')} variant="secondary" onPress={() => growth.openMilestoneForm()} />
+            <TourTarget id="growth-add-milestone">
+              <Button title={t('growth.addMilestone')} variant="secondary" onPress={() => growth.openMilestoneForm()} />
+            </TourTarget>
           </View>
 
           {growth.milestones.length === 0 ? (
@@ -543,7 +554,7 @@ export function GrowthTrackScreen() {
         ) : null}
 
         <HealthDisclaimer />
-      </ScrollView>
+      </TourScrollView>
 
       <GrowthLogModal
         open={growth.growthFormOpen}

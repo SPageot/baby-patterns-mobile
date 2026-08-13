@@ -40,7 +40,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const onLanguageChanged = (lng: string) => {
-      if (lng === 'en' || lng === 'es') setLocaleState(lng)
+      if (lng === 'en') setLocaleState('en')
     }
     i18n.on('languageChanged', onLanguageChanged)
     return () => {

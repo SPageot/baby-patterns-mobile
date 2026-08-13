@@ -1,4 +1,8 @@
-import { ScrollView, Text, View } from 'react-native'
+import { Text, View } from 'react-native'
+
+import { TourScrollView } from '@/components/onboarding/TourScrollView'
+import { TourTarget } from '@/components/onboarding/TourTarget'
+
 import { Link } from 'expo-router'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -121,13 +125,13 @@ export function ParentsCornerScreen() {
 
   if (!isApiConfigured()) {
     return (
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      <TourScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <View style={styles.hero}>
           <Eyebrow>{t('nav.groups.community')}</Eyebrow>
           <Text style={styles.title}>{t('community.parentsCorner.title')}</Text>
         </View>
         <ErrorText>Set EXPO_PUBLIC_API_URL in .env to use Parents Corner.</ErrorText>
-      </ScrollView>
+      </TourScrollView>
     )
   }
 
@@ -136,7 +140,7 @@ export function ParentsCornerScreen() {
   }
 
   return (
-    <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <TourScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={styles.hero}>
         <View style={styles.iconWrap}>
           <NavIcon name="users" size={22} color={palette.accentDeep} />
@@ -216,6 +220,6 @@ export function ParentsCornerScreen() {
           isSiteDeveloper={isSiteDeveloper(user)}
         />
       ))}
-    </ScrollView>
+    </TourScrollView>
   )
 }
