@@ -5,7 +5,7 @@ import { Link, router } from 'expo-router'
 import { UnauthorizedError, RequestTimeoutError } from '@/api/client'
 import { isApiConfigured } from '@/api/config'
 import { completeMfaLogin } from '@/api/mfaApi'
-import { loginUser, MfaRequiredError } from '@/api/userApi'
+import { loginUser, loginWithGoogle, MfaRequiredError } from '@/api/userApi'
 import {
   AccentTitle,
   Button,
@@ -23,6 +23,7 @@ import { useApp } from '@/context/AppContext'
 import { LegalFooterLinks } from '@/components/legal/LegalFooterLinks'
 import type { AppPalette } from '@/constants/homeTheme'
 import { useThemedStyles } from '@/hooks/useThemedStyles'
+import { useGoogleSignIn } from '@/lib/googleAuth'
 import { normalizeLoginCredentials, validateLogin, INVALID_LOGIN_CREDENTIALS_MESSAGE } from '@/schemas/user'
 
 const createStyles = (t: AppPalette) => ({
@@ -61,6 +62,15 @@ const createStyles = (t: AppPalette) => ({
   modeLabelActive: {
     color: t.accentDeep,
   },
+  divider: {
+    marginVertical: 14,
+    textAlign: 'center' as const,
+    fontSize: 12,
+    fontWeight: '600' as const,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase' as const,
+    color: t.textMuted,
+  },
 })
 
 type MfaMode = 'totp' | 'recovery'
@@ -83,6 +93,35 @@ export default function LoginScreen() {
     await loadBabiesForCurrentUser({ force: true })
     router.replace('/profile')
   }
+
+  const { configured: googleConfigured, ready: googleReady, prompt: promptGoogle } = useGoogleSignIn({
+    disabled: loading,
+    onBusyChange: setLoading,
+    onError: setError,
+    onIdToken: async (idToken) => {
+      if (!isApiConfigured()) {
+        setError('Set EXPO_PUBLIC_API_URL in .env to connect to the API.')
+        return
+      }
+      setError(null)
+      try {
+        const user = await loginWithGoogle(idToken)
+        await finishLogin(user)
+      } catch (e) {
+        if (e instanceof MfaRequiredError) {
+          setMfaChallengeToken(e.challengeToken)
+          setPendingUsername('')
+          setError(null)
+          return
+        }
+        if (e instanceof RequestTimeoutError) {
+          setError(e.message)
+        } else {
+          setError(e instanceof UnauthorizedError ? e.message : 'Google sign-in failed. Please try again.')
+        }
+      }
+    },
+  })
 
   const onSubmit = async () => {
     if (!isApiConfigured()) {
@@ -233,6 +272,17 @@ export default function LoginScreen() {
                 />
 
                 <Button title={loading ? 'Signing in…' : 'Log in'} loading={loading} onPress={() => void onSubmit()} />
+
+                {googleConfigured ? (
+                  <>
+                    <Text style={styles.divider}>or</Text>
+                    <Button
+                      title={loading ? 'Continuing…' : 'Continue with Google'}
+                      loading={loading || !googleReady}
+                      onPress={() => void promptGoogle()}
+                    />
+                  </>
+                ) : null}
               </>
             )}
           </Card>

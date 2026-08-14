@@ -489,6 +489,35 @@ export async function loginUser(credentials: LoginCredentials): Promise<User> {
   }
 }
 
+/** POST `api/auth/google` — stores tokens and loads the user profile, or throws MfaRequiredError. */
+export async function loginWithGoogle(idToken: string): Promise<User> {
+  try {
+    const data = await apiFetch<unknown>(
+      'api/auth/google',
+      {
+        method: 'POST',
+        body: JSON.stringify({ idToken: idToken.trim() }),
+      },
+      { skipAuth: true, skipRefresh: true },
+    )
+
+    const mfa = extractMfaChallenge(data)
+    if (mfa) {
+      throw new MfaRequiredError(mfa.challengeToken)
+    }
+
+    const tokens = await persistAuthTokens(data)
+    if (!tokens) {
+      throw new UnauthorizedError('Google sign-in failed. Please try again.')
+    }
+
+    return fetchCurrentUser()
+  } catch (e) {
+    if (e instanceof MfaRequiredError || e instanceof RequestTimeoutError) throw e
+    throw new UnauthorizedError(resolveLoginErrorMessage(e) || 'Google sign-in failed. Please try again.')
+  }
+}
+
 function resolveLoginErrorMessage(error: unknown): string {
   if (error instanceof UnauthorizedError && error.message.trim()) {
     return error.message
