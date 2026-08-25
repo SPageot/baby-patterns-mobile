@@ -82,9 +82,9 @@ export const homeSitePages: HomeSitePage[] = [
     body: 'Community feed — post updates, comment, like, mention others, and attach media.',
   },
   {
-    title: 'Reviews',
-    href: '/reviews',
-    body: 'Browse and write reviews for baby brands and products.',
+    title: 'Recommendation Shop',
+    href: '/recommendation-shop',
+    body: 'Browse parent-recommended baby gear by category, with product links, photos, and reviews.',
   },
   {
     title: 'Consultants',

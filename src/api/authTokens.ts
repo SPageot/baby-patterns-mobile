@@ -118,48 +118,59 @@ function getAuthRefreshPath(): string {
   return path.replace(/^\//, '')
 }
 
+let refreshInFlight: Promise<boolean> | null = null
+
+/** Dedupes concurrent refreshes so rotation does not revoke the whole session. */
 export async function refreshAccessToken(): Promise<boolean> {
-  const refreshToken = getRefreshToken()?.trim()
-  if (!refreshToken) {
-    await clearAuthSession()
-    return false
-  }
-  const base = getApiBaseUrl()
-  if (!base) {
-    await clearAuthSession()
-    return false
-  }
-  try {
-    const res = await fetch(`${base}/${getAuthRefreshPath()}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ refreshToken }),
-    })
-    if (!res.ok) {
+  if (refreshInFlight) return refreshInFlight
+
+  refreshInFlight = (async () => {
+    const refreshToken = getRefreshToken()?.trim()
+    if (!refreshToken) {
       await clearAuthSession()
       return false
     }
-    const text = await res.text()
-    if (!text) {
+    const base = getApiBaseUrl()
+    if (!base) {
       await clearAuthSession()
       return false
     }
-    const data = JSON.parse(text) as unknown
-    const tokens = extractAuthTokens(data)
-    if (!tokens?.accessToken) {
+    try {
+      const res = await fetch(`${base}/${getAuthRefreshPath()}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      })
+      if (!res.ok) {
+        await clearAuthSession()
+        return false
+      }
+      const text = await res.text()
+      if (!text) {
+        await clearAuthSession()
+        return false
+      }
+      const data = JSON.parse(text) as unknown
+      const tokens = extractAuthTokens(data)
+      if (!tokens?.accessToken) {
+        await clearAuthSession()
+        return false
+      }
+      await setAuthSession({
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken || refreshToken,
+        userId: tokens.userId || getSessionUserId() || undefined,
+      })
+      return true
+    } catch {
       await clearAuthSession()
       return false
     }
-    await setAuthSession({
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken || refreshToken,
-      userId: tokens.userId || getSessionUserId() || undefined,
-    })
-    return true
-  } catch {
-    await clearAuthSession()
-    return false
-  }
+  })().finally(() => {
+    refreshInFlight = null
+  })
+
+  return refreshInFlight
 }
 
 export async function bootstrapAuthSession(): Promise<boolean> {

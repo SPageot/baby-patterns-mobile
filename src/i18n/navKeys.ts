@@ -15,7 +15,7 @@ const HREF_TO_KEY: Record<string, string> = {
   '/daily-memories': 'nav.links.dailyMemories',
   '/parents-corner': 'nav.links.parentsCorner',
   '/solution-board': 'nav.links.solutionBoard',
-  '/reviews': 'nav.links.reviews',
+  '/recommendation-shop': 'nav.links.recommendationShop',
   '/consultants': 'nav.links.consultants',
   '/feedback': 'nav.links.feedback',
   '/pricing': 'nav.links.pricing',

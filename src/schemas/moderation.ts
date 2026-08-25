@@ -7,6 +7,7 @@ export type ModerationContentType =
   | 'post_comment'
   | 'solution_note'
   | 'product_review'
+  | 'shop_recommendation_review'
 
 export const CONTENT_REPORT_REASON_LABELS: Record<ContentReportReason, string> = {
   spam: 'Spam',

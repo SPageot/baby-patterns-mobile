@@ -142,7 +142,7 @@ export function invalidateDataCacheForMutation(path: string, method: string): vo
     invalidateCachedData(familyCacheKey())
     invalidateCachedDataByPrefix('logs:')
   }
-  if (pathMatches(path, ['api/brand', 'api/brands', 'api/reviews'])) {
+  if (pathMatches(path, ['api/brand', 'api/brands', 'api/reviews', 'api/shop-recommendations'])) {
     invalidateCachedData(brandsCacheKey())
   }
   if (pathMatches(path, ['api/notifications', 'api/notification'])) {
